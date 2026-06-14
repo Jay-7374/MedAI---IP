@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation Hub - MedAI Flow</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="loading-screen"><div class="spinner"></div></div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><div class="brand-icon"><i class="fas fa-heartbeat"></i></div><span class="brand-name">MedAI Flow</span></div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li class="sidebar-item active"><a href="appointments.html"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                <li class="sidebar-item"><a href="medicines.html"><i class="fas fa-pills"></i> Medicines</a></li>
+                <li class="sidebar-item"><a href="followup.html"><i class="fas fa-phone-alt"></i> Follow-Up</a></li>
+                <li class="sidebar-item"><a href="discharge.html"><i class="fas fa-file-medical-alt"></i> Post-Discharge</a></li>
+                <li class="sidebar-item"><a href="insurance.html"><i class="fas fa-file-invoice-dollar"></i> Insurance</a></li>
+                <li class="sidebar-item" style="border-left:2px solid var(--danger);"><a href="emergency.html" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> EMERGENCY SOS</a></li>
+                <li class="sidebar-item" style="margin-top:auto;"><a href="index.html"><i class="fas fa-sign-out-alt"></i> Terminate Session</a></li>
+            </ul>
+        </aside>
+
+        <nav class="top-nav">
+            <div style="display:flex; align-items:center; gap:1rem;"><i class="fas fa-bars menu-toggle"></i><div class="search-bar"><i class="fas fa-search" style="color:var(--text-secondary);"></i><input type="text" id="globalSystemSearch" placeholder="Filter practitioner nodes..."></div></div>
+        </nav>
+
+        <main class="main-content">
+            <header style="margin-bottom:2rem; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h1 style="font-size:1.75rem; font-weight:600;">Consultation Infrastructure</h1>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Configure parameters to schedule automated clinical resources.</p>
+                </div>
+            </header>
+
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:1.5rem;">
+                <div class="card" style="height:fit-content;">
+                    <h3 style="margin-bottom:1.25rem; font-size:1.1rem;">Parameter Initialization</h3>
+                    <form id="appointmentBookingForm">
+                        <div class="form-group"><label class="form-label">Patient Identifier</label><input type="text" class="form-control" value="Alex Mercer" readonly></div>
+                        <div class="form-group">
+                            <label class="form-label">Clinician Target Node</label>
+                            <select class="form-control" id="targetDoctorNode" style="background:#0F172A;" required>
+                                <option value="">Select Practitioner...</option>
+                                <option value="Dr. Reed">Dr. Evelyn Reed (Cardiology)</option>
+                                <option value="Dr. Vance">Dr. Marcus Vance (Neurology)</option>
+                                <option value="Dr. Foster">Dr. Sarah Foster (Pediatrics)</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label class="form-label">Target Calendar Matrix</label><input type="date" class="form-control" required style="background:#0F172A;"></div>
+                        <div class="form-group"><label class="form-label">Temporal Window Slot</label><input type="time" class="form-control" required style="background:#0F172A;"></div>
+                        <div class="form-group"><label class="form-label">Symptom Vector Specification</label><textarea class="form-control" rows="3" placeholder="Describe symptoms..." style="background:#0F172A; resize:none;"></textarea></div>
+                        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">Verify Resource Reservation</button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom:1rem; font-size:1.1rem;">Active Operational Clinician Directory</h3>
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <div class="card searchable-card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; gap:1rem; align-items:center;">
+                                <div class="avatar" style="width:48px; height:48px; font-size:1.2rem;">ER</div>
+                                <div>
+                                    <h4 style="font-size:1rem; margin-bottom:0.15rem;">Dr. Evelyn Reed</h4>
+                                    <p style="font-size:0.8rem; color:var(--accent); font-weight:500;">Cardiology Senior Executive</p>
+                                    <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;"><i class="fas fa-check-circle" style="color:var(--success);"></i> Allocation Capacity Status: Available</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="document.getElementById('targetDoctorNode').value='Dr. Reed';">Lock Target</button>
+                        </div>
+
+                        <div class="card searchable-card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; gap:1rem; align-items:center;">
+                                <div class="avatar" style="width:48px; height:48px; font-size:1.2rem;">MV</div>
+                                <div>
+                                    <h4 style="font-size:1rem; margin-bottom:0.15rem;">Dr. Marcus Vance</h4>
+                                    <p style="font-size:0.8rem; color:var(--accent); font-weight:500;">Neurological Science Specialist</p>
+                                    <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;"><i class="fas fa-check-circle" style="color:var(--success);"></i> Allocation Capacity Status: Available</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="document.getElementById('targetDoctorNode').value='Dr. Vance';">Lock Target</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="bookingConfirmationModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 style="color:var(--success);"><i class="fas fa-check-circle"></i> Allocation Match Success</h3>
+                <i class="fas fa-times" data-dismiss="modal" style="cursor:pointer; color:var(--text-secondary);"></i>
+            </div>
+            <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">Resource scheduling verified across clinical blocks. Digital pipeline authorization key has been assigned.</p>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn btn-primary" data-dismiss="modal">Acknowledge</button></div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

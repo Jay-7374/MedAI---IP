@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Follow-Up Diagnostics - MedAI Flow</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="loading-screen"><div class="spinner"></div></div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><div class="brand-icon"><i class="fas fa-heartbeat"></i></div><span class="brand-name">MedAI Flow</span></div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="appointments.html"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                <li class="sidebar-item"><a href="medicines.html"><i class="fas fa-pills"></i> Medicines</a></li>
+                <li class="sidebar-item active"><a href="followup.html"><i class="fas fa-phone-alt"></i> Follow-Up</a></li>
+                <li class="sidebar-item"><a href="discharge.html"><i class="fas fa-file-medical-alt"></i> Post-Discharge</a></li>
+                <li class="sidebar-item"><a href="insurance.html"><i class="fas fa-file-invoice-dollar"></i> Insurance</a></li>
+                <li class="sidebar-item" style="border-left:2px solid var(--danger);"><a href="emergency.html" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> EMERGENCY SOS</a></li>
+                <li class="sidebar-item" style="margin-top:auto;"><a href="index.html"><i class="fas fa-sign-out-alt"></i> Terminate Session</a></li>
+            </ul>
+        </aside>
+
+        <nav class="top-nav">
+            <div style="display:flex; align-items:center; gap:1rem;"><i class="fas fa-bars menu-toggle"></i><div class="search-bar"><i class="fas fa-search" style="color:var(--text-secondary);"></i><input type="text" id="globalSystemSearch" placeholder="Query consultation records..."></div></div>
+        </nav>
+
+        <main class="main-content">
+            <header style="margin-bottom:2rem;">
+                <h1 style="font-size:1.75rem; font-weight:600;">Adaptive Follow-Up System</h1>
+                <p style="color:var(--text-secondary); font-size:0.9rem;">Automated checking systems evaluate healing metrics using custom input surveys.</p>
+            </header>
+
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem;">
+                <div style="display:flex; flex-direction:column; gap:1.5rem;">
+                    <div class="card">
+                        <h3 style="font-size:1.1rem; margin-bottom:1rem;">Historical Consultation Log</h3>
+                        <div class="table-container">
+                            <table class="custom-table">
+                                <thead><tr><th>Timeline Token</th><th>Clinician Node</th><th>Specialty Focus</th><th>Status Context</th></tr></thead>
+                                <tbody>
+                                    <tr><td>2026-05-14</td><td>Dr. Evelyn Reed</td><td>Cardiology</td><td><span class="badge badge-success">Closed Vector</span></td></tr>
+                                    <tr><td>2026-04-02</td><td>Dr. Marcus Vance</td><td>Neurology</td><td><span class="badge badge-success">Closed Vector</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size:1.1rem; margin-bottom:1rem;">Recovery Feedback Structuring</h3>
+                        <form onsubmit="event.preventDefault(); showToast('Recovery vectors committed to neural analytics dataset.', 'success');">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                <div class="form-group"><label class="form-label">Subjective Mobility Rating</label><select class="form-control" style="background:#0F172A;"><option>Optimal Range</option><option>Moderate Restriction</option><option>Severe Deviation</option></select></div>
+                                <div class="form-group"><label class="form-label">Discomfort Coefficient</label><select class="form-control" style="background:#0F172A;"><option>Zero Manifestation</option><option>Mild Threshold</option><option>Acute Variance</option></select></div>
+                            </div>
+                            <div class="form-group"><label class="form-label">Physiological Symptoms Observations</label><textarea class="form-control" rows="3" placeholder="Log any additional internal physiological changes..." style="background:#0F172A; resize:none;"></textarea></div>
+                            <button type="submit" class="btn btn-accent">Transmit Telemetry Feedback</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:1.5rem;">
+                    <div class="card" style="text-align:center; padding:2rem 1.5rem;">
+                        <h3 style="font-size:1rem; color:var(--text-secondary); margin-bottom:1rem;">Current Recovery Progression</h3>
+                        <div style="width:120px; height:120px; border-radius:50%; border:6px solid rgba(16,185,129,0.1); border-top-color:var(--success); margin:0 auto 1rem; display:flex; align-items:center; justify-content:center; font-size:1.75rem; font-weight:700; color:var(--success);">88%</div>
+                        <p style="font-size:0.85rem; color:var(--text-secondary);">Your recovery curve tracking aligns closely with specified medical forecasts.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

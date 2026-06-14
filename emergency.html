@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crisis Dispatch Interface - MedAI Flow</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sos-glowing-trigger { width: 160px; height: 160px; border-radius: 50%; background: linear-gradient(135deg, #ef4444, #b91c1c); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; letter-spacing: 1px; cursor: pointer; margin: 2rem auto; border: 6px solid rgba(255, 255, 255, 0.1); animation: pulseGlow 2s infinite; box-shadow: 0 0 20px var(--danger-glow); transition: var(--transition); }
+        .sos-glowing-trigger:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div id="loading-screen"><div class="spinner"></div></div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><div class="brand-icon"><i class="fas fa-heartbeat"></i></div><span class="brand-name">MedAI Flow</span></div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="appointments.html"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                <li class="sidebar-item"><a href="medicines.html"><i class="fas fa-pills"></i> Medicines</a></li>
+                <li class="sidebar-item"><a href="followup.html"><i class="fas fa-phone-alt"></i> Follow-Up</a></li>
+                <li class="sidebar-item"><a href="discharge.html"><i class="fas fa-file-medical-alt"></i> Post-Discharge</a></li>
+                <li class="sidebar-item"><a href="insurance.html"><i class="fas fa-file-invoice-dollar"></i> Insurance</a></li>
+                <li class="sidebar-item active" style="border-left:2px solid var(--danger);"><a href="emergency.html" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> EMERGENCY SOS</a></li>
+                <li class="sidebar-item" style="margin-top:auto;"><a href="index.html"><i class="fas fa-sign-out-alt"></i> Terminate Session</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content" style="margin-top:20px;">
+            <div style="max-width:900px; margin:0 auto;">
+                <div class="card" style="border-color:var(--danger); background:rgba(239,68,68,0.03); text-align:center; padding:3rem 2rem; margin-bottom:2rem;">
+                    <h1 style="color:var(--danger); font-size:2rem; font-weight:700;"><i class="fas fa-shield-virus"></i> Critical Response Node</h1>
+                    <p style="color:var(--text-secondary); max-width:500px; margin:0.5rem auto 1.5rem;">Activating the interface below bypasses standard queuing protocols and locks priority responder routing layers.</p>
+                    
+                    <div class="sos-glowing-trigger" onclick="executeEmergencySOSSignal();">
+                        <i class="fas fa-ambulance" style="font-size:2rem; margin-bottom:0.25rem;"></i>
+                        <span>SOS</span>
+                    </div>
+                    <div id="emergencyDispatchStatusFlow"></div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+                    <div class="card">
+                        <h3 style="font-size:1.1rem; margin-bottom:1rem;"><i class="fas fa-hospital-alt" style="color:var(--accent); margin-right:0.5rem;"></i> Dynamic Proximity Trauma Infrastructure</h3>
+                        <div style="display:flex; flex-direction:column; gap:0.75rem; text-align:left;">
+                            <div style="padding:0.75rem; background:rgba(255,255,255,0.02); border-radius:6px; display:flex; justify-content:space-between;">
+                                <div><strong>Metro Trauma Center Central</strong><p style="font-size:0.75rem; color:var(--text-secondary);">Distance Range: 1.8 km</p></div>
+                                <span class="badge badge-success" style="height:fit-content;">ER Open</span>
+                            </div>
+                            <div style="padding:0.75rem; background:rgba(255,255,255,0.02); border-radius:6px; display:flex; justify-content:space-between;">
+                                <div><strong>St. Jude Surgical Core</strong><p style="font-size:0.75rem; color:var(--text-secondary);">Distance Range: 4.2 km</p></div>
+                                <span class="badge badge-success" style="height:fit-content;">ER Open</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="text-align:left;">
+                        <h3 style="font-size:1.1rem; margin-bottom:1rem;"><i class="fas fa-phone-square-alt" style="color:var(--primary); margin-right:0.5rem;"></i> Designated Emergency Contact Matrix</h3>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem;">
+                            <p>Primary Liaison: <strong>Sarah Mercer (Spouse)</strong> - +1 (555) 019-2831</p>
+                            <p>Assigned Clinician: <strong>Dr. Evelyn Reed (Cardiology)</strong> - +1 (555) 014-9921</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

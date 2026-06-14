@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Processing Hub - MedAI Flow</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="loading-screen"><div class="spinner"></div></div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><div class="brand-icon"><i class="fas fa-heartbeat"></i></div><span class="brand-name">MedAI Flow</span></div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="appointments.html"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                <li class="sidebar-item"><a href="medicines.html"><i class="fas fa-pills"></i> Medicines</a></li>
+                <li class="sidebar-item"><a href="followup.html"><i class="fas fa-phone-alt"></i> Follow-Up</a></li>
+                <li class="sidebar-item"><a href="discharge.html"><i class="fas fa-file-medical-alt"></i> Post-Discharge</a></li>
+                <li class="sidebar-item active"><a href="insurance.html"><i class="fas fa-file-invoice-dollar"></i> Insurance</a></li>
+                <li class="sidebar-item" style="border-left:2px solid var(--danger);"><a href="emergency.html" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> EMERGENCY SOS</a></li>
+                <li class="sidebar-item" style="margin-top:auto;"><a href="index.html"><i class="fas fa-sign-out-alt"></i> Terminate Session</a></li>
+            </ul>
+        </aside>
+
+        <nav class="top-nav">
+            <div style="display:flex; align-items:center; gap:1rem;"><i class="fas fa-bars menu-toggle"></i><div class="search-bar"><i class="fas fa-search" style="color:var(--text-secondary);"></i><input type="text" id="globalSystemSearch" placeholder="Query coverage policy records..."></div></div>
+        </nav>
+
+        <main class="main-content">
+            <header style="margin-bottom:2rem;">
+                <h1 style="font-size:1.75rem; font-weight:600;">Insurance Verification & Claims Infrastructure</h1>
+                <p style="color:var(--text-secondary); font-size:0.9rem;">Automated claim analysis pipeline auditing insurance coverages dynamically.</p>
+            </header>
+
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:1.5rem;">
+                <div style="display:flex; flex-direction:column; gap:1.5rem;">
+                    <div class="card">
+                        <h3 style="font-size:1.1rem; margin-bottom:1rem;">Active Policy Target</h3>
+                        <p style="font-size:0.8rem; color:var(--text-secondary);">POLICY TOKEN IDENTIFIER</p>
+                        <p style="font-size:1.25rem; font-weight:600; color:var(--accent); margin-bottom:1rem;">NHA-99281-X4</p>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.5rem;"><span>Coverage Ceiling Limit</span><strong>$250,000</strong></div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem;"><span>Current Liability Risk Matrix</span><strong>Corporate Elite Premium</strong></div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size:1rem; margin-bottom:0.75rem;">Ingest Claim Documentation</h3>
+                        <div style="border:2px dashed var(--border); padding:1.5rem; text-align:center; border-radius:8px; cursor:pointer;" onclick="showToast('Document ingested into OCR validation matrix.', 'info');">
+                            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary); margin-bottom:0.5rem;"></i>
+                            <p style="font-size:0.85rem; color:var(--text-secondary);">Drop regulatory clinical files here or tap to locate paths.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Active Automated Claim Pipeline Traces</h3>
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="border-left:3px solid var(--success); padding-left:1rem; position:relative;">
+                            <h4 style="font-size:0.95rem; margin-bottom:0.15rem;">Claim Node #CLM-88192</h4>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">Cardiology Diagnostic Workup Coverage Allocation Block</p>
+                            <span class="badge badge-success">Approved Vector</span>
+                        </div>
+                        <div style="border-left:3px solid var(--warning); padding-left:1rem; position:relative;">
+                            <h4 style="font-size:0.95rem; margin-bottom:0.15rem;">Claim Node #CLM-88401</h4>
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">Pharmacology Pipeline Dispensation Allocation Trace</p>
+                            <span class="badge badge-warning">Under active AI Audit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

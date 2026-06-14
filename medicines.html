@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regimen Optimization Matrix - MedAI Flow</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="loading-screen"><div class="spinner"></div></div>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><div class="brand-icon"><i class="fas fa-heartbeat"></i></div><span class="brand-name">MedAI Flow</span></div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li class="sidebar-item"><a href="appointments.html"><i class="fas fa-calendar-alt"></i> Appointments</a></li>
+                <li class="sidebar-item active"><a href="medicines.html"><i class="fas fa-pills"></i> Medicines</a></li>
+                <li class="sidebar-item"><a href="followup.html"><i class="fas fa-phone-alt"></i> Follow-Up</a></li>
+                <li class="sidebar-item"><a href="discharge.html"><i class="fas fa-file-medical-alt"></i> Post-Discharge</a></li>
+                <li class="sidebar-item"><a href="insurance.html"><i class="fas fa-file-invoice-dollar"></i> Insurance</a></li>
+                <li class="sidebar-item" style="border-left:2px solid var(--danger);"><a href="emergency.html" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> EMERGENCY SOS</a></li>
+                <li class="sidebar-item" style="margin-top:auto;"><a href="index.html"><i class="fas fa-sign-out-alt"></i> Terminate Session</a></li>
+            </ul>
+        </aside>
+
+        <nav class="top-nav">
+            <div style="display:flex; align-items:center; gap:1rem;"><i class="fas fa-bars menu-toggle"></i><div class="search-bar"><i class="fas fa-search" style="color:var(--text-secondary);"></i><input type="text" id="globalSystemSearch" placeholder="Filter dynamic tracking entries..."></div></div>
+        </nav>
+
+        <main class="main-content">
+            <header style="margin-bottom:2rem;">
+                <h1 style="font-size:1.75rem; font-weight:600;">Regimen Optimization Matrix</h1>
+                <p style="color:var(--text-secondary); font-size:0.9rem;">Configure pharmacology schedules and trace adherence metrics.</p>
+            </header>
+
+            <div style="display:grid; grid-template-columns:1fr 2fr; gap:1.5rem;">
+                <div class="card" style="height:fit-content;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1.25rem;">Append Regimen Directive</h3>
+                    <div class="form-group"><label class="form-label">Pharmacological Name</label><input type="text" id="medNameInput" class="form-control" placeholder="e.g., Atorvastatin" style="background:#0F172A;"></div>
+                    <div class="form-group"><label class="form-label">Concentration Measure</label><input type="text" id="medDoseInput" class="form-control" placeholder="e.g., 20mg" style="background:#0F172A;"></div>
+                    <div class="form-group"><label class="form-label">Temporal Execution Frame</label><input type="time" id="medTimeInput" class="form-control" style="background:#0F172A;"></div>
+                    <button class="btn btn-primary" onclick="executeAddMedicineRow();" style="width:100%; margin-top:0.5rem;"><i class="fas fa-plus"></i> Inject Into Adherence Loop</button>
+                </div>
+
+                <div>
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem;">Active Regimen Allocation Streams</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;" id="activeMedicineScheduleGrid">
+                        <div class="card searchable-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <h3 style="color:var(--accent); font-size:1.1rem; margin-bottom:0.25rem;">Lisinopril</h3>
+                                    <p style="font-size:0.9rem; margin-bottom:0.2rem;">Dosage: <strong>10mg</strong></p>
+                                    <p style="font-size:0.85rem; color:var(--text-secondary);"><i class="far fa-clock"></i> Scheduled: 08:00 AM</p>
+                                </div>
+                                <span class="badge badge-success">Adhered</span>
+                            </div>
+                        </div>
+
+                        <div class="card searchable-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <h3 style="color:var(--accent); font-size:1.1rem; margin-bottom:0.25rem;">Metformin</h3>
+                                    <p style="font-size:0.9rem; margin-bottom:0.2rem;">Dosage: <strong>500mg</strong></p>
+                                    <p style="font-size:0.85rem; color:var(--text-secondary);"><i class="far fa-clock"></i> Scheduled: 13:00 PM</p>
+                                </div>
+                                <span class="badge badge-warning">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
