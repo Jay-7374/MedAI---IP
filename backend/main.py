@@ -289,7 +289,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
         db.close()
 
 # Serving static frontend files (React built bundle first, fallback to source)
-# Trigger auto-reload for built frontend dist
+# Trigger auto-reload for all 11 voice bot agents
 frontend_path = "../frontend/dist"
 if not os.path.exists(frontend_path):
     frontend_path = "frontend/dist"

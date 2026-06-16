@@ -19,6 +19,21 @@ import {
   Clock
 } from 'lucide-react';
 
+const DEFAULT_PROMPTS = {
+  General: "You are MedAI Flow, an advanced AI hospital automation voice bot. Keep your responses short, professional, and clear. Help the patient with their queries.",
+  AppointmentBooking: "You are an AI Appointment Booking Assistant. Help the patient select a department, clinic location, or clinician to request a booking, and collect details of their symptoms.",
+  PatientFollowUp: "You are an AI Patient Follow-Up Calls Agent. Your task is to check on patients who recently visited the clinic, ask about their recovery status, medication side effects, and log any feedback or concerns they express.",
+  PostDischarge: "You are an AI Post-Discharge Monitoring Bot. Ask patients who were recently discharged about their surgical wounds, medication compliance, daily pain levels, and general progress. Flag anomalies for clinician escalation if needed.",
+  MedicineReminder: "You are an AI Medicine Reminder Assistant. Check if the patient has taken their daily medications (Lisinopril, Metformin), remind them of schedules, and log compliance.",
+  InsuranceSupport: "You are an AI Health Insurance Support Bot. Answer coverage queries, explain claim status, clarify co-pays or deductibles, and assist with pre-authorization workflows.",
+  EmergencyTriage: "You are an AI Emergency Triage Voice Assistant. Your goal is to assess patient symptoms, classify the severity (Red, Yellow, Green), and provide quick priority-based guidance. If the symptoms indicate a life-threatening crisis, command them to trigger the SOS dispatch immediately.",
+  DiagnosticEnquiry: "You are an AI Diagnostic Center Enquiry Handler. Assist patients with enquiries regarding laboratory tests, radiology pricing, test requirements (like fasting), and result delivery timelines.",
+  DoctorScheduling: "You are an AI Doctor Appointment Scheduling Agent. Access practitioner schedules, find open timeslots matching specialty requirements, and coordinate bookings preventing double allocations.",
+  AiNurse: "You are an AI Nurse Assistant. Answer patient care questions, clarify discharge recovery instructions, explain basic medications, and address common health FAQs in a warm, caring manner.",
+  ElderCare: "You are an AI Elder Care Monitoring Voice Bot. Perform daily check-ins on elderly patients, check on physical comfort levels, confirm if they took medications, and log vital parameters (e.g. pulse, temp).",
+  Telemedicine: "You are an AI Telemedicine Voice Assistant. Guide the patient through an end-to-end virtual consult: collect symptoms, run a preliminary triage, and summarize the session to prepare for connecting with a doctor."
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState({ name: 'Alex Mercer', role: 'Patient' });
@@ -590,11 +605,17 @@ export default function App() {
                     style={{ background: 'var(--panel-bg)' }}
                   >
                     <option value="General">General Medical Assistant</option>
-                    <option value="EmergencyTriage">Emergency Triage Nurse</option>
-                    <option value="AppointmentBooking">Appointment Booking Agent</option>
-                    <option value="MedicineReminder">Medication Compliance Bot</option>
-                    <option value="InsuranceSupport">Health Insurance Helpdesk</option>
-                    <option value="NurseAssistant">AI Nursing Support Assistant</option>
+                    <option value="AppointmentBooking">Appointment Booking Assistant</option>
+                    <option value="PatientFollowUp">Patient Follow-Up Calls</option>
+                    <option value="PostDischarge">Post-Discharge Monitoring Bot</option>
+                    <option value="MedicineReminder">Medicine Reminder Assistant</option>
+                    <option value="InsuranceSupport">Health Insurance Support Bot</option>
+                    <option value="EmergencyTriage">Emergency Triage Voice Assistant</option>
+                    <option value="DiagnosticEnquiry">Diagnostic Center Enquiry Handling</option>
+                    <option value="DoctorScheduling">Doctor Appointment Scheduling</option>
+                    <option value="AiNurse">AI Nurse Assistant</option>
+                    <option value="ElderCare">Elder Care Monitoring Voice Bot</option>
+                    <option value="Telemedicine">Telemedicine Voice Assistant</option>
                   </select>
                 </div>
                 
@@ -854,11 +875,17 @@ export default function App() {
                     style={{ background: 'var(--panel-bg)' }}
                   >
                     <option value="General">General Medical Assistant</option>
-                    <option value="EmergencyTriage">Emergency Triage Nurse</option>
-                    <option value="AppointmentBooking">Appointment Booking Agent</option>
-                    <option value="MedicineReminder">Medication Compliance Bot</option>
-                    <option value="InsuranceSupport">Health Insurance Helpdesk</option>
-                    <option value="NurseAssistant">AI Nursing Support Assistant</option>
+                    <option value="AppointmentBooking">Appointment Booking Assistant</option>
+                    <option value="PatientFollowUp">Patient Follow-Up Calls</option>
+                    <option value="PostDischarge">Post-Discharge Monitoring Bot</option>
+                    <option value="MedicineReminder">Medicine Reminder Assistant</option>
+                    <option value="InsuranceSupport">Health Insurance Support Bot</option>
+                    <option value="EmergencyTriage">Emergency Triage Voice Assistant</option>
+                    <option value="DiagnosticEnquiry">Diagnostic Center Enquiry Handling</option>
+                    <option value="DoctorScheduling">Doctor Appointment Scheduling</option>
+                    <option value="AiNurse">AI Nurse Assistant</option>
+                    <option value="ElderCare">Elder Care Monitoring Voice Bot</option>
+                    <option value="Telemedicine">Telemedicine Voice Assistant</option>
                   </select>
                 </div>
 
