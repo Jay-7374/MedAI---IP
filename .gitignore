@@ -1,0 +1,35 @@
+# Security / Credentials
+.env
+.env.*
+api-keys.txt
+*.pem
+*.key
+
+# Python Virtual Environments & Cache
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Node.js / React Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Database & Docker Local Volumes
+postgres_data/
+.docker/
+
+# IDE / System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
