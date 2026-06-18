@@ -16,8 +16,10 @@ import {
   Check, 
   Send,
   MessageSquare,
-  Clock
+  Clock,
+  ArrowLeft
 } from 'lucide-react';
+
 
 const DEFAULT_PROMPTS = {
   General: "You are MedAI Flow, an advanced AI hospital automation voice bot. Keep your responses short, professional, and clear. Help the patient with their queries.",
@@ -35,9 +37,43 @@ const DEFAULT_PROMPTS = {
 };
 
 export default function App() {
+  const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState({ name: 'Alex Mercer', role: 'Patient' });
   const [toast, setToast] = useState(null);
+
+  // Navigation History Stack
+  const [historyStack, setHistoryStack] = useState([]);
+
+  const navigateTo = (newView, newTab) => {
+    // Prevent pushing duplicate consecutive states onto history
+    setHistoryStack(prev => {
+      if (prev.length > 0) {
+        const last = prev[prev.length - 1];
+        if (last.view === view && last.activeTab === activeTab) {
+          return prev;
+        }
+      }
+      return [...prev, { view, activeTab }];
+    });
+    setView(newView);
+    if (newTab) {
+      setActiveTab(newTab);
+    }
+  };
+
+  const goBack = () => {
+    if (historyStack.length > 0) {
+      const previous = historyStack[historyStack.length - 1];
+      setHistoryStack(prev => prev.slice(0, -1));
+      setView(previous.view);
+      setActiveTab(previous.activeTab);
+    } else {
+      setView('landing');
+    }
+  };
+
+
 
   // Telemetry Telemetry Vitals
   const [vitals, setVitals] = useState({
@@ -431,39 +467,159 @@ export default function App() {
     }
   };
 
+  if (view === 'landing') {
+    return (
+      <div className="landing-container">
+        {/* Background Glow Layer */}
+        <div className="bg-glow-layer">
+          <div className="glow-blob glow-blob-1"></div>
+          <div className="glow-blob glow-blob-2"></div>
+          <div className="glow-blob glow-blob-3"></div>
+        </div>
+
+        {/* Navigation Header */}
+        <header className="landing-nav">
+          <div className="landing-nav-logo" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
+            <Heart size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))' }} />
+            <span>MedAI Flow</span>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="landing-hero-section">
+          <div className="landing-hero-content">
+            <h1 className="landing-title">
+              Autonomous AI Hospital Voice Bot & Telemetry
+            </h1>
+            <p className="landing-subtitle">
+              Orchestrate conversational voice agents, live ECG patient tracking, medical reminders, and emergency triage dispatches in a unified, next-generation medical control console.
+            </p>
+            <div className="landing-cta-group">
+              <button className="btn btn-primary btn-cta" onClick={() => navigateTo('app', 'dashboard')}>
+                Launch Console <Send size={16} />
+              </button>
+              <button className="btn btn-cta-outline" onClick={() => navigateTo('app', 'voicebot')}>
+                Talk to AI Agent <PhoneCall size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="landing-hero-visual">
+            <div className="landing-orb-shield"></div>
+            <div className="landing-visual-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="badge badge-success">Biometrics Live</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Pulse: {vitals.heartrate} BPM</span>
+              </div>
+              
+              <div style={{ height: '100px', width: '100%', overflow: 'hidden', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <svg className="ekg-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                  <path 
+                    className="ekg-line"
+                    d="M 0 100 L 40 100 Q 50 90 60 100 L 90 100 L 98 115 L 108 30 L 118 170 L 128 100 L 160 100 Q 175 80 190 100 L 240 100 L 280 100 Q 290 90 300 100 L 330 100 L 338 115 L 348 30 L 358 170 L 368 100 L 400 100 Q 415 80 430 100 L 480 100 L 520 100 Q 530 90 540 100 L 570 100 L 578 115 L 588 30 L 598 170 L 600 100" 
+                  />
+                </svg>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)', animation: 'sosPulse 1.5s infinite' }}></div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>System Core: Online</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature Grid */}
+        <section className="landing-features-grid">
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon primary">
+              <PhoneCall size={22} />
+            </div>
+            <h3 className="landing-feature-title">Real-Time Voice AI</h3>
+            <p className="landing-feature-desc">
+              Interact with custom WebRTC voice assistants specialized in telemedicine, medical reminders, eldercare support, and scheduling.
+            </p>
+          </div>
+
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon success">
+              <Activity size={22} />
+            </div>
+            <h3 className="landing-feature-title">Live Biometric Stream</h3>
+            <p className="landing-feature-desc">
+              Continuously track patient pulse rate, oxygen levels, and core temperatures with automated anomalies alerts and active ECG waves.
+            </p>
+          </div>
+
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon secondary">
+              <Settings size={22} />
+            </div>
+            <h3 className="landing-feature-title">Prompt Orchestrator</h3>
+            <p className="landing-feature-desc">
+              Manage LLM contexts dynamically. Swap instructions, update nurse behaviors, or customize diagnostics triage scripts in real-time.
+            </p>
+          </div>
+
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon warning">
+              <AlertTriangle size={22} />
+            </div>
+            <h3 className="landing-feature-title">Crisis Triage SOS</h3>
+            <p className="landing-feature-desc">
+              Instantly bypass regular queue operations, flag critical logs, and dispatch active ambulances with real-time ETA countdowns.
+            </p>
+          </div>
+        </section>
+
+        {/* Minimal Footer */}
+        <footer className="landing-footer">
+          <p>© {new Date().getFullYear()} MedAI Flow Automation. Designed with high-fidelity healthcare diagnostics.</p>
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
+      {/* Background Glow Layer */}
+      <div className="bg-glow-layer">
+        <div className="glow-blob glow-blob-1"></div>
+        <div className="glow-blob glow-blob-2"></div>
+        <div className="glow-blob glow-blob-3"></div>
+      </div>
+
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        <div className="brand">
+        <div className="brand" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
           <i className="fa-solid fa-heartbeat"></i>
           <span>MedAI Flow</span>
         </div>
         <ul className="menu">
           <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}>
-            <button onClick={() => setActiveTab('dashboard')}><ActivitySquare size={18} /> Dashboard</button>
+            <button onClick={() => navigateTo('app', 'dashboard')}><ActivitySquare size={18} /> Dashboard</button>
           </li>
           <li className={`menu-item ${activeTab === 'voicebot' ? 'active' : ''}`}>
-            <button onClick={() => setActiveTab('voicebot')}><PhoneCall size={18} /> Voice AI Assistant</button>
+            <button onClick={() => navigateTo('app', 'voicebot')}><PhoneCall size={18} /> Voice AI Assistant</button>
           </li>
           <li className={`menu-item ${activeTab === 'appointments' ? 'active' : ''}`}>
-            <button onClick={() => setActiveTab('appointments')}><Calendar size={18} /> Appointments</button>
+            <button onClick={() => navigateTo('app', 'appointments')}><Calendar size={18} /> Appointments</button>
           </li>
           <li className={`menu-item ${activeTab === 'medicines' ? 'active' : ''}`}>
-            <button onClick={() => setActiveTab('medicines')}><Pill size={18} /> Medicines</button>
+            <button onClick={() => navigateTo('app', 'medicines')}><Pill size={18} /> Medicines</button>
           </li>
           <li className={`menu-item ${activeTab === 'prompts' ? 'active' : ''}`}>
-            <button onClick={() => setActiveTab('prompts')}><Settings size={18} /> Prompt Manager</button>
+            <button onClick={() => navigateTo('app', 'prompts')}><Settings size={18} /> Prompt Manager</button>
           </li>
-          <li className={`menu-item danger-item ${activeTab === 'emergency' ? 'active' : ''}`} style={{ borderLeft: activeTab === 'emergency' ? '3px solid var(--danger)' : 'none' }}>
-            <button onClick={() => setActiveTab('emergency')}><AlertTriangle size={18} /> EMERGENCY SOS</button>
+          <li className={`menu-item danger-item ${activeTab === 'emergency' ? 'active' : ''}`}>
+            <button onClick={() => navigateTo('app', 'emergency')}><AlertTriangle size={18} /> EMERGENCY SOS</button>
           </li>
         </ul>
-        <div style={{ marginTop: 'auto', padding: '0.85rem 1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div className="user-profile-widget">
           <div className="avatar">AM</div>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user.name}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{user.role}</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.role}</div>
           </div>
         </div>
       </aside>
@@ -471,14 +627,19 @@ export default function App() {
       {/* Main Container */}
       <div className="content">
         <header className="top-bar">
-          <h2 className="top-bar-title">
-            {activeTab === 'dashboard' && "Telemetry Command Console"}
-            {activeTab === 'voicebot' && "Real-time AI Voice Interaction"}
-            {activeTab === 'appointments' && "Consultation Scheduling matrix"}
-            {activeTab === 'medicines' && "Regimen Allocation Stream"}
-            {activeTab === 'prompts' && "Prompt Template Orchestrator"}
-            {activeTab === 'emergency' && "Crisis Response Center"}
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <button className="btn-back" onClick={goBack}>
+              <ArrowLeft size={16} /> Back
+            </button>
+            <h2 className="top-bar-title">
+              {activeTab === 'dashboard' && "Telemetry Command Console"}
+              {activeTab === 'voicebot' && "Real-time AI Voice Interaction"}
+              {activeTab === 'appointments' && "Consultation Scheduling matrix"}
+              {activeTab === 'medicines' && "Regimen Allocation Stream"}
+              {activeTab === 'prompts' && "Prompt Template Orchestrator"}
+              {activeTab === 'emergency' && "Crisis Response Center"}
+            </h2>
+          </div>
           <div className="profile-card">
             <span className="badge badge-success">Telemetry Stream: OK</span>
           </div>
@@ -488,8 +649,9 @@ export default function App() {
           {/* Toast Container */}
           {toast && (
             <div id="toast-container">
-              <div className={`toast toast-${toast.type}`} style={{ borderLeftColor: `var(--${toast.type})` }}>
-                {toast.message}
+              <div className={`toast toast-${toast.type}`}>
+                <Activity size={18} className={toast.type === 'danger' ? 'fa-spin' : ''} />
+                <span>{toast.message}</span>
               </div>
             </div>
           )}
@@ -498,8 +660,8 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <>
               <section className="metrics-grid">
-                <div className="card metric-card">
-                  <div className="metric-icon" style={{ background: 'rgba(239, 68, 68, 0.12)', color: 'var(--danger)' }}>
+                <div className="card metric-card pulse">
+                  <div className="metric-icon" style={{ background: 'rgba(244, 63, 94, 0.08)', color: 'var(--danger)', borderColor: 'rgba(244, 63, 94, 0.15)' }}>
                     <Heart size={24} />
                   </div>
                   <div className="metric-details">
@@ -507,8 +669,8 @@ export default function App() {
                     <div className="metric-value">{vitals.heartrate} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>BPM</span></div>
                   </div>
                 </div>
-                <div className="card metric-card">
-                  <div className="metric-icon" style={{ background: 'rgba(99, 102, 241, 0.12)', color: 'var(--secondary)' }}>
+                <div className="card metric-card bp">
+                  <div className="metric-icon" style={{ background: 'rgba(139, 92, 246, 0.08)', color: 'var(--secondary)', borderColor: 'rgba(139, 92, 246, 0.15)' }}>
                     <Activity size={24} />
                   </div>
                   <div className="metric-details">
@@ -516,8 +678,8 @@ export default function App() {
                     <div className="metric-value">{vitals.bloodPressure} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>mmHg</span></div>
                   </div>
                 </div>
-                <div className="card metric-card">
-                  <div className="metric-icon" style={{ background: 'rgba(14, 165, 233, 0.12)', color: 'var(--primary)' }}>
+                <div className="card metric-card oxygen">
+                  <div className="metric-icon" style={{ background: 'rgba(0, 210, 255, 0.08)', color: 'var(--primary)', borderColor: 'rgba(0, 210, 255, 0.15)' }}>
                     <ActivitySquare size={24} />
                   </div>
                   <div className="metric-details">
@@ -525,8 +687,8 @@ export default function App() {
                     <div className="metric-value">{vitals.spo2}% <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>SpO2</span></div>
                   </div>
                 </div>
-                <div className="card metric-card">
-                  <div className="metric-icon" style={{ background: 'rgba(245, 158, 11, 0.12)', color: 'var(--warning)' }}>
+                <div className="card metric-card temp">
+                  <div className="metric-icon" style={{ background: 'rgba(245, 158, 11, 0.08)', color: 'var(--warning)', borderColor: 'rgba(245, 158, 11, 0.15)' }}>
                     <Thermometer size={24} />
                   </div>
                   <div className="metric-details">
@@ -539,50 +701,56 @@ export default function App() {
               <div className="dashboard-split">
                 <div className="card">
                   <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Activity size={18} style={{ color: 'var(--primary)' }} /> Live Telemetry Analytics
+                    <Activity size={18} style={{ color: 'var(--success)' }} /> Live Telemetry ECG Monitor
                   </h3>
-                  <div style={{ height: '240px', border: '1px dashed var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.15)', gap: '0.5rem' }}>
-                    <div className="audio-visualizer-box">
-                      <div className="audio-bar animating" style={{ background: 'var(--success)' }}></div>
-                      <div className="audio-bar animating" style={{ background: 'var(--success)' }}></div>
-                      <div className="audio-bar animating" style={{ background: 'var(--success)' }}></div>
-                      <div className="audio-bar animating" style={{ background: 'var(--success)' }}></div>
-                      <div className="audio-bar animating" style={{ background: 'var(--success)' }}></div>
+                  <div className="ekg-container">
+                    <div className="ekg-grid-overlay"></div>
+                    <svg className="ekg-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                      <path 
+                        className={`ekg-line ${vitals.heartrate > 85 ? 'ekg-line-fast' : ''}`}
+                        d="M 0 100 L 40 100 Q 50 90 60 100 L 90 100 L 98 115 L 108 30 L 118 170 L 128 100 L 160 100 Q 175 80 190 100 L 240 100 L 280 100 Q 290 90 300 100 L 330 100 L 338 115 L 348 30 L 358 170 L 368 100 L 400 100 Q 415 80 430 100 L 480 100 L 520 100 Q 530 90 540 100 L 570 100 L 578 115 L 588 30 L 598 170 L 600 100" 
+                      />
+                    </svg>
+                    <div style={{ position: 'absolute', bottom: '1rem', right: '1.25rem', background: 'rgba(0,0,0,0.6)', padding: '0.35rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)', display: 'inline-block', boxShadow: `0 0 8px ${vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)'}` }}></span>
+                      <span style={{ color: 'var(--text-secondary)' }}>Biometric Stream:</span>
+                      <strong style={{ color: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)' }}>{vitals.heartrate > 85 ? 'HIGH HEART RATE' : 'NORMAL'}</strong>
                     </div>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Biometric stream validation telemetry rendering normal.</p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div className="card">
-                    <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Clock size={16} style={{ color: 'var(--warning)' }} /> Active Regimen
                     </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {medicines.slice(0, 3).map((med, idx) => (
-                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>{med.name} ({med.dosage})</span>
-                          <span style={{ color: med.status === 'Taken' ? 'var(--primary)' : 'var(--warning)' }}>{med.time}</span>
+                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 600 }}>{med.name} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({med.dosage})</span></span>
+                          <span className="badge badge-warning">{med.time}</span>
                         </div>
                       ))}
                       {medicines.length === 0 && (
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No scheduled medications configured.</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No scheduled medications configured.</div>
                       )}
                     </div>
                   </div>
 
                   <div className="card">
-                    <h3 style={{ marginBottom: '0.75rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Calendar size={16} style={{ color: 'var(--success)' }} /> Consultation
+                    <h3 style={{ marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Calendar size={16} style={{ color: 'var(--primary)' }} /> Next Consultation
                     </h3>
                     {appointments.length > 0 ? (
-                      <>
-                        <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>{appointments[appointments.length - 1].doctor}</p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{appointments[appointments.length - 1].specialty}</p>
-                        <span className="badge badge-success">{appointments[appointments.length - 1].date}, {appointments[appointments.length - 1].time}</span>
-                      </>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <p style={{ fontSize: '0.95rem', fontWeight: 700 }}>{appointments[appointments.length - 1].doctor}</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{appointments[appointments.length - 1].specialty}</p>
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <span className="badge badge-success">{appointments[appointments.length - 1].date}, {appointments[appointments.length - 1].time}</span>
+                        </div>
+                      </div>
                     ) : (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No scheduled consultations pending.</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No scheduled consultations pending.</p>
                     )}
                   </div>
                 </div>
@@ -592,17 +760,19 @@ export default function App() {
 
           {/* TAB 2: VOICE BOT */}
           {activeTab === 'voicebot' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
-              <div className="card" style={{ height: 'fit-content' }}>
-                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem' }}>Select Assistant</h3>
-                <div className="form-group">
+            <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1.75fr', gap: '1.75rem' }}>
+              <div className="card" style={{ height: 'fit-content', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Voice Portal</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Select assistant role and click portal to connect.</p>
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Voice Agent Core</label>
                   <select 
                     className="form-control" 
                     value={selectedBot}
                     onChange={(e) => setSelectedBot(e.target.value)}
                     disabled={callStatus !== 'Idle'}
-                    style={{ background: 'var(--panel-bg)' }}
                   >
                     <option value="General">General Medical Assistant</option>
                     <option value="AppointmentBooking">Appointment Booking Assistant</option>
@@ -619,70 +789,79 @@ export default function App() {
                   </select>
                 </div>
                 
-                <div style={{ textAlign: 'center', margin: '2rem 0' }}>
-                  {callStatus === 'Idle' ? (
-                    <button className="btn btn-primary" onClick={startCallSession} style={{ padding: '1rem 2rem', borderRadius: '50px' }}>
-                      <PhoneCall size={20} /> Start Voice Session
-                    </button>
-                  ) : (
-                    <button className="btn btn-danger" onClick={endCallSession} style={{ padding: '1rem 2rem', borderRadius: '50px' }}>
-                      <PhoneCall size={20} style={{ transform: 'rotate(135deg)' }} /> End Session
-                    </button>
-                  )}
+                <div className="voice-portal-wrapper">
+                  <div 
+                    className={`voice-portal ${callStatus.toLowerCase()} ${isSpeaking ? 'speaking' : ''}`}
+                    onClick={callStatus === 'Idle' ? startCallSession : endCallSession}
+                  >
+                    <div className="voice-portal-inner">
+                      <PhoneCall size={36} style={{ transform: callStatus !== 'Idle' ? 'rotate(135deg)' : 'none', transition: 'var(--transition)' }} />
+                    </div>
+                    <div className="pulse-ring ring-1"></div>
+                    <div className="pulse-ring ring-2"></div>
+                    <div className="pulse-ring ring-3"></div>
+                  </div>
+                  
+                  <div className="voice-visualizer-wave">
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                    <div className="audio-wave-bar"></div>
+                  </div>
+
+                  <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {callStatus === 'Idle' && "Tap Portal to Connect"}
+                    {callStatus === 'Connecting' && "Initializing Audio Stream..."}
+                    {callStatus === 'Connected' && (isSpeaking ? "AI Assistant Speaking..." : "Listening (Speak now)...")}
+                  </p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem', borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Session Channel</span>
-                    <span style={{ fontWeight: 600 }}>WebRTC WebSockets</span>
+                    <span style={{ fontWeight: 700 }}>WebSockets Link</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Status</span>
-                    <span style={{ color: callStatus === 'Connected' ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>
+                    <span className={`badge ${callStatus === 'Connected' ? 'badge-success' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
                       {callStatus}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '520px' }}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Active Conversational Stream</h3>
-                
-                {callStatus === 'Connected' && (
-                  <div className="audio-visualizer-box">
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                    <div className={`audio-bar ${isSpeaking ? 'animating' : ''}`}></div>
-                  </div>
-                )}
+              <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '540px' }}>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', fontWeight: 700 }}>Conversation Stream</h3>
 
-                <div className="transcript-area" style={{ flex: 1, marginBottom: '1rem' }}>
+                <div className="transcript-area" style={{ flex: 1, marginBottom: '1.25rem' }}>
                   {transcripts.map((msg, idx) => (
                     <div key={idx} className={`transcript-message ${msg.speaker === 'User' ? 'user' : 'ai'}`}>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.2rem', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>{msg.speaker}</span>
-                        {msg.latency_ms && <span>{msg.latency_ms}ms</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
+                        <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: msg.speaker === 'User' ? 'rgba(255,255,255,0.15)' : 'rgba(var(--primary-rgb), 0.15)', color: msg.speaker === 'User' ? '#fff' : 'var(--primary)' }}>
+                          {msg.speaker}
+                        </span>
+                        {msg.latency_ms && <span style={{ fontFamily: 'monospace' }}>({msg.latency_ms}ms latency)</span>}
                       </div>
-                      <div>{msg.text}</div>
+                      <div style={{ fontWeight: 500 }}>{msg.text}</div>
                     </div>
                   ))}
                   {transcripts.length === 0 && (
-                    <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                      Start call to initiate dialogue stream.
+                    <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+                      Dialogue stream is currently empty. Connect above to start.
                     </div>
                   )}
                   <div ref={chatEndRef} />
                 </div>
                 
                 {callStatus === 'Connected' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.5rem', borderRadius: '8px' }}>
-                    <div className="avatar" style={{ background: 'var(--primary)' }}>AM</div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      {isSpeaking ? "Bot is speaking..." : "Microphone active. Say something..."}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                    <div className="avatar" style={{ background: 'var(--primary)', width: '30px', height: '30px', fontSize: '0.8rem' }}>AM</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                      {isSpeaking ? "Voice bot is synthesising output..." : "Microphone active. System listening..."}
                     </div>
                   </div>
                 )}
@@ -692,9 +871,9 @@ export default function App() {
 
           {/* TAB 3: APPOINTMENTS */}
           {activeTab === 'appointments' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.9fr', gap: '1.75rem' }}>
               <div className="card">
-                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem' }}>Schedule Appointment</h3>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Request Booking</h3>
                 <form onSubmit={handleBookAppointment}>
                   <div className="form-group">
                     <label className="form-label">Clinician Node</label>
@@ -702,7 +881,6 @@ export default function App() {
                       className="form-control" 
                       value={apptForm.doctor}
                       onChange={(e) => setApptForm(prev => ({ ...prev, doctor: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)' }}
                       required
                     >
                       <option value="">Select Practitioner...</option>
@@ -718,7 +896,6 @@ export default function App() {
                       className="form-control" 
                       value={apptForm.date}
                       onChange={(e) => setApptForm(prev => ({ ...prev, date: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)' }}
                       required
                     />
                   </div>
@@ -729,7 +906,6 @@ export default function App() {
                       className="form-control" 
                       value={apptForm.time}
                       onChange={(e) => setApptForm(prev => ({ ...prev, time: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)' }}
                       required
                     />
                   </div>
@@ -740,8 +916,8 @@ export default function App() {
                       rows={3} 
                       value={apptForm.symptoms}
                       onChange={(e) => setApptForm(prev => ({ ...prev, symptoms: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)', resize: 'none' }}
-                      placeholder="Describe symptoms..."
+                      style={{ resize: 'none' }}
+                      placeholder="Describe symptoms briefly..."
                     />
                   </div>
                   <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
@@ -751,30 +927,30 @@ export default function App() {
               </div>
 
               <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Active Consultation Records</h3>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>Consultation Records</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {appointments.map((appt, idx) => (
                     <div key={idx} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <div className="avatar" style={{ width: '44px', height: '44px' }}>
+                      <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+                        <div className="avatar-md">
                           {appt.doctor.split(' ').pop().slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>{appt.doctor}</h4>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{appt.specialty}</p>
-                          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                            <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} /> Scheduled for: {appt.date} at {appt.time}
+                          <h4 style={{ fontSize: '1rem', fontWeight: 700 }}>{appt.doctor}</h4>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{appt.specialty}</p>
+                          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={12} /> Scheduled for: {appt.date} at {appt.time}
                           </p>
                         </div>
                       </div>
-                      <span className={`badge ${appt.status === 'Confirmed' ? 'badge-success' : 'badge-warning'}`}>
+                      <span className={`badge ${appt.status === 'Confirmed' ? 'badge-success' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
                         {appt.status}
                       </span>
                     </div>
                   ))}
                   {appointments.length === 0 && (
-                    <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                      No booked consultations.
+                    <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>
+                      No booked consultations in database.
                     </div>
                   )}
                 </div>
@@ -784,9 +960,9 @@ export default function App() {
 
           {/* TAB 4: MEDICINES */}
           {activeTab === 'medicines' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.9fr', gap: '1.75rem' }}>
               <div className="card">
-                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem' }}>Configure Regimen directive</h3>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Configure Regimen</h3>
                 <form onSubmit={handleAddMedicine}>
                   <div className="form-group">
                     <label className="form-label">Medication Name</label>
@@ -796,7 +972,6 @@ export default function App() {
                       placeholder="e.g., Atorvastatin"
                       value={medForm.name}
                       onChange={(e) => setMedForm(prev => ({ ...prev, name: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)' }}
                       required
                     />
                   </div>
@@ -808,7 +983,6 @@ export default function App() {
                       placeholder="e.g., 20mg"
                       value={medForm.dosage}
                       onChange={(e) => setMedForm(prev => ({ ...prev, dosage: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)' }}
                       required
                     />
                   </div>
@@ -819,7 +993,6 @@ export default function App() {
                       className="form-control" 
                       value={medForm.time}
                       onChange={(e) => setMedForm(prev => ({ ...prev, time: e.target.value }))}
-                      style={{ background: 'var(--panel-bg)' }}
                       required
                     />
                   </div>
@@ -830,25 +1003,29 @@ export default function App() {
               </div>
 
               <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Active Regimen Allocation Streams</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>Regimen Allocation Streams</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
                   {medicines.map((med, idx) => (
-                    <div key={idx} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <h4 style={{ color: 'var(--primary)', fontSize: '1.05rem', marginBottom: '0.25rem', fontWeight: 600 }}>{med.name}</h4>
-                        <p style={{ fontSize: '0.85rem', marginBottom: '0.2rem' }}>Dosage: <strong>{med.dosage}</strong></p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><Clock size={12} style={{ display: 'inline', marginRight: '4px' }} /> {med.time}</p>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
+                    <div key={idx} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h4 style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{med.name}</h4>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Dosage: <strong>{med.dosage}</strong></span>
+                        </div>
                         <span className="badge badge-success">Active</span>
-                        <button className="btn btn-secondary" onClick={() => handleDeleteMedicine(med.name)} style={{ padding: '0.3rem 0.5rem', color: 'var(--danger)' }}>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Clock size={12} /> {med.time}
+                        </p>
+                        <button className="btn btn-secondary" onClick={() => handleDeleteMedicine(med.name)} style={{ padding: '0.4rem 0.6rem', color: 'var(--danger)', borderRadius: '10px' }}>
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
                   ))}
                   {medicines.length === 0 && (
-                    <div className="card" style={{ gridColumn: 'span 2', textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
+                    <div className="card" style={{ gridColumn: 'span 2', textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>
                       No active medical regimen streams loaded.
                     </div>
                   )}
@@ -860,7 +1037,10 @@ export default function App() {
           {/* TAB 5: PROMPT MANAGER */}
           {activeTab === 'prompts' && (
             <div className="card">
-              <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem' }}>Configure Agent Roles & Context Templates</h3>
+              <div style={{ marginBottom: '1.75rem' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.35rem' }}>Prompt Template Orchestrator</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Configure active agent roles, instructions, and compiled model templates.</p>
+              </div>
               <form onSubmit={handleSavePrompt}>
                 <div className="form-group">
                   <label className="form-label">System Bot Target</label>
@@ -872,7 +1052,6 @@ export default function App() {
                       if (active) setEditingPrompt(active);
                       else setEditingPrompt({ bot_name: e.target.value, system_prompt: DEFAULT_PROMPTS[e.target.value] || '' });
                     }}
-                    style={{ background: 'var(--panel-bg)' }}
                   >
                     <option value="General">General Medical Assistant</option>
                     <option value="AppointmentBooking">Appointment Booking Assistant</option>
@@ -896,13 +1075,13 @@ export default function App() {
                     rows={12} 
                     value={editingPrompt.system_prompt}
                     onChange={(e) => setEditingPrompt(prev => ({ ...prev, system_prompt: e.target.value }))}
-                    style={{ background: 'var(--panel-bg)', fontFamily: 'monospace', fontSize: '0.9rem', lineHeight: 1.5 }}
+                    style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.9rem', lineHeight: 1.6 }}
                     placeholder="Enter prompt instructions for LLM orchestration..."
                     required
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ width: '200px' }}>
+                <button type="submit" className="btn btn-primary" style={{ padding: '0.85rem 2rem' }}>
                   <Check size={18} /> Update Template
                 </button>
               </form>
@@ -912,29 +1091,29 @@ export default function App() {
           {/* TAB 6: EMERGENCY */}
           {activeTab === 'emergency' && (
             <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-              <div className="card" style={{ border: '1px solid var(--danger)', background: 'rgba(239, 68, 68, 0.03)', textAlign: 'center', padding: '3rem 2rem' }}>
-                <h2 style={{ color: 'var(--danger)', fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+              <div className="card" style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(244, 63, 94, 0.02)', textAlign: 'center', padding: '4rem 2rem' }}>
+                <h2 style={{ color: 'var(--danger)', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
                   Critical Emergency SOS Node
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 2rem' }}>
+                <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 2.5rem', fontSize: '0.95rem', fontWeight: 500, lineHeight: 1.5 }}>
                   Triggering the SOS alert bypasses standard triage, automatically logs a priority dispatch call in the database, and allocates responder vectors.
                 </p>
 
                 <div className="sos-trigger" onClick={handleTriggerSOS}>
-                  <AlertTriangle size={36} style={{ marginBottom: '4px' }} />
-                  <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>SOS</span>
+                  <AlertTriangle size={42} style={{ marginBottom: '6px' }} />
+                  <span style={{ fontSize: '1.35rem', fontWeight: 800 }}>SOS</span>
                 </div>
 
                 {sosStatus && (
-                  <div style={{ borderLeft: '3px solid var(--danger)', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '4px', textAlign: 'left', maxWidth: '440px', margin: '1.5rem auto 0' }}>
-                    <p style={{ color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Activity size={16} className="fa-spin" /> Emergency Dispatch Confirmed
+                  <div className="sos-dispatch-box">
+                    <p style={{ color: 'var(--danger)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <Activity size={18} style={{ animation: 'bounce 1s infinite' }} /> Emergency Dispatch Confirmed
                     </p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginTop: '0.25rem' }}>
-                      Unit allocated: <strong>{sosStatus.unit}</strong>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginTop: '0.5rem', fontWeight: 600 }}>
+                      Unit allocated: <span style={{ color: 'var(--primary)' }}>{sosStatus.unit}</span>
                     </p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      Estimated Arrival Time (ETA): <strong>{sosStatus.eta_minutes} minutes</strong>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                      Estimated Arrival Time (ETA): <strong style={{ color: '#fff' }}>{sosStatus.eta_minutes} minutes</strong>
                     </p>
                   </div>
                 )}
