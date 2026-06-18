@@ -17,7 +17,8 @@ import {
   Send,
   MessageSquare,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Mic
 } from 'lucide-react';
 
 
@@ -470,6 +471,31 @@ export default function App() {
   if (view === 'landing') {
     return (
       <div className="landing-container">
+        {/* Background Grid & Scanline */}
+        <div className="bg-grid-overlay"></div>
+        <div className="bg-grid-scanline"></div>
+
+        {/* Ambient Floating ECG Lines */}
+        <div className="landing-bg-waves top-waves">
+          <svg className="bg-wave-svg" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path 
+              className="bg-wave-path bg-wave-path-1" 
+              d="M 0 100 L 200 100 C 205 90, 215 90, 220 100 L 240 100 L 250 115 L 265 15 L 280 170 L 290 100 C 300 85, 310 85, 320 100 L 920 100 C 925 90, 935 90, 940 100 L 960 100 L 970 115 L 985 15 L 1000 170 L 1010 100 C 1020 85, 1030 85, 1040 100 L 1640 100 C 1645 90, 1655 90, 1660 100 L 1680 100 L 1690 115 L 1705 15 L 1720 170 L 1730 100 C 1740 85, 1750 85, 1760 100 L 2360 100 C 2365 90, 2375 90, 2380 100 L 2400 100 L 2410 115 L 2425 15 L 2440 170 L 2450 100 C 2460 85, 2470 85, 2480 100 L 2880 100" 
+            />
+          </svg>
+          <div className="bg-wave-pulse bg-wave-pulse-primary"></div>
+        </div>
+
+        <div className="landing-bg-waves bottom-waves">
+          <svg className="bg-wave-svg" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path 
+              className="bg-wave-path bg-wave-path-2" 
+              d="M 0 100 L 200 100 C 205 90, 215 90, 220 100 L 240 100 L 250 115 L 265 15 L 280 170 L 290 100 C 300 85, 310 85, 320 100 L 920 100 C 925 90, 935 90, 940 100 L 960 100 L 970 115 L 985 15 L 1000 170 L 1010 100 C 1020 85, 1030 85, 1040 100 L 1640 100 C 1645 90, 1655 90, 1660 100 L 1680 100 L 1690 115 L 1705 15 L 1720 170 L 1730 100 C 1740 85, 1750 85, 1760 100 L 2360 100 C 2365 90, 2375 90, 2380 100 L 2400 100 L 2410 115 L 2425 15 L 2440 170 L 2450 100 C 2460 85, 2470 85, 2480 100 L 2880 100" 
+            />
+          </svg>
+          <div className="bg-wave-pulse bg-wave-pulse-secondary"></div>
+        </div>
+
         {/* Background Glow Layer */}
         <div className="bg-glow-layer">
           <div className="glow-blob glow-blob-1"></div>
@@ -494,81 +520,112 @@ export default function App() {
             <p className="landing-subtitle">
               Orchestrate conversational voice agents, live ECG patient tracking, medical reminders, and emergency triage dispatches in a unified, next-generation medical control console.
             </p>
-            <div className="landing-cta-group">
-              <button className="btn btn-primary btn-cta" onClick={() => navigateTo('app', 'dashboard')}>
-                Launch Console <Send size={16} />
-              </button>
-              <button className="btn btn-cta-outline" onClick={() => navigateTo('app', 'voicebot')}>
-                Talk to AI Agent <PhoneCall size={16} />
-              </button>
+          </div>
+
+          <div className="landing-hero-actions-container">
+            <button className="btn btn-primary btn-cta btn-cta-single" onClick={() => navigateTo('app', 'dashboard')}>
+              Launch Console <Send size={16} />
+            </button>
+
+            <div className="landing-hero-visual">
+              <div className="landing-orb-shield"></div>
+              <div className="landing-visual-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="badge badge-success">Biometrics Live</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Pulse: {vitals.heartrate} BPM</span>
+                </div>
+                
+                <div style={{ height: '100px', width: '100%', overflow: 'hidden', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <svg className="ekg-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                    <path 
+                      className="ekg-line"
+                      d="M 0 100 L 40 100 Q 50 90 60 100 L 90 100 L 98 115 L 108 30 L 118 170 L 128 100 L 160 100 Q 175 80 190 100 L 240 100 L 280 100 Q 290 90 300 100 L 330 100 L 338 115 L 348 30 L 358 170 L 368 100 L 400 100 Q 415 80 430 100 L 480 100 L 520 100 Q 530 90 540 100 L 570 100 L 578 115 L 588 30 L 598 170 L 600 100" 
+                    />
+                  </svg>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)', animation: 'sosPulse 1.5s infinite' }}></div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>System Core: Online</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="landing-hero-visual">
-            <div className="landing-orb-shield"></div>
-            <div className="landing-visual-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="badge badge-success">Biometrics Live</span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Pulse: {vitals.heartrate} BPM</span>
-              </div>
-              
-              <div style={{ height: '100px', width: '100%', overflow: 'hidden', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <svg className="ekg-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
-                  <path 
-                    className="ekg-line"
-                    d="M 0 100 L 40 100 Q 50 90 60 100 L 90 100 L 98 115 L 108 30 L 118 170 L 128 100 L 160 100 Q 175 80 190 100 L 240 100 L 280 100 Q 290 90 300 100 L 330 100 L 338 115 L 348 30 L 358 170 L 368 100 L 400 100 Q 415 80 430 100 L 480 100 L 520 100 Q 530 90 540 100 L 570 100 L 578 115 L 588 30 L 598 170 L 600 100" 
-                  />
-                </svg>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--success)', boxShadow: '0 0 8px var(--success)', animation: 'sosPulse 1.5s infinite' }}></div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>System Core: Online</div>
-              </div>
+          <div className="landing-hero-scroll-indicator" onClick={() => {
+            const el = document.querySelector('.landing-features-circle-container');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}>
+            <span className="scroll-text">Explore Features</span>
+            <div className="scroll-mouse">
+              <div className="scroll-wheel"></div>
             </div>
           </div>
         </section>
 
-        {/* Feature Grid */}
-        <section className="landing-features-grid">
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon primary">
-              <PhoneCall size={22} />
-            </div>
-            <h3 className="landing-feature-title">Real-Time Voice AI</h3>
-            <p className="landing-feature-desc">
-              Interact with custom WebRTC voice assistants specialized in telemedicine, medical reminders, eldercare support, and scheduling.
-            </p>
+        {/* Circling Features Section */}
+        <section className="landing-features-circle-container">
+          <div className="landing-features-circle-bg-wrapper">
+            <div className="landing-features-circle-bg"></div>
+          </div>
+          
+          <div className="landing-features-circle-center">
+            <h2 className="landing-features-circle-title">Features</h2>
+            <div className="landing-features-circle-glow"></div>
           </div>
 
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon success">
-              <Activity size={22} />
+          <div className="landing-feature-circle-card-wrapper feat-top">
+            <div className="feat-line"></div>
+            <div className="landing-feature-circle-card">
+              <div className="landing-feature-icon primary">
+                <PhoneCall size={22} />
+              </div>
+              <h3 className="landing-feature-title">Real-Time Voice AI</h3>
+              <p className="landing-feature-desc">
+                Interact with custom voice assistants specialized in medicine, scheduling, and follow-ups.
+              </p>
             </div>
-            <h3 className="landing-feature-title">Live Biometric Stream</h3>
-            <p className="landing-feature-desc">
-              Continuously track patient pulse rate, oxygen levels, and core temperatures with automated anomalies alerts and active ECG waves.
-            </p>
           </div>
 
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon secondary">
-              <Settings size={22} />
+          <div className="landing-feature-circle-card-wrapper feat-right">
+            <div className="feat-line"></div>
+            <div className="landing-feature-circle-card">
+              <div className="landing-feature-icon success">
+                <Activity size={22} />
+              </div>
+              <h3 className="landing-feature-title">Biometric Stream</h3>
+              <p className="landing-feature-desc">
+                Continuously track patient pulse, oxygen levels, and core temps with live ECG waves.
+              </p>
             </div>
-            <h3 className="landing-feature-title">Prompt Orchestrator</h3>
-            <p className="landing-feature-desc">
-              Manage LLM contexts dynamically. Swap instructions, update nurse behaviors, or customize diagnostics triage scripts in real-time.
-            </p>
           </div>
 
-          <div className="landing-feature-card">
-            <div className="landing-feature-icon warning">
-              <AlertTriangle size={22} />
+          <div className="landing-feature-circle-card-wrapper feat-bottom">
+            <div className="feat-line"></div>
+            <div className="landing-feature-circle-card">
+              <div className="landing-feature-icon secondary">
+                <Settings size={22} />
+              </div>
+              <h3 className="landing-feature-title">Prompt Orchestrator</h3>
+              <p className="landing-feature-desc">
+                Manage LLM contexts dynamically. Swap instructions or Nurse behaviors in real-time.
+              </p>
             </div>
-            <h3 className="landing-feature-title">Crisis Triage SOS</h3>
-            <p className="landing-feature-desc">
-              Instantly bypass regular queue operations, flag critical logs, and dispatch active ambulances with real-time ETA countdowns.
-            </p>
+          </div>
+
+          <div className="landing-feature-circle-card-wrapper feat-left">
+            <div className="feat-line"></div>
+            <div className="landing-feature-circle-card">
+              <div className="landing-feature-icon warning">
+                <AlertTriangle size={22} />
+              </div>
+              <h3 className="landing-feature-title">Crisis Triage SOS</h3>
+              <p className="landing-feature-desc">
+                Instantly bypass regular queue operations and dispatch active ambulances with ETAs.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -589,40 +646,91 @@ export default function App() {
         <div className="glow-blob glow-blob-3"></div>
       </div>
 
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="brand" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
-          <i className="fa-solid fa-heartbeat"></i>
-          <span>MedAI Flow</span>
-        </div>
-        <ul className="menu">
-          <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}>
-            <button onClick={() => navigateTo('app', 'dashboard')}><ActivitySquare size={18} /> Dashboard</button>
-          </li>
-          <li className={`menu-item ${activeTab === 'voicebot' ? 'active' : ''}`}>
-            <button onClick={() => navigateTo('app', 'voicebot')}><PhoneCall size={18} /> Voice AI Assistant</button>
-          </li>
-          <li className={`menu-item ${activeTab === 'appointments' ? 'active' : ''}`}>
-            <button onClick={() => navigateTo('app', 'appointments')}><Calendar size={18} /> Appointments</button>
-          </li>
-          <li className={`menu-item ${activeTab === 'medicines' ? 'active' : ''}`}>
-            <button onClick={() => navigateTo('app', 'medicines')}><Pill size={18} /> Medicines</button>
-          </li>
-          <li className={`menu-item ${activeTab === 'prompts' ? 'active' : ''}`}>
-            <button onClick={() => navigateTo('app', 'prompts')}><Settings size={18} /> Prompt Manager</button>
-          </li>
-          <li className={`menu-item danger-item ${activeTab === 'emergency' ? 'active' : ''}`}>
-            <button onClick={() => navigateTo('app', 'emergency')}><AlertTriangle size={18} /> EMERGENCY SOS</button>
-          </li>
-        </ul>
-        <div className="user-profile-widget">
-          <div className="avatar">AM</div>
-          <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.role}</div>
+      {/* Top Navigation Panel */}
+      <header className="top-navigation-panel">
+        <div className="top-nav-header">
+          <div className="brand" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
+            <Heart size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))', marginRight: '8px' }} />
+            <span>MedAI Flow</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <div className="profile-card">
+              <span className="badge badge-success" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="pulse-dot"></span>
+                Telemetry Stream: OK
+              </span>
+            </div>
+            
+            <div className="user-profile-widget-top">
+              <div className="avatar">AM</div>
+              <div className="user-info-text">
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.role}</div>
+              </div>
+              <button className="profile-action-btn" title="System Settings">
+                <Settings size={16} />
+              </button>
+            </div>
           </div>
         </div>
-      </aside>
+
+        <div className="top-nav-menu-bar">
+          <div className="nav-section-group">
+            <span className="nav-section-title">Workspace</span>
+            <div className="nav-buttons-container">
+              <div className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`}>
+                <button onClick={() => navigateTo('app', 'dashboard')}><ActivitySquare size={16} /> Dashboard</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="nav-section-group">
+            <span className="nav-section-title">Management</span>
+            <div className="nav-buttons-container">
+              <div className={`menu-item ${activeTab === 'appointments' ? 'active' : ''}`}>
+                <button onClick={() => navigateTo('app', 'appointments')}><Calendar size={16} /> Appointments</button>
+              </div>
+              <div className={`menu-item ${activeTab === 'medicines' ? 'active' : ''}`}>
+                <button onClick={() => navigateTo('app', 'medicines')}><Pill size={16} /> Medicines</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="nav-section-group voice-ai-middle-group">
+            <span className="nav-section-title">Voice AI</span>
+            <div className="nav-buttons-container">
+              <div className={`menu-item voice-mic-item ${activeTab === 'voicebot' ? 'active' : ''}`}>
+                <button 
+                  className="voice-mic-btn"
+                  onClick={() => navigateTo('app', 'voicebot')} 
+                  title="Activate Voice AI Portal"
+                >
+                  <Mic size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="nav-section-group">
+            <span className="nav-section-title">System</span>
+            <div className="nav-buttons-container">
+              <div className={`menu-item ${activeTab === 'prompts' ? 'active' : ''}`}>
+                <button onClick={() => navigateTo('app', 'prompts')}><Settings size={16} /> Prompt Manager</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="nav-section-group">
+            <span className="nav-section-title">Critical</span>
+            <div className="nav-buttons-container">
+              <div className={`menu-item danger-item ${activeTab === 'emergency' ? 'active' : ''}`}>
+                <button onClick={() => navigateTo('app', 'emergency')}><AlertTriangle size={16} /> EMERGENCY SOS</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Container */}
       <div className="content">
@@ -639,9 +747,6 @@ export default function App() {
               {activeTab === 'prompts' && "Prompt Template Orchestrator"}
               {activeTab === 'emergency' && "Crisis Response Center"}
             </h2>
-          </div>
-          <div className="profile-card">
-            <span className="badge badge-success">Telemetry Stream: OK</span>
           </div>
         </header>
 
@@ -661,7 +766,7 @@ export default function App() {
             <>
               <section className="metrics-grid">
                 <div className="card metric-card pulse">
-                  <div className="metric-icon" style={{ background: 'rgba(244, 63, 94, 0.08)', color: 'var(--danger)', borderColor: 'rgba(244, 63, 94, 0.15)' }}>
+                  <div className="metric-icon metric-icon-pulse">
                     <Heart size={24} />
                   </div>
                   <div className="metric-details">
@@ -670,7 +775,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="card metric-card bp">
-                  <div className="metric-icon" style={{ background: 'rgba(139, 92, 246, 0.08)', color: 'var(--secondary)', borderColor: 'rgba(139, 92, 246, 0.15)' }}>
+                  <div className="metric-icon metric-icon-bp">
                     <Activity size={24} />
                   </div>
                   <div className="metric-details">
@@ -679,7 +784,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="card metric-card oxygen">
-                  <div className="metric-icon" style={{ background: 'rgba(0, 210, 255, 0.08)', color: 'var(--primary)', borderColor: 'rgba(0, 210, 255, 0.15)' }}>
+                  <div className="metric-icon metric-icon-oxygen">
                     <ActivitySquare size={24} />
                   </div>
                   <div className="metric-details">
@@ -688,7 +793,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="card metric-card temp">
-                  <div className="metric-icon" style={{ background: 'rgba(245, 158, 11, 0.08)', color: 'var(--warning)', borderColor: 'rgba(245, 158, 11, 0.15)' }}>
+                  <div className="metric-icon metric-icon-temp">
                     <Thermometer size={24} />
                   </div>
                   <div className="metric-details">
@@ -701,7 +806,7 @@ export default function App() {
               <div className="dashboard-split">
                 <div className="card">
                   <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Activity size={18} style={{ color: 'var(--success)' }} /> Live Telemetry ECG Monitor
+                    <Activity size={18} style={{ color: 'var(--primary)' }} /> Live Telemetry ECG Monitor
                   </h3>
                   <div className="ekg-container">
                     <div className="ekg-grid-overlay"></div>
@@ -711,10 +816,10 @@ export default function App() {
                         d="M 0 100 L 40 100 Q 50 90 60 100 L 90 100 L 98 115 L 108 30 L 118 170 L 128 100 L 160 100 Q 175 80 190 100 L 240 100 L 280 100 Q 290 90 300 100 L 330 100 L 338 115 L 348 30 L 358 170 L 368 100 L 400 100 Q 415 80 430 100 L 480 100 L 520 100 Q 530 90 540 100 L 570 100 L 578 115 L 588 30 L 598 170 L 600 100" 
                       />
                     </svg>
-                    <div style={{ position: 'absolute', bottom: '1rem', right: '1.25rem', background: 'rgba(0,0,0,0.6)', padding: '0.35rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="biometric-stream-badge">
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)', display: 'inline-block', boxShadow: `0 0 8px ${vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)'}` }}></span>
-                      <span style={{ color: 'var(--text-secondary)' }}>Biometric Stream:</span>
-                      <strong style={{ color: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)' }}>{vitals.heartrate > 85 ? 'HIGH HEART RATE' : 'NORMAL'}</strong>
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Biometric Stream:</span>
+                      <strong style={{ color: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)', fontWeight: 700 }}>{vitals.heartrate > 85 ? 'HIGH HEART RATE' : 'NORMAL'}</strong>
                     </div>
                   </div>
                 </div>
@@ -722,11 +827,11 @@ export default function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div className="card">
                     <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Clock size={16} style={{ color: 'var(--warning)' }} /> Active Regimen
+                      <Clock size={16} style={{ color: 'var(--secondary)' }} /> Active Regimen
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {medicines.slice(0, 3).map((med, idx) => (
-                        <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div key={idx} className="regimen-item-compact">
                           <span style={{ fontWeight: 600 }}>{med.name} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({med.dosage})</span></span>
                           <span className="badge badge-warning">{med.time}</span>
                         </div>
@@ -742,10 +847,10 @@ export default function App() {
                       <Calendar size={16} style={{ color: 'var(--primary)' }} /> Next Consultation
                     </h3>
                     {appointments.length > 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <p style={{ fontSize: '0.95rem', fontWeight: 700 }}>{appointments[appointments.length - 1].doctor}</p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{appointments[appointments.length - 1].specialty}</p>
-                        <div style={{ marginTop: '0.5rem' }}>
+                      <div className="consultation-compact-card">
+                        <p style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>{appointments[appointments.length - 1].doctor}</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600, margin: 0 }}>{appointments[appointments.length - 1].specialty}</p>
+                        <div style={{ marginTop: '0.25rem' }}>
                           <span className="badge badge-success">{appointments[appointments.length - 1].date}, {appointments[appointments.length - 1].time}</span>
                         </div>
                       </div>
@@ -820,12 +925,12 @@ export default function App() {
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem', borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between' }}>
+                <div className="voice-meta-container">
+                  <div className="voice-meta-row">
                     <span style={{ color: 'var(--text-secondary)' }}>Session Channel</span>
                     <span style={{ fontWeight: 700 }}>WebSockets Link</span>
                   </div>
-                  <div style={{ display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between' }}>
+                  <div className="voice-meta-row">
                     <span style={{ color: 'var(--text-secondary)' }}>Status</span>
                     <span className={`badge ${callStatus === 'Connected' ? 'badge-success' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
                       {callStatus}
@@ -857,8 +962,8 @@ export default function App() {
                   <div ref={chatEndRef} />
                 </div>
                 
-                {callStatus === 'Connected' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                 {callStatus === 'Connected' && (
+                  <div className="voice-status-banner">
                     <div className="avatar" style={{ background: 'var(--primary)', width: '30px', height: '30px', fontSize: '0.8rem' }}>AM</div>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
                       {isSpeaking ? "Voice bot is synthesising output..." : "Microphone active. System listening..."}
@@ -1091,7 +1196,7 @@ export default function App() {
           {/* TAB 6: EMERGENCY */}
           {activeTab === 'emergency' && (
             <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-              <div className="card" style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(244, 63, 94, 0.02)', textAlign: 'center', padding: '4rem 2rem' }}>
+              <div className="card" style={{ border: '1px solid rgba(231, 111, 81, 0.3)', background: 'rgba(231, 111, 81, 0.02)', textAlign: 'center', padding: '4rem 2rem' }}>
                 <h2 style={{ color: 'var(--danger)', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
                   Critical Emergency SOS Node
                 </h2>
@@ -1113,7 +1218,7 @@ export default function App() {
                       Unit allocated: <span style={{ color: 'var(--primary)' }}>{sosStatus.unit}</span>
                     </p>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                      Estimated Arrival Time (ETA): <strong style={{ color: '#fff' }}>{sosStatus.eta_minutes} minutes</strong>
+                      Estimated Arrival Time (ETA): <strong style={{ color: 'var(--text-main)' }}>{sosStatus.eta_minutes} minutes</strong>
                     </p>
                   </div>
                 )}
