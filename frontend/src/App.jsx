@@ -23,18 +23,15 @@ import {
 
 
 const DEFAULT_PROMPTS = {
-  General: "You are MedAI Flow, an advanced AI hospital automation voice bot. Keep your responses short, professional, and clear. Help the patient with their queries.",
-  AppointmentBooking: "You are an AI Appointment Booking Assistant. Help the patient select a department, clinic location, or clinician to request a booking, and collect details of their symptoms.",
-  PatientFollowUp: "You are an AI Patient Follow-Up Calls Agent. Your task is to check on patients who recently visited the clinic, ask about their recovery status, medication side effects, and log any feedback or concerns they express.",
-  PostDischarge: "You are an AI Post-Discharge Monitoring Bot. Ask patients who were recently discharged about their surgical wounds, medication compliance, daily pain levels, and general progress. Flag anomalies for clinician escalation if needed.",
-  MedicineReminder: "You are an AI Medicine Reminder Assistant. Check if the patient has taken their daily medications (Lisinopril, Metformin), remind them of schedules, and log compliance.",
-  InsuranceSupport: "You are an AI Health Insurance Support Bot. Answer coverage queries, explain claim status, clarify co-pays or deductibles, and assist with pre-authorization workflows.",
-  EmergencyTriage: "You are an AI Emergency Triage Voice Assistant. Your goal is to assess patient symptoms, classify the severity (Red, Yellow, Green), and provide quick priority-based guidance. If the symptoms indicate a life-threatening crisis, command them to trigger the SOS dispatch immediately.",
-  DiagnosticEnquiry: "You are an AI Diagnostic Center Enquiry Handler. Assist patients with enquiries regarding laboratory tests, radiology pricing, test requirements (like fasting), and result delivery timelines.",
-  DoctorScheduling: "You are an AI Doctor Appointment Scheduling Agent. Access practitioner schedules, find open timeslots matching specialty requirements, and coordinate bookings preventing double allocations.",
-  AiNurse: "You are an AI Nurse Assistant. Answer patient care questions, clarify discharge recovery instructions, explain basic medications, and address common health FAQs in a warm, caring manner.",
-  ElderCare: "You are an AI Elder Care Monitoring Voice Bot. Perform daily check-ins on elderly patients, check on physical comfort levels, confirm if they took medications, and log vital parameters (e.g. pulse, temp).",
-  Telemedicine: "You are an AI Telemedicine Voice Assistant. Guide the patient through an end-to-end virtual consult: collect symptoms, run a preliminary triage, and summarize the session to prepare for connecting with a doctor."
+  NaturalSpeechAuth: "You are the MedAI Natural Speech Authentication System. Your job is to verify the patient's identity. Empathetically prompt the patient for their Full Name and Date of Birth (DOB) via speech. If the patient provides their name (e.g., 'Alex Mercer') and DOB (e.g., 'July 24, 1995'), confirm that they are verified. If verification is successful, say: 'Thank you, Alex. Your identity is verified.' If the name or DOB doesn't match, ask them to repeat it. If it fails twice consecutively, state: 'I am sorry, I am having trouble verifying your details. Let me transfer you directly to our front desk receptionist.' and route them to human receptionist.",
+  ConversationalScheduling: "You are the MedAI Conversational Scheduling & Diagnostic Enquiries Assistant. You help patients book, reschedule, or cancel doctor appointments and specific diagnostic tests (like X-rays or ultrasounds) naturally using voice. Keep responses short and conversational. When booking is complete, state the confirmed appointment details clearly so the system can generate a confirmation.",
+  PostDischargeCheckIn: "You are the MedAI Post-Discharge Monitoring Assistant. Empathetically guide the patient through an automated 5-question recovery scorecard. Ask the questions one by one and wait for their answer: 1) What is your pain level on a scale of 1-10? 2) Is there any redness, swelling, or drainage near your surgical wound? 3) Are you able to tolerate food and fluids? 4) Have you taken all your prescribed medications today? 5) Do you have a fever above 101 degrees? Once all 5 questions are logged, summarize the scorecard and state that their recovery status has been recorded.",
+  MedicationAdherence: "You are the MedAI Medication Adherence Assistant. Remind chronic care or elderly patients of their medication dosages. Read aloud: 'Lisinopril 10mg once daily in the morning' and 'Metformin 500mg twice daily with meals'. Capture their verbal 'Yes/No' or custom affirmations of adherence. If they confirm compliance, state: 'Thank you, medication compliance has been logged.'",
+  InsurancePolicyIntake: "You are the MedAI Insurance & Financial Orchestrator. Prompt the patient to state or spell out their insurance provider name and policy group number. Once they state it, verbally deliver a plain-language financial estimate of covered costs and out-of-pocket liabilities (e.g., BlueCross Policy Group 98124 has a co-pay of $45 and is covered at 90%, leaving your estimated out-of-pocket liability at $45).",
+  EmergencySeverity: "You are the MedAI Emergency Severity Classification Assistant. Assess acute medical crises using deterministic Emergency Severity Index (ESI) protocols. If the symptoms indicate a life-threatening crisis (like chest pain, severe difficulty breathing, or sudden numbness), instantly state: 'CRITICAL ALERT: Bypassing administrative hold lines. Routing to emergency floor floor in 2 seconds.' and output [EMERGENCY_ROUTING: Emergency floor connected]. Otherwise, suggest appropriate non-critical guidelines.",
+  AiNurseAdvice: "You are the MedAI AI Nurse Assistant. Answer open-ended, non-diagnostic questions regarding diet restrictions, recovery milestones, or wound care. Anchor all advice strictly in approved guidelines: clear liquids for the first 24 hours, keep dressings clean and dry, avoid lifting items over 10 lbs, and contact the clinic if fever exceeds 101°F. Do not diagnose or prescribe treatment.",
+  ElderCareTerminal: "You are the MedAI Elder Care Companion. Engage in a friendly companion check-in call with isolated elderly patients. Warmly ask about their comfort, mood, sleep, and appetite, while assessing conversational tone, sentiment, and environmental cues for cognitive or physical decline.",
+  TelemedicineBridge: "You are the MedAI Telemedicine Assistant. Verify if the patient is ready for their virtual doctor consultation. Once they confirm, state: 'Perfect, initializing secure audio/video WebRTC telemedicine bridge to connect you with the doctor now.' and output [TELEMEDICINE_BRIDGE: Ready] to launch the WebRTC video link."
 };
 
 export default function App() {
@@ -93,15 +90,31 @@ export default function App() {
   // Forms states
   const [apptForm, setApptForm] = useState({ doctor: '', date: '', time: '', symptoms: '' });
   const [medForm, setMedForm] = useState({ name: '', dosage: '', time: '' });
-  const [editingPrompt, setEditingPrompt] = useState({ bot_name: 'General', system_prompt: '' });
+  const [editingPrompt, setEditingPrompt] = useState({ bot_name: 'NaturalSpeechAuth', system_prompt: '' });
 
   // Voice Call Bot States
-  const [selectedBot, setSelectedBot] = useState('General');
+  const [selectedBot, setSelectedBot] = useState('NaturalSpeechAuth');
   const [callStatus, setCallStatus] = useState('Idle'); // 'Idle', 'Connecting', 'Connected'
   const [transcripts, setTranscripts] = useState([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [sessionId, setSessionId] = useState('');
   
+  // Custom Simulation and Streamlined Feature States
+  const [simulateDbTimeout, setSimulateDbTimeout] = useState(false);
+  const [consecutiveErrors, setConsecutiveErrors] = useState(0);
+  const [sipTransferActive, setSipTransferActive] = useState(false);
+  const [telemedicineActive, setTelemedicineActive] = useState(false);
+  const [smsMessages, setSmsMessages] = useState([]);
+
+  // Authentication states
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [authForm, setAuthForm] = useState({ username: '', password: '', email: '', role: 'Patient' });
+  const [authError, setAuthError] = useState('');
+  const [userUnregistered, setUserUnregistered] = useState(false);
+
+  // Refs to prevent stale closures in Speech API event loops
+  const sipTransferActiveRef = useRef(false);
+  const telemedicineActiveRef = useRef(false);
   const wsRef = useRef(null);
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -185,10 +198,23 @@ export default function App() {
     }
   };
 
+  const fetchSmsMessages = async () => {
+    try {
+      const res = await fetch('/api/sms');
+      if (res.ok) {
+        const data = await res.json();
+        setSmsMessages(data);
+      }
+    } catch (err) {
+      console.warn("SMS log fetch failed, using local mock", err);
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
     fetchMedicines();
     fetchPrompts();
+    fetchSmsMessages();
   }, []);
 
   useEffect(() => {
@@ -203,6 +229,30 @@ export default function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcripts]);
 
+  // Camera stream activation for WebRTC telemedicine bridge
+  useEffect(() => {
+    let localStream = null;
+    if (view === 'telemedicine') {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+          localStream = stream;
+          const localVid = document.getElementById('localVideo');
+          if (localVid) {
+            localVid.srcObject = stream;
+          }
+        })
+        .catch(err => {
+          console.warn("Camera/microphone access blocked or unavailable:", err);
+          showToast("Camera access unavailable. Displaying secure voice-only placeholder.", "warning");
+        });
+    }
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [view]);
+
   // Initialize Speech Recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -215,6 +265,9 @@ export default function App() {
       rec.onresult = (event) => {
         const text = event.results[0][0].transcript;
         if (text.trim()) {
+          // Reset consecutive errors count on successful speech capture
+          setConsecutiveErrors(0);
+          
           // Add User text locally
           setTranscripts(prev => [...prev, { speaker: 'User', text: text }]);
           
@@ -224,15 +277,38 @@ export default function App() {
               type: 'text',
               session_id: sessionId,
               text: text,
-              bot_name: selectedBot
+              bot_name: selectedBot,
+              simulate_db_timeout: simulateDbTimeout,
+              consecutive_errors: 0
             }));
           }
         }
       };
 
+      rec.onerror = (event) => {
+        console.warn("Speech recognition error:", event.error);
+        if (event.error === 'no-speech' || event.error === 'audio-capture') {
+          // Increment voice capture failures
+          setConsecutiveErrors(prev => {
+            const nextVal = prev + 1;
+            if (nextVal >= 2 && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({
+                type: 'text',
+                session_id: sessionId,
+                text: '[FAILED_TO_UNDERSTAND]',
+                bot_name: selectedBot,
+                simulate_db_timeout: simulateDbTimeout,
+                consecutive_errors: nextVal
+              }));
+            }
+            return nextVal;
+          });
+        }
+      };
+
       rec.onend = () => {
         // Automatically restart speech capture if we are still connected and not speaking
-        if (callStatus === 'Connected' && !isSpeaking) {
+        if (callStatus === 'Connected' && !isSpeaking && !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
           try {
             rec.start();
           } catch (e) {}
@@ -241,7 +317,7 @@ export default function App() {
 
       recognitionRef.current = rec;
     }
-  }, [callStatus, isSpeaking, sessionId, selectedBot]);
+  }, [callStatus, isSpeaking, sessionId, selectedBot, simulateDbTimeout, consecutiveErrors]);
 
   // Trigger web speech synthesis
   const speakTextOutLoud = (text) => {
@@ -263,8 +339,14 @@ export default function App() {
 
       utterance.onend = () => {
         setIsSpeaking(false);
-        // Start listening again
-        if (callStatus === 'Connected' && recognitionRef.current) {
+        if (telemedicineActiveRef.current) {
+          setView('telemedicine');
+          setCallStatus('Idle');
+          if (wsRef.current) wsRef.current.close();
+        } else if (sipTransferActiveRef.current) {
+          setCallStatus('Idle');
+          if (wsRef.current) wsRef.current.close();
+        } else if (callStatus === 'Connected' && recognitionRef.current) {
           try {
             recognitionRef.current.start();
           } catch(e){}
@@ -281,6 +363,11 @@ export default function App() {
     setSessionId(newSessionId);
     setCallStatus('Connecting');
     setTranscripts([]);
+    setConsecutiveErrors(0);
+    setSipTransferActive(false);
+    setTelemedicineActive(false);
+    sipTransferActiveRef.current = false;
+    telemedicineActiveRef.current = false;
 
     // 1. Register Session on Backend DB
     try {
@@ -305,8 +392,21 @@ export default function App() {
       setCallStatus('Connected');
       showToast("Real-time voice bot link established.", "success");
       
+      // If db timeout is simulated on start
+      if (simulateDbTimeout) {
+        ws.send(JSON.stringify({
+          type: 'text',
+          session_id: newSessionId,
+          text: '[INITIALIZE_CALL_DB_TIMEOUT]',
+          bot_name: selectedBot,
+          simulate_db_timeout: true,
+          consecutive_errors: 0
+        }));
+        return;
+      }
+      
       // Send welcoming statement
-      const welcomeText = `Hello Alex. I am your MedAI ${selectedBot} Voice Assistant. How can I help you today?`;
+      const welcomeText = `Hello. I am your MedAI ${selectedBot === 'NaturalSpeechAuth' ? 'Natural Speech Authentication' : selectedBot} Bot. How can I help you today?`;
       setTranscripts([{ speaker: 'AI', text: welcomeText }]);
       speakTextOutLoud(welcomeText);
     };
@@ -315,14 +415,35 @@ export default function App() {
       const data = JSON.parse(event.data);
       if (data.text) {
         setTranscripts(prev => [...prev, { speaker: 'AI', text: data.text, latency_ms: data.latency_ms }]);
+        
+        // Handle triggers before speaking to prepare state transitions
+        if (data.sip_transfer) {
+          setSipTransferActive(true);
+          sipTransferActiveRef.current = true;
+        }
+        if (data.emergency_routing) {
+          setTimeout(() => {
+            setActiveTab('emergency');
+            handleTriggerSOS();
+          }, 1800);
+        }
+        if (data.telemedicine_bridge) {
+          setTelemedicineActive(true);
+          telemedicineActiveRef.current = true;
+        }
+
         speakTextOutLoud(data.text);
+        
+        // Refresh telemetry database elements
+        fetchAppointments();
+        fetchMedicines();
+        fetchSmsMessages();
       }
     };
 
     ws.onerror = () => {
       showToast("WebSocket connection error. Using offline voice simulator.", "warning");
       setCallStatus('Connected');
-      // Offline fallback welcome
       const welcomeText = `Hello. Voice bot running in offline fallback mode. How can I help?`;
       setTranscripts([{ speaker: 'AI', text: welcomeText }]);
       speakTextOutLoud(welcomeText);
@@ -351,6 +472,92 @@ export default function App() {
     }
     setIsSpeaking(false);
     setCallStatus('Idle');
+  };
+
+  // Authentication handlers
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    setUserUnregistered(false);
+
+    if (authMode === 'login') {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: authForm.username,
+            password: authForm.password
+          })
+        });
+
+        if (res.status === 404) {
+          setUserUnregistered(true);
+          setAuthError("This username is not registered yet. Switch to Sign Up below to create an account.");
+          return;
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+          setUser({ name: data.user.name, role: data.user.role });
+          showToast(`Welcome back, ${data.user.name}!`, 'success');
+          setView('app');
+          setActiveTab('dashboard');
+          // Reset form
+          setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+        } else {
+          setAuthError(data.detail || "Authentication failed. Please verify credentials.");
+        }
+      } catch (err) {
+        // Fallback local mode
+        if (authForm.username.toLowerCase() === 'alex mercer' && authForm.password === '123456') {
+          setUser({ name: 'Alex Mercer', role: 'Patient' });
+          showToast("Welcome back, Alex Mercer (Offline mode)!", 'success');
+          setView('app');
+          setActiveTab('dashboard');
+          setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+        } else {
+          setAuthError("Authentication server error. Try 'Alex Mercer' / '123456' for offline access.");
+        }
+      }
+    } else {
+      // signup mode
+      if (!authForm.email) {
+        setAuthError("Email is required for Sign Up.");
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: authForm.username,
+            email: authForm.email,
+            password: authForm.password,
+            role: authForm.role
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          setUser({ name: data.name, role: data.role });
+          showToast(`Account created successfully! Welcome, ${data.name}!`, 'success');
+          setView('app');
+          setActiveTab('dashboard');
+          // Reset form
+          setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+        } else {
+          setAuthError(data.detail || "Sign up failed. Username or email might be taken.");
+        }
+      } catch (err) {
+        // Fallback local sign up
+        setUser({ name: authForm.username, role: authForm.role });
+        showToast(`Welcome, ${authForm.username} (Offline signup)!`, 'success');
+        setView('app');
+        setActiveTab('dashboard');
+        setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+      }
+    }
   };
 
   // Handle forms
@@ -523,7 +730,7 @@ export default function App() {
           </div>
 
           <div className="landing-hero-actions-container">
-            <button className="btn btn-primary btn-cta btn-cta-single" onClick={() => navigateTo('app', 'dashboard')}>
+            <button className="btn btn-primary btn-cta btn-cta-single" onClick={() => navigateTo('login')}>
               Launch Console <Send size={16} />
             </button>
 
@@ -637,6 +844,209 @@ export default function App() {
     );
   }
 
+  if (view === 'login') {
+    return (
+      <div className="login-container">
+        {/* Background Grid & Scanline */}
+        <div className="bg-grid-overlay"></div>
+        <div className="bg-grid-scanline"></div>
+
+        {/* Background Glow Layer */}
+        <div className="bg-glow-layer">
+          <div className="glow-blob glow-blob-1"></div>
+          <div className="glow-blob glow-blob-2"></div>
+        </div>
+
+        {/* Back to landing link */}
+        <div className="login-back-nav">
+          <button className="btn-back" onClick={() => setView('landing')}>
+            <ArrowLeft size={16} /> Back to Landing
+          </button>
+        </div>
+
+        {/* Login/Signup Card */}
+        <div className="login-card-wrapper">
+          <div className="login-card">
+            <div className="login-card-header">
+              <Heart size={32} className="login-logo-icon" />
+              <h2>{authMode === 'login' ? 'Access MedAI Console' : 'Register MedAI Account'}</h2>
+              <p>{authMode === 'login' ? 'Enter clinical credentials to authorize session.' : 'Create new clinical profile in hospital directory.'}</p>
+            </div>
+
+            {authError && (
+              <div className={`auth-alert ${userUnregistered ? 'auth-alert-warning' : 'auth-alert-danger'}`}>
+                <AlertTriangle size={18} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                  <span>{authError}</span>
+                  {userUnregistered && (
+                    <button 
+                      className="auth-alert-action-btn"
+                      onClick={() => {
+                        setAuthMode('signup');
+                        setAuthError('');
+                        setUserUnregistered(false);
+                      }}
+                    >
+                      Click here to Sign Up instead
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleAuthSubmit} className="login-form">
+              <div className="form-group">
+                <label className="form-label">Username (Full Name)</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="e.g., Alex Mercer"
+                  value={authForm.username}
+                  onChange={(e) => setAuthForm(prev => ({ ...prev, username: e.target.value }))}
+                  required
+                />
+              </div>
+
+              {authMode === 'signup' && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">Email Address</label>
+                    <input 
+                      type="email" 
+                      className="form-control" 
+                      placeholder="e.g., patient@medai.com"
+                      value={authForm.email || ''}
+                      onChange={(e) => setAuthForm(prev => ({ ...prev, email: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">User Role</label>
+                    <select 
+                      className="form-control"
+                      value={authForm.role}
+                      onChange={(e) => setAuthForm(prev => ({ ...prev, role: e.target.value }))}
+                    >
+                      <option value="Patient">Patient</option>
+                      <option value="Doctor">Doctor / Clinician</option>
+                      <option value="Receptionist">Receptionist</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <div className="form-group">
+                <label className="form-label">Security Password</label>
+                <input 
+                  type="password" 
+                  className="form-control" 
+                  placeholder="••••••••"
+                  value={authForm.password}
+                  onChange={(e) => setAuthForm(prev => ({ ...prev, password: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary btn-login-submit" style={{ width: '100%', marginTop: '1rem' }}>
+                {authMode === 'login' ? 'Authorize & Connect' : 'Register Profile'}
+              </button>
+            </form>
+
+            <div className="login-card-footer" style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem' }}>
+              {authMode === 'login' ? (
+                <p style={{ color: 'var(--text-secondary)' }}>
+                  Username not registered?{' '}
+                  <button className="auth-toggle-link" onClick={() => { setAuthMode('signup'); setAuthError(''); setUserUnregistered(false); }} style={{ background: 'none', border: 'none', color: 'var(--primary-hover)', cursor: 'pointer', fontWeight: 600, padding: 0, textDecoration: 'underline' }}>
+                    Sign Up
+                  </button>
+                </p>
+              ) : (
+                <p style={{ color: 'var(--text-secondary)' }}>
+                  Already have an account?{' '}
+                  <button className="auth-toggle-link" onClick={() => { setAuthMode('login'); setAuthError(''); setUserUnregistered(false); }} style={{ background: 'none', border: 'none', color: 'var(--primary-hover)', cursor: 'pointer', fontWeight: 600, padding: 0, textDecoration: 'underline' }}>
+                    Log In
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'telemedicine') {
+    return (
+      <div className="app-container" style={{ padding: '2.5rem' }}>
+        <div className="bg-glow-layer">
+          <div className="glow-blob glow-blob-1"></div>
+          <div className="glow-blob glow-blob-2"></div>
+        </div>
+
+        <div className="telemedicine-bridge-container card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--divider)', paddingBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Activity size={24} style={{ color: 'var(--primary-hover)', animation: 'bounce 1s infinite' }} />
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Secure Telemedicine Video Consult</h2>
+            </div>
+            <span className="badge badge-success" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="pulse-dot"></span>
+              Secure WebRTC Connection
+            </span>
+          </div>
+
+          <div className="webrtc-call-layout" style={{ marginTop: '1rem' }}>
+            {/* Local Video Stream */}
+            <div className="video-window">
+              <video id="localVideo" autoPlay playsInline muted style={{ transform: 'scaleX(-1)' }} />
+              <div className="webrtc-overlay-label">
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary-hover)', display: 'inline-block' }}></span>
+                Patient Feed (You)
+              </div>
+            </div>
+
+            {/* Simulated Doctor Video Stream */}
+            <div className="video-window" style={{ background: '#0b221a' }}>
+              <div className="video-placeholder">
+                <div className="avatar" style={{ width: '80px', height: '80px', fontSize: '2rem', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' }}>ER</div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>Dr. Evelyn Reed</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Cardiologist • Clinic Floor 3</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <span className="pulse-dot"></span>
+                  <span style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600 }}>Doctor Audio/Video Feed Active</span>
+                </div>
+              </div>
+              <div className="webrtc-overlay-label">
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }}></span>
+                Clinician Feed (Remote)
+              </div>
+            </div>
+          </div>
+
+          <div className="webrtc-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button className="btn btn-secondary" onClick={() => showToast("Microphone muted", "warning")}>
+                Mute Audio
+              </button>
+              <button className="btn btn-secondary" onClick={() => showToast("Camera stream stopped", "warning")}>
+                Stop Camera
+              </button>
+            </div>
+            <button className="btn btn-danger" onClick={() => {
+              setView('app');
+              setActiveTab('dashboard');
+              setTelemedicineActive(false);
+              telemedicineActiveRef.current = false;
+              showToast("Telemedicine bridge closed gracefully.", "success");
+            }}>
+              Disconnect Call
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       {/* Background Glow Layer */}
@@ -658,18 +1068,24 @@ export default function App() {
             <div className="profile-card">
               <span className="badge badge-success" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span className="pulse-dot"></span>
-                Telemetry Stream: OK
+                System Status: Online
               </span>
             </div>
             
             <div className="user-profile-widget-top">
-              <div className="avatar">AM</div>
+              <div className="avatar">{user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}</div>
               <div className="user-info-text">
                 <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.role}</div>
               </div>
               <button className="profile-action-btn" title="System Settings">
                 <Settings size={16} />
+              </button>
+              <button className="profile-action-btn" title="Sign Out" onClick={() => {
+                setView('landing');
+                showToast("Logged out successfully.", "warning");
+              }} style={{ color: 'var(--danger)', marginLeft: '4px' }}>
+                <LogOut size={16} />
               </button>
             </div>
           </div>
@@ -689,10 +1105,10 @@ export default function App() {
             <span className="nav-section-title">Management</span>
             <div className="nav-buttons-container">
               <div className={`menu-item ${activeTab === 'appointments' ? 'active' : ''}`}>
-                <button onClick={() => navigateTo('app', 'appointments')}><Calendar size={16} /> Appointments</button>
+                <button onClick={() => navigateTo('app', 'appointments')}><Calendar size={16} /> Scheduling & Diagnostics</button>
               </div>
               <div className={`menu-item ${activeTab === 'medicines' ? 'active' : ''}`}>
-                <button onClick={() => navigateTo('app', 'medicines')}><Pill size={16} /> Medicines</button>
+                <button onClick={() => navigateTo('app', 'medicines')}><Pill size={16} /> Adherence Tracker</button>
               </div>
             </div>
           </div>
@@ -716,7 +1132,7 @@ export default function App() {
             <span className="nav-section-title">System</span>
             <div className="nav-buttons-container">
               <div className={`menu-item ${activeTab === 'prompts' ? 'active' : ''}`}>
-                <button onClick={() => navigateTo('app', 'prompts')}><Settings size={16} /> Prompt Manager</button>
+                <button onClick={() => navigateTo('app', 'prompts')}><Settings size={16} /> Prompt Orchestrator</button>
               </div>
             </div>
           </div>
@@ -740,12 +1156,12 @@ export default function App() {
               <ArrowLeft size={16} /> Back
             </button>
             <h2 className="top-bar-title">
-              {activeTab === 'dashboard' && "Telemetry Command Console"}
-              {activeTab === 'voicebot' && "Real-time AI Voice Interaction"}
-              {activeTab === 'appointments' && "Consultation Scheduling matrix"}
-              {activeTab === 'medicines' && "Regimen Allocation Stream"}
-              {activeTab === 'prompts' && "Prompt Template Orchestrator"}
-              {activeTab === 'emergency' && "Crisis Response Center"}
+              {activeTab === 'dashboard' && "Telemetry & Operations Dashboard"}
+              {activeTab === 'voicebot' && "Real-time AI Voice Simulator Portal"}
+              {activeTab === 'appointments' && "Conversational Scheduling & Diagnostics"}
+              {activeTab === 'medicines' && "Active Medication Adherence Alert System"}
+              {activeTab === 'prompts' && "System Prompt Orchestrator"}
+              {activeTab === 'emergency' && "Emergency Severity Classification (ESI)"}
             </h2>
           </div>
         </header>
@@ -764,98 +1180,224 @@ export default function App() {
           {/* TAB 1: DASHBOARD */}
           {activeTab === 'dashboard' && (
             <>
+              {/* Top Row Grid: Streamlined Communications Status Overview */}
               <section className="metrics-grid">
+                {/* Medication Adherence Overview */}
                 <div className="card metric-card pulse">
                   <div className="metric-icon metric-icon-pulse">
+                    <Pill size={24} />
+                  </div>
+                  <div className="metric-details">
+                    <h4>Medication Adherence</h4>
+                    <div className="metric-value">
+                      {medicines.filter(m => m.status === 'Taken').length} / {medicines.length || 2} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Logged</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Elder Care Companion Sentiment */}
+                <div className="card metric-card oxygen">
+                  <div className="metric-icon metric-icon-oxygen">
                     <Heart size={24} />
                   </div>
                   <div className="metric-details">
-                    <h4>Pulse Rate</h4>
-                    <div className="metric-value">{vitals.heartrate} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>BPM</span></div>
+                    <h4>Elder Welfare Sentiment</h4>
+                    <div className="metric-value">
+                      Positive <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Warm</span>
+                    </div>
                   </div>
                 </div>
+
+                {/* SIP Routing & Timeout Bypass */}
                 <div className="card metric-card bp">
                   <div className="metric-icon metric-icon-bp">
-                    <Activity size={24} />
+                    <PhoneCall size={24} />
                   </div>
                   <div className="metric-details">
-                    <h4>Blood Pressure</h4>
-                    <div className="metric-value">{vitals.bloodPressure} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>mmHg</span></div>
+                    <h4>SIP Routing</h4>
+                    <div className="metric-value" style={{ fontSize: '1.1rem', fontWeight: 700, color: simulateDbTimeout || consecutiveErrors >= 2 ? 'var(--danger)' : 'var(--success)' }}>
+                      {simulateDbTimeout ? 'DB TIMEOUT' : consecutiveErrors >= 2 ? 'ASR ERROR' : 'TRUNK IDLE'}
+                    </div>
                   </div>
                 </div>
-                <div className="card metric-card oxygen">
-                  <div className="metric-icon metric-icon-oxygen">
-                    <ActivitySquare size={24} />
-                  </div>
-                  <div className="metric-details">
-                    <h4>Oxygen Saturation</h4>
-                    <div className="metric-value">{vitals.spo2}% <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>SpO2</span></div>
-                  </div>
-                </div>
+
+                {/* Emergency Triage SOS Status */}
                 <div className="card metric-card temp">
                   <div className="metric-icon metric-icon-temp">
-                    <Thermometer size={24} />
+                    <AlertTriangle size={24} />
                   </div>
                   <div className="metric-details">
-                    <h4>Core Temp</h4>
-                    <div className="metric-value">{vitals.temperature}°C</div>
+                    <h4>Triage SOS Status</h4>
+                    <div className="metric-value" style={{ fontSize: '1.1rem', fontWeight: 700, color: sosStatus ? 'var(--danger)' : 'var(--text-secondary)' }}>
+                      {sosStatus ? 'DISPATCHED' : 'NO ACTIVE SOS'}
+                    </div>
                   </div>
                 </div>
               </section>
 
+              {/* Main Dashboard Layout */}
               <div className="dashboard-split">
-                <div className="card">
-                  <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Activity size={18} style={{ color: 'var(--primary)' }} /> Live Telemetry ECG Monitor
-                  </h3>
-                  <div className="ekg-container">
-                    <div className="ekg-grid-overlay"></div>
-                    <svg className="ekg-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
-                      <path 
-                        className={`ekg-line ${vitals.heartrate > 85 ? 'ekg-line-fast' : ''}`}
-                        d="M 0 100 L 40 100 Q 50 90 60 100 L 90 100 L 98 115 L 108 30 L 118 170 L 128 100 L 160 100 Q 175 80 190 100 L 240 100 L 280 100 Q 290 90 300 100 L 330 100 L 338 115 L 348 30 L 358 170 L 368 100 L 400 100 Q 415 80 430 100 L 480 100 L 520 100 Q 530 90 540 100 L 570 100 L 578 115 L 588 30 L 598 170 L 600 100" 
-                      />
-                    </svg>
-                    <div className="biometric-stream-badge">
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)', display: 'inline-block', boxShadow: `0 0 8px ${vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)'}` }}></span>
-                      <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Biometric Stream:</span>
-                      <strong style={{ color: vitals.heartrate > 85 ? 'var(--danger)' : 'var(--success)', fontWeight: 700 }}>{vitals.heartrate > 85 ? 'HIGH HEART RATE' : 'NORMAL'}</strong>
+                {/* Left Column: Communications Logs & Operations Registry */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                  {/* Row 1: Identity & Insurance Pre-Auth */}
+                  <div className="card">
+                    <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Check size={18} style={{ color: 'var(--success)' }} /> Patient Identity Verification & Insurance Pre-Auth
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Patient Name</span>
+                          <strong style={{ color: 'var(--text-main)' }}>Alex Mercer</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>DOB Authentication</span>
+                          <strong style={{ color: 'var(--success)' }}>July 24, 1995 (VERIFIED)</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>EHR Record Link</span>
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-main)' }}>#EHR-9831A (Active)</span>
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Insurance Provider</span>
+                          <strong style={{ color: 'var(--text-main)' }}>BlueCross Shield</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Policy Group ID</span>
+                          <strong style={{ color: 'var(--text-main)' }}>98124</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Est. Out-of-pocket</span>
+                          <strong style={{ color: 'var(--warning)', fontSize: '1.05rem' }}>$45.00</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Post-Discharge Scorecards & Medication Compliance Logs */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.75rem' }}>
+                    {/* Post-Discharge scorecard */}
+                    <div className="card">
+                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FileText size={18} style={{ color: 'var(--secondary)' }} /> Post-Discharge Scorecard
+                      </h3>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--divider)', paddingBottom: '0.5rem' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>48h Post-Op Survey</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Today</span>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.35rem', fontSize: '0.8rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Pain Level:</span> <strong style={{ color: 'var(--text-main)' }}>3 / 10</strong></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Wound status:</span> <strong style={{ color: 'var(--success)' }}>Normal</strong></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Food intake:</span> <strong style={{ color: 'var(--success)' }}>Tolerated</strong></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fever status:</span> <strong style={{ color: 'var(--success)' }}>None (98.6°F)</strong></div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.75rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Assessment:</span>
+                          <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>STABLE (5/5 Index)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Medication adherence list */}
+                    <div className="card">
+                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Pill size={18} style={{ color: 'var(--primary)' }} /> Regimen Adherence
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                        {medicines.map((med, idx) => (
+                          <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-main)' }}>{med.name}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{med.dosage}</div>
+                            </div>
+                            <span className={`badge ${med.status === 'Taken' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>
+                              {med.status === 'Taken' ? 'Taken' : 'Alert Sent'}
+                            </span>
+                          </div>
+                        ))}
+                        {medicines.length === 0 && (
+                          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            No active medications.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row 3: Elder Companion Welfare Logs & Scheduling Slots */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.75rem' }}>
+                    {/* Elder Care Welfare checks */}
+                    <div className="card">
+                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Heart size={18} style={{ color: 'var(--danger)' }} /> Elder Companion Checks
+                      </h3>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.4rem', fontSize: '0.8rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Relative Monitoring:</span> <strong style={{ color: 'var(--text-main)' }}>Welfare Active</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Acoustic Sentiment:</span> <strong style={{ color: 'var(--success)' }}>Stable / Cozy</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cognitive Decline:</span> <strong style={{ color: 'var(--success)' }}>Negative (0 Alerts)</strong></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Background Cue:</span> <strong style={{ color: 'var(--text-secondary)' }}>Normal environment</strong></div>
+                        </div>
+                        <div style={{ borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          Daily Welfare Call status: <span style={{ color: 'var(--success)', fontWeight: 700 }}>Pass</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Conversational Diagnostics & EHR slots */}
+                    <div className="card">
+                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={18} style={{ color: 'var(--primary-hover)' }} /> Diagnostics Registry
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                        {appointments.map((appt, idx) => (
+                          <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-main)' }}>{appt.doctor}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{appt.date} at {appt.time}</div>
+                            </div>
+                            <span className={`badge ${appt.status === 'Confirmed' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>
+                              {appt.status}
+                            </span>
+                          </div>
+                        ))}
+                        {appointments.length === 0 && (
+                          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            No scheduled diagnostics slots.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div className="card">
-                    <h3 style={{ marginBottom: '1.25rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Clock size={16} style={{ color: 'var(--secondary)' }} /> Active Regimen
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {medicines.slice(0, 3).map((med, idx) => (
-                        <div key={idx} className="regimen-item-compact">
-                          <span style={{ fontWeight: 600 }}>{med.name} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({med.dosage})</span></span>
-                          <span className="badge badge-warning">{med.time}</span>
+                {/* Right Column: Outbound SMS Activity Logs Feed */}
+                <div className="card sms-panel-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    <MessageSquare size={18} style={{ color: 'var(--secondary)' }} /> Outbound Transactional SMS Logs
+                  </h3>
+                  <div className="sms-feed-list" style={{ flex: 1, overflowY: 'auto' }}>
+                    {smsMessages.map((sms) => (
+                      <div key={sms.id} className="sms-message-card">
+                        <div className="sms-meta-row">
+                          <span style={{ fontWeight: 700 }}>To: {sms.recipient}</span>
+                          <span>{new Date(sms.timestamp).toLocaleTimeString()}</span>
                         </div>
-                      ))}
-                      {medicines.length === 0 && (
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No scheduled medications configured.</div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="card">
-                    <h3 style={{ marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Calendar size={16} style={{ color: 'var(--primary)' }} /> Next Consultation
-                    </h3>
-                    {appointments.length > 0 ? (
-                      <div className="consultation-compact-card">
-                        <p style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>{appointments[appointments.length - 1].doctor}</p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600, margin: 0 }}>{appointments[appointments.length - 1].specialty}</p>
-                        <div style={{ marginTop: '0.25rem' }}>
-                          <span className="badge badge-success">{appointments[appointments.length - 1].date}, {appointments[appointments.length - 1].time}</span>
+                        <div className="sms-phone-bubble">
+                          {sms.text}
                         </div>
                       </div>
-                    ) : (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No scheduled consultations pending.</p>
+                    ))}
+                    {smsMessages.length === 0 && (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        No transactional SMS alerts logged.
+                      </div>
                     )}
                   </div>
                 </div>
@@ -868,31 +1410,100 @@ export default function App() {
             <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1.75fr', gap: '1.75rem' }}>
               <div className="card" style={{ height: 'fit-content', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Voice Portal</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Select assistant role and click portal to connect.</p>
+                  <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Voice AI Command Portal</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Select required voice feature persona and click portal to connect.</p>
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Voice Agent Core</label>
+                  <label className="form-label">Voice Agent Core Persona</label>
                   <select 
                     className="form-control" 
                     value={selectedBot}
                     onChange={(e) => setSelectedBot(e.target.value)}
                     disabled={callStatus !== 'Idle'}
                   >
-                    <option value="General">General Medical Assistant</option>
-                    <option value="AppointmentBooking">Appointment Booking Assistant</option>
-                    <option value="PatientFollowUp">Patient Follow-Up Calls</option>
-                    <option value="PostDischarge">Post-Discharge Monitoring Bot</option>
-                    <option value="MedicineReminder">Medicine Reminder Assistant</option>
-                    <option value="InsuranceSupport">Health Insurance Support Bot</option>
-                    <option value="EmergencyTriage">Emergency Triage Voice Assistant</option>
-                    <option value="DiagnosticEnquiry">Diagnostic Center Enquiry Handling</option>
-                    <option value="DoctorScheduling">Doctor Appointment Scheduling</option>
-                    <option value="AiNurse">AI Nurse Assistant</option>
-                    <option value="ElderCare">Elder Care Monitoring Voice Bot</option>
-                    <option value="Telemedicine">Telemedicine Voice Assistant</option>
+                    <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
+                    <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
+                    <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
+                    <option value="MedicationAdherence">Active Medication Adherence Alert</option>
+                    <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
+                    <option value="EmergencySeverity">Emergency Severity Classification</option>
+                    <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
+                    <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
+                    <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
                   </select>
                 </div>
+
+                {/* Simulation Control Panel */}
+                <div className="simulation-toggles-container">
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Settings size={14} /> Handoff & Error Simulation Control
+                  </h4>
+                  
+                  <label className="simulation-checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      checked={simulateDbTimeout} 
+                      onChange={(e) => setSimulateDbTimeout(e.target.checked)} 
+                    />
+                    Simulate Backend Database Timeout
+                  </label>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      Consecutive voice errors: <strong>{consecutiveErrors} / 2</strong>
+                    </span>
+                    <button 
+                      className="simulation-btn"
+                      onClick={() => {
+                        const nextVal = consecutiveErrors + 1;
+                        setConsecutiveErrors(nextVal);
+                        showToast(`Simulated Speech failure logged (${nextVal}/2)`, "warning");
+                        
+                        if (nextVal >= 2 && callStatus === 'Connected') {
+                          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                            wsRef.current.send(JSON.stringify({
+                              type: 'text',
+                              session_id: sessionId,
+                              text: '[FAILED_TO_UNDERSTAND]',
+                              bot_name: selectedBot,
+                              simulate_db_timeout: simulateDbTimeout,
+                              consecutive_errors: nextVal
+                            }));
+                          }
+                        }
+                      }}
+                    >
+                      Trigger Voice Recognition Error
+                    </button>
+                  </div>
+                </div>
+
+                {/* SIP Warm-Transfer active display */}
+                {sipTransferActive && (
+                  <div className="sip-transfer-banner">
+                    <div className="sip-details">
+                      <span className="sip-pulse-indicator"></span>
+                      <div>
+                        <h4 style={{ fontSize: '0.9rem', color: 'var(--danger)', fontWeight: 800, textTransform: 'uppercase' }}>SIP Warm-Transfer Active</h4>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.15rem' }}>
+                          Routing session to Front Desk receptionist: <strong>Sarah Conner</strong>
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      className="btn btn-secondary" 
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderRadius: '8px' }}
+                      onClick={() => {
+                        setSipTransferActive(false);
+                        sipTransferActiveRef.current = false;
+                        setConsecutiveErrors(0);
+                        showToast("SIP session reset.", "success");
+                      }}
+                    >
+                      Reset Handoff
+                    </button>
+                  </div>
+                )}
                 
                 <div className="voice-portal-wrapper">
                   <div 
@@ -978,20 +1589,22 @@ export default function App() {
           {activeTab === 'appointments' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.9fr', gap: '1.75rem' }}>
               <div className="card">
-                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Request Booking</h3>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Book Appointment or Diagnostics</h3>
                 <form onSubmit={handleBookAppointment}>
                   <div className="form-group">
-                    <label className="form-label">Clinician Node</label>
+                    <label className="form-label">Practitioner Specialty / Node</label>
                     <select 
                       className="form-control" 
                       value={apptForm.doctor}
                       onChange={(e) => setApptForm(prev => ({ ...prev, doctor: e.target.value }))}
                       required
                     >
-                      <option value="">Select Practitioner...</option>
-                      <option value="Dr. Reed">Dr. Evelyn Reed (Cardiology)</option>
-                      <option value="Dr. Vance">Dr. Marcus Vance (Neurology)</option>
-                      <option value="Dr. Foster">Dr. Sarah Foster (Pediatrics)</option>
+                      <option value="">Select Option...</option>
+                      <option value="Dr. Reed">Dr. Evelyn Reed (Cardiology Specialist)</option>
+                      <option value="Dr. Vance">Dr. Marcus Vance (Neurology Specialist)</option>
+                      <option value="Dr. Foster">Dr. Sarah Foster (Pediatrics Specialist)</option>
+                      <option value="Radiology Chest X-Ray">Radiology Floor (Chest X-Ray Diagnostic)</option>
+                      <option value="Diagnostic Ultrasound">Diagnostics Lab (Abdomen Ultrasound)</option>
                     </select>
                   </div>
                   <div className="form-group">
@@ -1015,7 +1628,7 @@ export default function App() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Symptom Summary</label>
+                    <label className="form-label">Clinical Indication / Symptoms</label>
                     <textarea 
                       className="form-control" 
                       rows={3} 
@@ -1026,13 +1639,13 @@ export default function App() {
                     />
                   </div>
                   <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-                    <Plus size={18} /> Schedule Consultation
+                    <Plus size={18} /> Schedule Appointment
                   </button>
                 </form>
               </div>
 
               <div>
-                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>Consultation Records</h3>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>EHR Scheduling Registry</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {appointments.map((appt, idx) => (
                     <div key={idx} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1044,8 +1657,13 @@ export default function App() {
                           <h4 style={{ fontSize: '1rem', fontWeight: 700 }}>{appt.doctor}</h4>
                           <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{appt.specialty}</p>
                           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Clock size={12} /> Scheduled for: {appt.date} at {appt.time}
+                            <Clock size={12} /> Date: {appt.date} at {appt.time}
                           </p>
+                          {appt.symptoms && (
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                              Symptoms: <i>{appt.symptoms}</i>
+                            </p>
+                          )}
                         </div>
                       </div>
                       <span className={`badge ${appt.status === 'Confirmed' ? 'badge-success' : 'badge-warning'}`} style={{ fontWeight: 700 }}>
@@ -1067,14 +1685,14 @@ export default function App() {
           {activeTab === 'medicines' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.9fr', gap: '1.75rem' }}>
               <div className="card">
-                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Configure Regimen</h3>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Configure Medication Directives</h3>
                 <form onSubmit={handleAddMedicine}>
                   <div className="form-group">
                     <label className="form-label">Medication Name</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="e.g., Atorvastatin"
+                      placeholder="e.g., Lisinopril"
                       value={medForm.name}
                       onChange={(e) => setMedForm(prev => ({ ...prev, name: e.target.value }))}
                       required
@@ -1085,14 +1703,14 @@ export default function App() {
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="e.g., 20mg"
+                      placeholder="e.g., 10mg once daily"
                       value={medForm.dosage}
                       onChange={(e) => setMedForm(prev => ({ ...prev, dosage: e.target.value }))}
                       required
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Scheduled Time</label>
+                    <label className="form-label">Adherence Alert Time</label>
                     <input 
                       type="time" 
                       className="form-control" 
@@ -1102,13 +1720,13 @@ export default function App() {
                     />
                   </div>
                   <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-                    <Plus size={18} /> Inject Into Regimen List
+                    <Plus size={18} /> Add Adherence Directive
                   </button>
                 </form>
               </div>
 
               <div>
-                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>Regimen Allocation Streams</h3>
+                <h3 style={{ marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700 }}>Medication Adherence Checklist</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
                   {medicines.map((med, idx) => (
                     <div key={idx} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', justifyContent: 'space-between' }}>
@@ -1117,11 +1735,13 @@ export default function App() {
                           <h4 style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{med.name}</h4>
                           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Dosage: <strong>{med.dosage}</strong></span>
                         </div>
-                        <span className="badge badge-success">Active</span>
+                        <span className={`badge ${med.status === 'Taken' ? 'badge-success' : 'badge-warning'}`}>
+                          {med.status}
+                        </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={12} /> {med.time}
+                          <Clock size={12} /> alert at: {med.time}
                         </p>
                         <button className="btn btn-secondary" onClick={() => handleDeleteMedicine(med.name)} style={{ padding: '0.4rem 0.6rem', color: 'var(--danger)', borderRadius: '10px' }}>
                           <Trash2 size={14} />
@@ -1143,12 +1763,12 @@ export default function App() {
           {activeTab === 'prompts' && (
             <div className="card">
               <div style={{ marginBottom: '1.75rem' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.35rem' }}>Prompt Template Orchestrator</h3>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.35rem' }}>System Prompt Orchestrator</h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Configure active agent roles, instructions, and compiled model templates.</p>
               </div>
               <form onSubmit={handleSavePrompt}>
                 <div className="form-group">
-                  <label className="form-label">System Bot Target</label>
+                  <label className="form-label">System Bot Target Core</label>
                   <select 
                     className="form-control" 
                     value={editingPrompt.bot_name}
@@ -1158,18 +1778,15 @@ export default function App() {
                       else setEditingPrompt({ bot_name: e.target.value, system_prompt: DEFAULT_PROMPTS[e.target.value] || '' });
                     }}
                   >
-                    <option value="General">General Medical Assistant</option>
-                    <option value="AppointmentBooking">Appointment Booking Assistant</option>
-                    <option value="PatientFollowUp">Patient Follow-Up Calls</option>
-                    <option value="PostDischarge">Post-Discharge Monitoring Bot</option>
-                    <option value="MedicineReminder">Medicine Reminder Assistant</option>
-                    <option value="InsuranceSupport">Health Insurance Support Bot</option>
-                    <option value="EmergencyTriage">Emergency Triage Voice Assistant</option>
-                    <option value="DiagnosticEnquiry">Diagnostic Center Enquiry Handling</option>
-                    <option value="DoctorScheduling">Doctor Appointment Scheduling</option>
-                    <option value="AiNurse">AI Nurse Assistant</option>
-                    <option value="ElderCare">Elder Care Monitoring Voice Bot</option>
-                    <option value="Telemedicine">Telemedicine Voice Assistant</option>
+                    <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
+                    <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
+                    <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
+                    <option value="MedicationAdherence">Active Medication Adherence Alert</option>
+                    <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
+                    <option value="EmergencySeverity">Emergency Severity Classification</option>
+                    <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
+                    <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
+                    <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
                   </select>
                 </div>
 
@@ -1198,10 +1815,10 @@ export default function App() {
             <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
               <div className="card" style={{ border: '1px solid rgba(231, 111, 81, 0.3)', background: 'rgba(231, 111, 81, 0.02)', textAlign: 'center', padding: '4rem 2rem' }}>
                 <h2 style={{ color: 'var(--danger)', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.5px' }}>
-                  Critical Emergency SOS Node
+                  Emergency Severity Classification Console
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 2.5rem', fontSize: '0.95rem', fontWeight: 500, lineHeight: 1.5 }}>
-                  Triggering the SOS alert bypasses standard triage, automatically logs a priority dispatch call in the database, and allocates responder vectors.
+                  Triggering the SOS alert bypasses standard triage, automatically logs a priority dispatch call in the database, and allocates responder vectors using the Emergency Severity Index (ESI).
                 </p>
 
                 <div className="sos-trigger" onClick={handleTriggerSOS}>
@@ -1212,7 +1829,7 @@ export default function App() {
                 {sosStatus && (
                   <div className="sos-dispatch-box">
                     <p style={{ color: 'var(--danger)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      <Activity size={18} style={{ animation: 'bounce 1s infinite' }} /> Emergency Dispatch Confirmed
+                      <Activity size={18} style={{ animation: 'bounce 1s infinite' }} /> Emergency Dispatch Confirmed (ESI Category 1)
                     </p>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginTop: '0.5rem', fontWeight: 600 }}>
                       Unit allocated: <span style={{ color: 'var(--primary)' }}>{sosStatus.unit}</span>

@@ -9,6 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100))
     email = Column(String(100), unique=True, index=True)
+    password_hash = Column(String(255), nullable=True)
     role = Column(String(50), default="Patient")
     created_at = Column(DateTime, default=datetime.utcnow)
 

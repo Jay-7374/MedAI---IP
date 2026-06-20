@@ -2024,3 +2024,393 @@ select.form-control {
     opacity: 0;
   }
 }
+
+/* ==================== STREAMLINED APP CUSTOM COMPONENT STYLES ==================== */
+
+/* Telemedicine WebRTC Video Screen */
+.telemedicine-bridge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.webrtc-call-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .webrtc-call-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-window {
+  background: #06140f;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 380px;
+}
+
+.video-window video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.webrtc-overlay-label {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: rgba(6, 20, 15, 0.75);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.webrtc-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: rgba(11, 34, 26, 0.5);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* Outbound Transactional SMS Panel */
+.sms-panel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sms-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.sms-message-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: var(--transition);
+}
+
+.sms-message-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-hover);
+}
+
+.sms-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.sms-phone-bubble {
+  background: rgba(82, 183, 136, 0.08);
+  border-left: 3px solid var(--primary-hover);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+/* SIP Handoff Warm Transfer Overlay */
+.sip-transfer-banner {
+  background: rgba(231, 111, 81, 0.06);
+  border: 1px solid rgba(231, 111, 81, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: borderWarningPulse 2s infinite ease-in-out;
+}
+
+.sip-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sip-pulse-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 10px var(--danger);
+  animation: urgentPulse 1.5s infinite;
+}
+
+@keyframes borderWarningPulse {
+  0%, 100% { border-color: rgba(231, 111, 81, 0.2); }
+  50% { border-color: rgba(231, 111, 81, 0.5); }
+}
+
+@keyframes urgentPulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 16px var(--danger); }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+/* Simulation Controls in Voice Bot tab */
+.simulation-toggles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(6, 20, 15, 0.35);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+}
+
+.simulation-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.simulation-checkbox-label:hover {
+  color: var(--text-main);
+}
+
+.simulation-checkbox-label input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+}
+
+.simulation-btn {
+  background: rgba(231, 111, 81, 0.05);
+  border: 1px solid rgba(231, 111, 81, 0.15);
+  color: var(--danger);
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.simulation-btn:hover:not(:disabled) {
+  background: rgba(231, 111, 81, 0.12);
+  border-color: var(--danger);
+  transform: translateY(-1px);
+}
+
+.simulation-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Authentication (Login & Sign Up) Styling */
+.login-container {
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+.login-back-nav {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 10;
+}
+
+.login-card-wrapper {
+  width: 100%;
+  max-width: 480px;
+  z-index: 5;
+  perspective: 1000px;
+  animation: modalEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.login-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(120%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3rem 2.5rem;
+  box-shadow: var(--shadow-hover);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.login-card-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-logo-icon {
+  color: var(--primary);
+  filter: drop-shadow(0 0 10px var(--primary));
+  margin-bottom: 0.75rem;
+  animation: heartbeat 2s infinite ease-in-out;
+}
+
+.login-card-header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-main);
+}
+
+.login-card-header p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.btn-login-submit {
+  padding: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 12px rgba(82, 183, 136, 0.15);
+}
+
+.btn-login-submit:hover {
+  box-shadow: 0 0 20px rgba(82, 183, 136, 0.3);
+}
+
+/* Auth alert flags */
+.auth-alert {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+  animation: shakeAlert 0.4s ease;
+}
+
+.auth-alert-danger {
+  background: rgba(231, 111, 81, 0.1);
+  border: 1px solid rgba(231, 111, 81, 0.25);
+  color: var(--danger);
+}
+
+.auth-alert-warning {
+  background: rgba(245, 196, 48, 0.08);
+  border: 1px solid rgba(245, 196, 48, 0.25);
+  color: var(--warning);
+}
+
+.auth-alert-action-btn {
+  background: var(--primary);
+  border: none;
+  color: #000;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  transition: var(--transition);
+}
+
+.auth-alert-action-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.auth-toggle-link:hover {
+  color: var(--primary) !important;
+  text-shadow: 0 0 6px rgba(82, 183, 136, 0.4);
+}
+
+/* Animations */
+@keyframes shakeAlert {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes modalEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

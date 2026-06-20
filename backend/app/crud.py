@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from . import models, schemas
 
+import hashlib
+
 # User operations
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
@@ -9,8 +11,17 @@ def get_user(db: Session, user_id: int):
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
+def get_user_by_name(db: Session, name: str):
+    return db.query(models.User).filter(models.User.name == name).first()
+
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(name=user.name, email=user.email, role=user.role)
+    pwd_hash = hashlib.sha256(user.password.encode('utf-8')).hexdigest()
+    db_user = models.User(
+        name=user.name,
+        email=user.email,
+        password_hash=pwd_hash,
+        role=user.role
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

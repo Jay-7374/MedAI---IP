@@ -2,13 +2,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from .config import settings
 
-# Format connection string for psycopg3 (postgresql+psycopg://)
+# Format connection string for psycopg3 (postgresql+psycopg://) or fallback to SQLite
 db_url = settings.DATABASE_URL
-if db_url and db_url.startswith("postgresql://"):
+is_sqlite = False
+if not db_url:
+    db_url = "sqlite:///./medai.db"
+    is_sqlite = True
+elif db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
 try:
-    engine = create_engine(db_url, pool_pre_ping=True)
+    if is_sqlite:
+        engine = create_engine(db_url, connect_args={"check_same_thread": False})
+    else:
+        engine = create_engine(db_url, pool_pre_ping=True)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 except Exception as e:
     print(f"Database engine creation failed: {e}")

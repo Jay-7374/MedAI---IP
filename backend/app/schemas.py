@@ -8,7 +8,11 @@ class UserBase(BaseModel):
     role: Optional[str] = "Patient"
 
 class UserCreate(UserBase):
-    pass
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
 class User(UserBase):
     id: int
