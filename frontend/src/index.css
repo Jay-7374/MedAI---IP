@@ -1,12 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Dark Botanical Wellness Palette */
-  --background: #06140f;      /* Rich Deep Dark Green (Dark Forest) */
-  --panel-bg: #0b221a;        /* Bone Sage Green */
-  --card-bg: rgba(20, 53, 41, 0.45); /* Frosted Sage Dark card background */
-  --border: rgba(82, 183, 136, 0.08); /* Translucent Mint border */
-  --border-hover: rgba(82, 183, 136, 0.2);
+  --background: #04100c;      /* Near-black forest, deepened for contrast */
+  --panel-bg: #081c15;        /* Bone Sage Green */
+  --card-bg: rgba(16, 44, 34, 0.55); /* Frosted Sage Dark card background */
+  --card-bg-solid: #0d2a20;
+  --border: rgba(82, 183, 136, 0.1); /* Translucent Mint border */
+  --border-hover: rgba(82, 183, 136, 0.28);
   --divider: rgba(218, 215, 205, 0.08);
 
   /* Botanical Greens */
@@ -21,6 +22,17 @@
   --secondary-hover: #94d2bd;  /* Aqua */
   --secondary-light: rgba(148, 210, 189, 0.15);
 
+  /* Clinical Accent Set — used to differentiate card categories so the
+     dashboard doesn't read as a single wash of green */
+  --accent-cyan: #2dd4bf;
+  --accent-cyan-rgb: 45, 212, 191;
+  --accent-violet: #a78bfa;
+  --accent-violet-rgb: 167, 139, 250;
+  --accent-amber: #fbbf24;
+  --accent-amber-rgb: 251, 191, 36;
+  --accent-rose: #fb7185;
+  --accent-rose-rgb: 251, 113, 133;
+
   /* Supporting Botanical Tones */
   --sage: #a3b18a;
   --eucalyptus: #84a98c;
@@ -32,6 +44,7 @@
   --text-main: #FAF9F6;       /* Off-White Ivory */
   --text-secondary: #a3b18a;  /* Pale Sage Green */
   --text-muted: #6e8b7e;      /* Muted Forest Grey */
+  --font-mono: 'JetBrains Mono', monospace;
 
   /* Status Colors */
   --success: #52b788;
@@ -45,8 +58,8 @@
   --transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   --radius: 20px;
   --radius-sm: 12px;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.45);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -99,15 +112,15 @@ body {
 .glow-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(140px);
-  opacity: 0.25;
+  filter: blur(130px);
+  opacity: 0.4;
   animation: floatBlob 25s infinite ease-in-out alternate;
 }
 
 .glow-blob-1 {
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(148, 210, 189, 0.06) 0%, rgba(6, 20, 15, 0) 70%);
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.1) 0%, rgba(4, 16, 12, 0) 70%);
   top: -10%;
   right: 5%;
   animation-duration: 30s;
@@ -116,7 +129,7 @@ body {
 .glow-blob-2 {
   width: 700px;
   height: 700px;
-  background: radial-gradient(circle, rgba(82, 183, 136, 0.05) 0%, rgba(6, 20, 15, 0) 70%);
+  background: radial-gradient(circle, rgba(82, 183, 136, 0.09) 0%, rgba(4, 16, 12, 0) 70%);
   bottom: -15%;
   left: -5%;
   animation-duration: 35s;
@@ -126,7 +139,7 @@ body {
 .glow-blob-3 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(163, 177, 138, 0.04) 0%, rgba(6, 20, 15, 0) 70%);
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.07) 0%, rgba(4, 16, 12, 0) 70%);
   top: 35%;
   left: 30%;
   animation-duration: 25s;
@@ -155,9 +168,10 @@ body {
 
 /* Top Navigation Panel styling */
 .top-navigation-panel {
-  background: var(--panel-bg);
-  backdrop-filter: blur(20px);
+  background: linear-gradient(180deg, rgba(8, 28, 21, 0.97) 0%, rgba(6, 22, 17, 0.92) 100%);
+  backdrop-filter: blur(24px) saturate(140%);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(82, 183, 136, 0.06), 0 12px 40px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   z-index: 100;
@@ -178,7 +192,7 @@ body {
   justify-content: space-between;
   align-items: stretch;
   padding: 0.4rem 2rem;
-  background: rgba(6, 20, 15, 0.3);
+  background: rgba(2, 10, 7, 0.4);
   gap: 1.5rem;
 }
 
@@ -384,13 +398,13 @@ body {
 
 /* Cards (Organic warm-dark plates) */
 .card {
-  background: var(--card-bg);
-  backdrop-filter: blur(24px) saturate(110%);
+  background: linear-gradient(180deg, rgba(22, 58, 45, 0.55) 0%, rgba(13, 38, 29, 0.65) 100%);
+  backdrop-filter: blur(28px) saturate(130%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.75rem;
   transition: var(--transition);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -402,7 +416,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.015) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 45%);
   pointer-events: none;
 }
 
@@ -418,11 +432,6 @@ body {
   align-items: center;
   gap: 1.5rem;
 }
-
-.metric-card.pulse:hover { box-shadow: 0 8px 30px rgba(231, 111, 81, 0.08); }
-.metric-card.bp:hover { box-shadow: 0 8px 30px rgba(0, 109, 119, 0.08); }
-.metric-card.oxygen:hover { box-shadow: 0 8px 30px rgba(10, 147, 150, 0.08); }
-.metric-card.temp:hover { box-shadow: 0 8px 30px rgba(245, 196, 48, 0.08); }
 
 .metric-icon {
   width: 56px;
@@ -1746,47 +1755,80 @@ select.form-control {
   transform: rotate(30deg);
 }
 
-/* Metric Cards Refined Hover Glow Borders */
-.metric-card.pulse:hover {
-  border-color: rgba(231, 111, 81, 0.25);
-  box-shadow: 0 8px 30px rgba(231, 111, 81, 0.08);
-}
-.metric-card.bp:hover {
-  border-color: rgba(0, 109, 119, 0.25);
-  box-shadow: 0 8px 30px rgba(0, 109, 119, 0.08);
-}
-.metric-card.oxygen:hover {
-  border-color: rgba(10, 147, 150, 0.25);
-  box-shadow: 0 8px 30px rgba(10, 147, 150, 0.08);
-}
-.metric-card.temp:hover {
-  border-color: rgba(245, 196, 48, 0.25);
-  box-shadow: 0 8px 30px rgba(245, 196, 48, 0.08);
-}
-
 /* Reorganized Dashboard and Widget styling */
 .metric-icon-pulse {
-  background: rgba(231, 111, 81, 0.08) !important;
-  color: var(--danger) !important;
-  border-color: rgba(231, 111, 81, 0.15) !important;
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.22), rgba(251, 113, 133, 0.06)) !important;
+  color: var(--accent-rose) !important;
+  border-color: rgba(251, 113, 133, 0.35) !important;
+  box-shadow: 0 0 18px rgba(251, 113, 133, 0.18);
 }
 
 .metric-icon-bp {
-  background: rgba(0, 109, 119, 0.08) !important;
-  color: var(--secondary-hover) !important;
-  border-color: rgba(0, 109, 119, 0.15) !important;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.22), rgba(167, 139, 250, 0.06)) !important;
+  color: var(--accent-violet) !important;
+  border-color: rgba(167, 139, 250, 0.35) !important;
+  box-shadow: 0 0 18px rgba(167, 139, 250, 0.18);
 }
 
 .metric-icon-oxygen {
-  background: rgba(10, 147, 150, 0.08) !important;
-  color: var(--secondary) !important;
-  border-color: rgba(10, 147, 150, 0.15) !important;
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.22), rgba(45, 212, 191, 0.06)) !important;
+  color: var(--accent-cyan) !important;
+  border-color: rgba(45, 212, 191, 0.35) !important;
+  box-shadow: 0 0 18px rgba(45, 212, 191, 0.18);
 }
 
 .metric-icon-temp {
-  background: rgba(245, 196, 48, 0.08) !important;
-  color: var(--warning) !important;
-  border-color: rgba(245, 196, 48, 0.15) !important;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(251, 191, 36, 0.06)) !important;
+  color: var(--accent-amber) !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.18);
+}
+
+/* Top accent edge per metric-card category — gives each card a distinct
+   identity instead of every card reading as the same green slab */
+.metric-card {
+  border-top: none !important;
+  position: relative;
+}
+
+.metric-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 2px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, transparent, var(--accent-line, var(--primary)), transparent);
+  opacity: 0.8;
+}
+
+.metric-card.pulse { --accent-line: var(--accent-rose); }
+.metric-card.bp { --accent-line: var(--accent-violet); }
+.metric-card.oxygen { --accent-line: var(--accent-cyan); }
+.metric-card.temp { --accent-line: var(--accent-amber); }
+
+.metric-card.pulse:hover {
+  border-color: rgba(251, 113, 133, 0.3);
+  box-shadow: 0 12px 36px rgba(251, 113, 133, 0.14);
+}
+.metric-card.bp:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 12px 36px rgba(167, 139, 250, 0.14);
+}
+.metric-card.oxygen:hover {
+  border-color: rgba(45, 212, 191, 0.3);
+  box-shadow: 0 12px 36px rgba(45, 212, 191, 0.14);
+}
+.metric-card.temp:hover {
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 12px 36px rgba(251, 191, 36, 0.14);
+}
+
+/* Metric values read like instrument readouts */
+.metric-value {
+  font-family: var(--font-mono);
+  letter-spacing: -0.5px;
 }
 
 /* Compact Regimen and Consultation Items */
@@ -1903,44 +1945,45 @@ select.form-control {
   }
 }
 
-/* Standalone Voice AI Mic Button styling */
+/* Standalone Voice AI Mic Button styling — the product's signature
+   control, sized and colored to stand apart from the rest of the nav */
 .voice-mic-btn {
-  width: 38px !important;
-  height: 38px !important;
+  width: 46px !important;
+  height: 46px !important;
   border-radius: 50% !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: rgba(82, 183, 136, 0.08) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--primary-hover) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: radial-gradient(circle at 35% 30%, rgba(45, 212, 191, 0.28), rgba(45, 212, 191, 0.06)) !important;
+  border: 1.5px solid rgba(45, 212, 191, 0.4) !important;
+  color: var(--accent-cyan) !important;
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.06), 0 6px 18px rgba(0, 0, 0, 0.3);
   transition: var(--transition) !important;
   cursor: pointer;
 }
 
 .voice-mic-btn:hover {
-  background: var(--primary-hover) !important;
-  color: var(--background) !important;
-  transform: scale(1.08) !important;
-  box-shadow: 0 0 15px rgba(82, 183, 136, 0.4);
+  background: var(--accent-cyan) !important;
+  color: #04100c !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 0 0 6px rgba(45, 212, 191, 0.12), 0 0 24px rgba(45, 212, 191, 0.5);
 }
 
 .voice-mic-item.active .voice-mic-btn {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%) !important;
-  color: var(--background) !important;
-  border-color: var(--primary-hover) !important;
-  box-shadow: 0 0 20px rgba(82, 183, 136, 0.5) !important;
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, #14b8a6 100%) !important;
+  color: #04100c !important;
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.15), 0 0 26px rgba(45, 212, 191, 0.6) !important;
   animation: micPulse 2s infinite ease-in-out;
 }
 
 @keyframes micPulse {
   0%, 100% {
-    box-shadow: 0 0 12px rgba(82, 183, 136, 0.4);
+    box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.12), 0 0 16px rgba(45, 212, 191, 0.45);
   }
   50% {
-    box-shadow: 0 0 24px rgba(82, 183, 136, 0.8);
+    box-shadow: 0 0 0 8px rgba(45, 212, 191, 0.05), 0 0 30px rgba(45, 212, 191, 0.85);
   }
 }
 
@@ -2413,4 +2456,373 @@ select.form-control {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* ==========================================================================
+   ADVANCED MOTION SYSTEM
+   View transitions, staggered entrances, micro-interactions.
+   ========================================================================== */
+
+:root {
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);   /* snappy settle, used for entrances */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);     /* gentler settle, used for exits */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* slight overshoot for playful pops */
+  --stagger-step: 55ms;
+}
+
+/* Top-level view switches (landing <-> login <-> app) */
+.view-transition-root {
+  animation: viewFadeIn 0.55s var(--ease-smooth) both;
+}
+
+@keyframes viewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.992);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Per-tab content swap inside the app shell */
+.view-fade-in {
+  animation: tabFadeIn 0.5s var(--ease-smooth) both;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Staggered entrance for grid/list children. Each direct child gets a
+   progressively longer delay via nth-child, so cards cascade in rather
+   than popping all at once. */
+.metrics-grid > *,
+.dashboard-split > *,
+.stagger-group > * {
+  animation: cardRise 0.6s var(--ease-smooth) both;
+}
+
+.metrics-grid > *:nth-child(1),  .dashboard-split > *:nth-child(1),  .stagger-group > *:nth-child(1)  { animation-delay: calc(var(--stagger-step) * 1); }
+.metrics-grid > *:nth-child(2),  .dashboard-split > *:nth-child(2),  .stagger-group > *:nth-child(2)  { animation-delay: calc(var(--stagger-step) * 2); }
+.metrics-grid > *:nth-child(3),  .dashboard-split > *:nth-child(3),  .stagger-group > *:nth-child(3)  { animation-delay: calc(var(--stagger-step) * 3); }
+.metrics-grid > *:nth-child(4),  .dashboard-split > *:nth-child(4),  .stagger-group > *:nth-child(4)  { animation-delay: calc(var(--stagger-step) * 4); }
+.metrics-grid > *:nth-child(5),  .stagger-group > *:nth-child(5)  { animation-delay: calc(var(--stagger-step) * 5); }
+.metrics-grid > *:nth-child(6),  .stagger-group > *:nth-child(6)  { animation-delay: calc(var(--stagger-step) * 6); }
+.metrics-grid > *:nth-child(7),  .stagger-group > *:nth-child(7)  { animation-delay: calc(var(--stagger-step) * 7); }
+.metrics-grid > *:nth-child(8),  .stagger-group > *:nth-child(8)  { animation-delay: calc(var(--stagger-step) * 8); }
+.metrics-grid > *:nth-child(n+9),.stagger-group > *:nth-child(n+9) { animation-delay: calc(var(--stagger-step) * 9); }
+
+@keyframes cardRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Nested rows inside dashboard-split (the grid two-up rows) cascade too */
+.dashboard-split .card {
+  animation: cardRise 0.6s var(--ease-smooth) both;
+}
+
+/* List rows (medication / appointment / SMS items) cascade in lightly */
+.sms-message-card {
+  animation: rowSlideIn 0.45s var(--ease-smooth) both;
+}
+
+@keyframes rowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Smoother, springier hover lift for interactive cards */
+.card,
+.metric-card,
+.landing-feature-circle-card {
+  transition: transform 0.45s var(--ease-soft), box-shadow 0.45s var(--ease-soft), border-color 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* Tactile press feedback for all buttons */
+.btn,
+.menu-item button,
+.profile-action-btn,
+.voice-mic-btn {
+  transition: transform 0.25s var(--ease-spring), background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.btn:active,
+.menu-item button:active,
+.voice-mic-btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary:hover,
+.btn-cta:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary:active,
+.btn-cta:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Animated underline sweep for the active top-nav item */
+.top-nav-menu-bar .menu-item button {
+  overflow: hidden;
+}
+
+.top-nav-menu-bar .menu-item button::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 0%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: width 0.35s var(--ease-smooth), opacity 0.35s ease;
+}
+
+.top-nav-menu-bar .menu-item.active button::after {
+  width: 60%;
+  opacity: 0.85;
+}
+
+/* Icon micro-motion on nav hover */
+.top-nav-menu-bar .menu-item button svg {
+  transition: transform 0.35s var(--ease-spring);
+}
+
+.top-nav-menu-bar .menu-item button:hover svg {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.top-nav-menu-bar .menu-item.active button svg {
+  transform: scale(1.05);
+}
+
+/* Toast: enter + graceful exit */
+.toast {
+  animation: toastIn 0.45s var(--ease-spring) both;
+}
+
+.toast.toast-exit {
+  animation: toastOut 0.35s var(--ease-soft) forwards;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+}
+
+/* Modal overlay fade to pair with existing modalEntrance on the panel */
+.modal-overlay,
+[class*="modal-backdrop"] {
+  animation: overlayFadeIn 0.35s ease both;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Smoother avatar / icon hover */
+.avatar,
+.metric-icon {
+  transition: transform 0.45s var(--ease-spring), box-shadow 0.35s ease;
+}
+
+/* Form fields: subtle lift on focus instead of a hard snap */
+.form-control {
+  transition: border-color 0.3s ease, box-shadow 0.35s var(--ease-soft), transform 0.3s var(--ease-soft);
+}
+
+.form-control:focus {
+  transform: translateY(-1px);
+}
+
+/* Respect users who prefer reduced motion: collapse all of the above to
+   near-instant, opacity-only transitions so the app stays fully usable
+   without large or repeated motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   VISUAL IDENTITY V2
+   Breaks the single-green-wash look: distinct accent colors per content
+   category, instrument-style data typography, and stronger depth cues.
+   ========================================================================== */
+
+/* Card section headers: icon gets a soft glow halo, title gets a thin
+   accent rule beneath it so each block of content reads as a labelled
+   instrument panel rather than a plain heading. */
+.card > h3,
+.card h3:first-child {
+  position: relative;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.1rem !important;
+  border-bottom: 1px solid var(--divider);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.card > h3 svg,
+.card h3:first-child svg {
+  filter: drop-shadow(0 0 6px currentColor);
+  opacity: 0.95;
+}
+
+/* Data values throughout the dashboard read as telemetry, not prose */
+.metric-value,
+.sms-meta-row span:last-child,
+.sms-message-card .sms-meta-row span:last-child {
+  font-family: var(--font-mono);
+}
+
+/* System status / badge text gets a touch of mono + tracking so it reads
+   like a console readout */
+.badge {
+  font-family: var(--font-mono);
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  box-shadow: 0 0 0 0 rgba(82, 183, 136, 0.6);
+}
+
+/* Avatar gets a richer ring + glow instead of a flat gradient disc */
+.avatar {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--primary) 100%);
+  box-shadow: 0 0 0 3px rgba(4, 16, 12, 0.6), 0 0 0 4.5px rgba(45, 212, 191, 0.25), 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* Sidebar/nav "active" pill gets a touch more presence */
+.top-nav-menu-bar .menu-item.active button {
+  background: linear-gradient(135deg, rgba(82, 183, 136, 0.16), rgba(45, 212, 191, 0.08));
+}
+
+/* Primary CTA buttons: deeper gradient + glow so they read as the clear
+   call to action against the now-darker background */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent-cyan) 130%);
+  box-shadow: 0 6px 20px rgba(45, 212, 191, 0.18);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--accent-cyan) 120%);
+  box-shadow: 0 10px 28px rgba(45, 212, 191, 0.3);
+}
+
+/* Landing hero: richer title glow + a faint mono eyebrow above it for a
+   "console boot" feel that matches the clinical-instrument signature */
+.landing-title {
+  background: linear-gradient(120deg, var(--text-main) 10%, var(--accent-cyan) 55%, var(--primary-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 24px rgba(45, 212, 191, 0.12));
+}
+
+.landing-visual-card {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(45, 212, 191, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* SOS trigger: make the single danger element unmistakably the boldest
+   thing on screen, reserved exclusively for this control */
+.sos-trigger {
+  box-shadow: 0 0 0 6px rgba(231, 111, 81, 0.08), 0 10px 30px rgba(231, 111, 81, 0.25);
+}
+
+/* Diagnostics / med list badges keep their status color but align to the
+   mono data treatment used elsewhere */
+.badge-success, .badge-warning, .badge-danger {
+  font-size: 0.7rem;
+}
+
+/* Nested "subpanel" boxes inside cards (identity, insurance, scorecards,
+   welfare checks) — color-coded by category instead of one flat wash,
+   so the dashboard reads as distinct instrument panels at a glance. */
+.subpanel {
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: var(--transition);
+}
+
+.subpanel-cyan {
+  border-left-color: rgba(45, 212, 191, 0.55);
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.05), rgba(255, 255, 255, 0.015) 30%);
+}
+
+.subpanel-amber {
+  border-left-color: rgba(251, 191, 36, 0.55);
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.05), rgba(255, 255, 255, 0.015) 30%);
+}
+
+.subpanel-green {
+  border-left-color: rgba(82, 183, 136, 0.55);
+  background: linear-gradient(90deg, rgba(82, 183, 136, 0.06), rgba(255, 255, 255, 0.015) 30%);
+}
+
+.subpanel-rose {
+  border-left-color: rgba(251, 113, 133, 0.55);
+  background: linear-gradient(90deg, rgba(251, 113, 133, 0.05), rgba(255, 255, 255, 0.015) 30%);
+}
+
+.subpanel-violet {
+  border-left-color: rgba(167, 139, 250, 0.55);
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.05), rgba(255, 255, 255, 0.015) 30%);
 }

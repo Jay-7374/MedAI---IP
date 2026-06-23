@@ -13,7 +13,9 @@ elif db_url.startswith("postgresql://"):
 
 try:
     if is_sqlite:
-        engine = create_engine(db_url, connect_args={"check_same_thread": False})
+        engine = create_engine(
+            db_url, connect_args={"check_same_thread": False}
+        )
     else:
         engine = create_engine(db_url, pool_pre_ping=True)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -23,6 +25,7 @@ except Exception as e:
     SessionLocal = None
 
 Base = declarative_base()
+
 
 def get_db():
     if SessionLocal is None:

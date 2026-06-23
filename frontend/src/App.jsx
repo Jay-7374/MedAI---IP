@@ -38,7 +38,10 @@ export default function App() {
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState({ name: 'Alex Mercer', role: 'Patient' });
+  // Only Doctor/Receptionist/Admin roles can access admin features
+  const isAdmin = user.role === 'Doctor' || user.role === 'Receptionist' || user.role === 'Admin';
   const [toast, setToast] = useState(null);
+  const [toastExiting, setToastExiting] = useState(false);
 
   // Navigation History Stack
   const [historyStack, setHistoryStack] = useState([]);
@@ -95,7 +98,12 @@ export default function App() {
   // Voice Call Bot States
   const [selectedBot, setSelectedBot] = useState('NaturalSpeechAuth');
   const [callStatus, setCallStatus] = useState('Idle'); // 'Idle', 'Connecting', 'Connected'
+  const setCallStatusSynced = (val) => {
+    callStatusRef.current = val;
+    setCallStatus(val);
+  };
   const [transcripts, setTranscripts] = useState([]);
+  const [interimText, setInterimText] = useState(''); // live partial transcription
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [sessionId, setSessionId] = useState('');
   
@@ -115,14 +123,20 @@ export default function App() {
   // Refs to prevent stale closures in Speech API event loops
   const sipTransferActiveRef = useRef(false);
   const telemedicineActiveRef = useRef(false);
+  const callStatusRef = useRef('Idle');
   const wsRef = useRef(null);
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
 
   // Toast Helper
   const showToast = (message, type = 'primary') => {
+    setToastExiting(false);
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToastExiting(true), 3600);
+    setTimeout(() => {
+      setToast(null);
+      setToastExiting(false);
+    }, 4000);
   };
 
   // Fetch telemetry vitals
@@ -186,7 +200,9 @@ export default function App() {
 
   const fetchPrompts = async () => {
     try {
-      const res = await fetch('/api/prompts');
+      const res = await fetch('/api/prompts', {
+        headers: { 'X-User-Role': user.role }
+      });
       if (res.ok) {
         const data = await res.json();
         setPrompts(data);
@@ -224,10 +240,10 @@ export default function App() {
     }
   }, [selectedBot, prompts]);
 
-  // Scroll to bottom of chat transcripts
+  // Scroll to bottom whenever a new message or interim text appears
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [transcripts]);
+  }, [transcripts, interimText]);
 
   // Camera stream activation for WebRTC telemedicine bridge
   useEffect(() => {
@@ -253,83 +269,125 @@ export default function App() {
     };
   }, [view]);
 
-  // Initialize Speech Recognition
+  // Stable refs so event handlers always read latest values without stale closures
+  const sessionIdRef = useRef('');
+  const selectedBotRef = useRef('NaturalSpeechAuth');
+  const simulateDbTimeoutRef = useRef(false);
+  const consecutiveErrorsRef = useRef(0);
+  const isSpeakingRef = useRef(false);
+
+  useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
+  useEffect(() => { selectedBotRef.current = selectedBot; }, [selectedBot]);
+  useEffect(() => { simulateDbTimeoutRef.current = simulateDbTimeout; }, [simulateDbTimeout]);
+  useEffect(() => { consecutiveErrorsRef.current = consecutiveErrors; }, [consecutiveErrors]);
+  useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
+
+  // Initialize Speech Recognition ONCE on mount
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = 'en-US';
+    if (!SpeechRecognition) return;
 
-      rec.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        if (text.trim()) {
-          // Reset consecutive errors count on successful speech capture
-          setConsecutiveErrors(0);
-          
-          // Add User text locally
-          setTranscripts(prev => [...prev, { speaker: 'User', text: text }]);
-          
-          // Send via WebSocket to Groq LLM
-          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    const rec = new SpeechRecognition();
+    rec.continuous = true;       // keep listening — don't cut off mid-sentence
+    rec.interimResults = true;   // stream partial text as the user speaks
+    rec.lang = 'en-US';
+
+    rec.onresult = (event) => {
+      // Build the latest interim transcript from all current results
+      let interim = '';
+      let finalText = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalText += chunk;
+        } else {
+          interim += chunk;
+        }
+      }
+
+      // Always update the live typing bubble with what's being heard right now
+      if (interim) {
+        setInterimText(interim);
+      }
+
+      // When a final result arrives, commit it to the transcript and send to bot
+      if (finalText.trim()) {
+        setInterimText('');
+        setConsecutiveErrors(0);
+        consecutiveErrorsRef.current = 0;
+        setTranscripts(prev => [...prev, { speaker: 'User', text: finalText.trim() }]);
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({
+            type: 'text',
+            session_id: sessionIdRef.current,
+            text: finalText.trim(),
+            bot_name: selectedBotRef.current,
+            simulate_db_timeout: simulateDbTimeoutRef.current,
+            consecutive_errors: 0
+          }));
+        }
+      }
+    };
+
+    rec.onerror = (event) => {
+      console.warn("Speech recognition error:", event.error);
+      if (event.error === 'no-speech' || event.error === 'audio-capture') {
+        setConsecutiveErrors(prev => {
+          const nextVal = prev + 1;
+          consecutiveErrorsRef.current = nextVal;
+          if (nextVal >= 2 && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
               type: 'text',
-              session_id: sessionId,
-              text: text,
-              bot_name: selectedBot,
-              simulate_db_timeout: simulateDbTimeout,
-              consecutive_errors: 0
+              session_id: sessionIdRef.current,
+              text: '[FAILED_TO_UNDERSTAND]',
+              bot_name: selectedBotRef.current,
+              simulate_db_timeout: simulateDbTimeoutRef.current,
+              consecutive_errors: nextVal
             }));
           }
-        }
-      };
+          return nextVal;
+        });
+      }
+      // Do NOT call rec.start() here — the browser always fires onend right after
+      // onerror and the session isn't fully closed yet, so calling start() here
+      // throws InvalidStateError and can permanently silence the mic.
+      // onend below handles the restart reliably.
+    };
 
-      rec.onerror = (event) => {
-        console.warn("Speech recognition error:", event.error);
-        if (event.error === 'no-speech' || event.error === 'audio-capture') {
-          // Increment voice capture failures
-          setConsecutiveErrors(prev => {
-            const nextVal = prev + 1;
-            if (nextVal >= 2 && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-              wsRef.current.send(JSON.stringify({
-                type: 'text',
-                session_id: sessionId,
-                text: '[FAILED_TO_UNDERSTAND]',
-                bot_name: selectedBot,
-                simulate_db_timeout: simulateDbTimeout,
-                consecutive_errors: nextVal
-              }));
-            }
-            return nextVal;
-          });
-        }
-      };
+    rec.onend = () => {
+      // Give the audio subsystem a short moment to fully release before restarting.
+      // Without this delay, rec.start() can throw InvalidStateError on Chrome/Safari
+      // when onend fires right after onerror or immediately after utterance.onend
+      // already started a new session.
+      if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
+          !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
+        setTimeout(() => {
+          if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
+              !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
+            try { rec.start(); } catch(e) {}
+          }
+        }, 150);
+      }
+    };
 
-      rec.onend = () => {
-        // Automatically restart speech capture if we are still connected and not speaking
-        if (callStatus === 'Connected' && !isSpeaking && !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
-          try {
-            rec.start();
-          } catch (e) {}
-        }
-      };
-
-      recognitionRef.current = rec;
-    }
-  }, [callStatus, isSpeaking, sessionId, selectedBot, simulateDbTimeout, consecutiveErrors]);
+    recognitionRef.current = rec;
+    return () => { try { rec.stop(); } catch(e) {} };
+  }, []); // empty deps: create once, never re-create
 
   // Trigger web speech synthesis
   const speakTextOutLoud = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
       utterance.onstart = () => {
+        isSpeakingRef.current = true;
         setIsSpeaking(true);
+        setInterimText(''); // clear any partial transcription
         if (recognitionRef.current) {
           try {
             recognitionRef.current.stop(); // Stop listening while bot is speaking
@@ -338,18 +396,27 @@ export default function App() {
       };
 
       utterance.onend = () => {
+        // Update the ref synchronously FIRST so any concurrent rec.onend
+        // timer that fires during the 150 ms window sees the correct value.
+        isSpeakingRef.current = false;
         setIsSpeaking(false);
         if (telemedicineActiveRef.current) {
           setView('telemedicine');
-          setCallStatus('Idle');
+          setCallStatusSynced('Idle');
           if (wsRef.current) wsRef.current.close();
         } else if (sipTransferActiveRef.current) {
-          setCallStatus('Idle');
+          setCallStatusSynced('Idle');
           if (wsRef.current) wsRef.current.close();
-        } else if (callStatus === 'Connected' && recognitionRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch(e){}
+        } else if (callStatusRef.current === 'Connected' && recognitionRef.current) {
+          // Small delay so the browser audio subsystem fully releases from TTS
+          // before we try to open the mic again.  Without this, rec.start()
+          // silently fails on Chrome and the mic goes permanently dark.
+          setTimeout(() => {
+            if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
+                !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
+              try { recognitionRef.current.start(); } catch(e) {}
+            }
+          }, 150);
         }
       };
 
@@ -361,7 +428,7 @@ export default function App() {
   const startCallSession = async () => {
     const newSessionId = 'SESS-' + Date.now();
     setSessionId(newSessionId);
-    setCallStatus('Connecting');
+    setCallStatusSynced('Connecting');
     setTranscripts([]);
     setConsecutiveErrors(0);
     setSipTransferActive(false);
@@ -385,11 +452,12 @@ export default function App() {
     }
 
     // 2. Open WebSocket link
-    const wsUrl = `ws://${window.location.host}/ws/voice`;
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws/voice`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      setCallStatus('Connected');
+      setCallStatusSynced('Connected');
       showToast("Real-time voice bot link established.", "success");
       
       // If db timeout is simulated on start
@@ -443,14 +511,14 @@ export default function App() {
 
     ws.onerror = () => {
       showToast("WebSocket connection error. Using offline voice simulator.", "warning");
-      setCallStatus('Connected');
+      setCallStatusSynced('Connected');
       const welcomeText = `Hello. Voice bot running in offline fallback mode. How can I help?`;
       setTranscripts([{ speaker: 'AI', text: welcomeText }]);
       speakTextOutLoud(welcomeText);
     };
 
     ws.onclose = () => {
-      setCallStatus('Idle');
+      setCallStatusSynced('Idle');
       showToast("Call session ended.", "warning");
     };
 
@@ -470,8 +538,10 @@ export default function App() {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    isSpeakingRef.current = false;
     setIsSpeaking(false);
-    setCallStatus('Idle');
+    setInterimText('');
+    setCallStatusSynced('Idle');
   };
 
   // Authentication handlers
@@ -660,10 +730,17 @@ export default function App() {
 
   const handleSavePrompt = async (e) => {
     e.preventDefault();
+    if (!isAdmin) {
+      showToast("Access denied. Clinical staff only.", "danger");
+      return;
+    }
     try {
       const res = await fetch('/api/prompts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Role': user.role
+        },
         body: JSON.stringify(editingPrompt)
       });
       if (res.ok) {
@@ -677,7 +754,7 @@ export default function App() {
 
   if (view === 'landing') {
     return (
-      <div className="landing-container">
+      <div className="landing-container view-transition-root" key="view-landing">
         {/* Background Grid & Scanline */}
         <div className="bg-grid-overlay"></div>
         <div className="bg-grid-scanline"></div>
@@ -846,7 +923,7 @@ export default function App() {
 
   if (view === 'login') {
     return (
-      <div className="login-container">
+      <div className="login-container view-transition-root" key="view-login">
         {/* Background Grid & Scanline */}
         <div className="bg-grid-overlay"></div>
         <div className="bg-grid-scanline"></div>
@@ -977,7 +1054,7 @@ export default function App() {
 
   if (view === 'telemedicine') {
     return (
-      <div className="app-container" style={{ padding: '2.5rem' }}>
+      <div className="app-container view-transition-root" style={{ padding: '2.5rem' }} key="view-telemedicine">
         <div className="bg-glow-layer">
           <div className="glow-blob glow-blob-1"></div>
           <div className="glow-blob glow-blob-2"></div>
@@ -1048,7 +1125,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container view-transition-root" key="view-app">
       {/* Background Glow Layer */}
       <div className="bg-glow-layer">
         <div className="glow-blob glow-blob-1"></div>
@@ -1128,6 +1205,7 @@ export default function App() {
             </div>
           </div>
 
+          {isAdmin && (
           <div className="nav-section-group">
             <span className="nav-section-title">System</span>
             <div className="nav-buttons-container">
@@ -1136,6 +1214,7 @@ export default function App() {
               </div>
             </div>
           </div>
+          )}
 
           <div className="nav-section-group">
             <span className="nav-section-title">Critical</span>
@@ -1170,13 +1249,14 @@ export default function App() {
           {/* Toast Container */}
           {toast && (
             <div id="toast-container">
-              <div className={`toast toast-${toast.type}`}>
+              <div className={`toast toast-${toast.type}${toastExiting ? ' toast-exit' : ''}`}>
                 <Activity size={18} className={toast.type === 'danger' ? 'fa-spin' : ''} />
                 <span>{toast.message}</span>
               </div>
             </div>
           )}
 
+          <div className="view-fade-in" key={activeTab}>
           {/* TAB 1: DASHBOARD */}
           {activeTab === 'dashboard' && (
             <>
@@ -1245,7 +1325,7 @@ export default function App() {
                       <Check size={18} style={{ color: 'var(--success)' }} /> Patient Identity Verification & Insurance Pre-Auth
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                      <div className="subpanel subpanel-cyan">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                           <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Patient Name</span>
                           <strong style={{ color: 'var(--text-main)' }}>Alex Mercer</strong>
@@ -1260,7 +1340,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                      <div className="subpanel subpanel-amber">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                           <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Insurance Provider</span>
                           <strong style={{ color: 'var(--text-main)' }}>BlueCross Shield</strong>
@@ -1284,7 +1364,7 @@ export default function App() {
                       <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <FileText size={18} style={{ color: 'var(--secondary)' }} /> Post-Discharge Scorecard
                       </h3>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div className="subpanel subpanel-green" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--divider)', paddingBottom: '0.5rem' }}>
                             <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>48h Post-Op Survey</span>
@@ -1337,7 +1417,7 @@ export default function App() {
                       <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Heart size={18} style={{ color: 'var(--danger)' }} /> Elder Companion Checks
                       </h3>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div className="subpanel subpanel-rose" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.4rem', fontSize: '0.8rem' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Relative Monitoring:</span> <strong style={{ color: 'var(--text-main)' }}>Welfare Active</strong></div>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Acoustic Sentiment:</span> <strong style={{ color: 'var(--success)' }}>Stable / Cozy</strong></div>
@@ -1421,19 +1501,36 @@ export default function App() {
                     onChange={(e) => setSelectedBot(e.target.value)}
                     disabled={callStatus !== 'Idle'}
                   >
-                    <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
-                    <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
-                    <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
-                    <option value="MedicationAdherence">Active Medication Adherence Alert</option>
-                    <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
-                    <option value="EmergencySeverity">Emergency Severity Classification</option>
-                    <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
-                    <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
-                    <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
+                    {isAdmin ? (
+                      <>
+                        <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
+                        <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
+                        <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
+                        <option value="MedicationAdherence">Active Medication Adherence Alert</option>
+                        <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
+                        <option value="EmergencySeverity">Emergency Severity Classification</option>
+                        <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
+                        <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
+                        <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="NaturalSpeechAuth">Verify My Identity</option>
+                        <option value="ConversationalScheduling">Book or Change an Appointment</option>
+                        <option value="PostDischargeCheckIn">Post-Discharge Recovery Check-in</option>
+                        <option value="MedicationAdherence">Medication Reminder</option>
+                        <option value="InsurancePolicyIntake">Insurance & Cost Estimate</option>
+                        <option value="EmergencySeverity">Report an Emergency</option>
+                        <option value="AiNurseAdvice">Ask a Nurse</option>
+                        <option value="ElderCareTerminal">Wellness Check-in</option>
+                        <option value="TelemedicineBridge">Join My Video Consultation</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
-                {/* Simulation Control Panel */}
+                {/* Simulation Control Panel — Admin only */}
+                {isAdmin && (
                 <div className="simulation-toggles-container">
                   <h4 style={{ fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <Settings size={14} /> Handoff & Error Simulation Control
@@ -1477,6 +1574,7 @@ export default function App() {
                     </button>
                   </div>
                 </div>
+                )}
 
                 {/* SIP Warm-Transfer active display */}
                 {sipTransferActive && (
@@ -1565,11 +1663,25 @@ export default function App() {
                       <div style={{ fontWeight: 500 }}>{msg.text}</div>
                     </div>
                   ))}
-                  {transcripts.length === 0 && (
+                  {transcripts.length === 0 && !interimText && (
                     <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
                       Dialogue stream is currently empty. Connect above to start.
                     </div>
                   )}
+
+                  {/* Live partial transcription — appears as user speaks, before final result */}
+                  {interimText && (
+                    <div className="transcript-message user" style={{ opacity: 0.6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
+                        <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+                          You
+                        </span>
+                        <span style={{ fontFamily: 'monospace', fontStyle: 'italic' }}>listening…</span>
+                      </div>
+                      <div style={{ fontWeight: 500, fontStyle: 'italic' }}>{interimText}</div>
+                    </div>
+                  )}
+
                   <div ref={chatEndRef} />
                 </div>
                 
@@ -1759,8 +1871,9 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 5: PROMPT MANAGER */}
+          {/* TAB 5: PROMPT MANAGER — ADMIN ONLY */}
           {activeTab === 'prompts' && (
+            isAdmin ? (
             <div className="card">
               <div style={{ marginBottom: '1.75rem' }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.35rem' }}>System Prompt Orchestrator</h3>
@@ -1778,15 +1891,31 @@ export default function App() {
                       else setEditingPrompt({ bot_name: e.target.value, system_prompt: DEFAULT_PROMPTS[e.target.value] || '' });
                     }}
                   >
-                    <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
-                    <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
-                    <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
-                    <option value="MedicationAdherence">Active Medication Adherence Alert</option>
-                    <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
-                    <option value="EmergencySeverity">Emergency Severity Classification</option>
-                    <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
-                    <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
-                    <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
+                    {isAdmin ? (
+                      <>
+                        <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
+                        <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
+                        <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
+                        <option value="MedicationAdherence">Active Medication Adherence Alert</option>
+                        <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
+                        <option value="EmergencySeverity">Emergency Severity Classification</option>
+                        <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
+                        <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
+                        <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="NaturalSpeechAuth">Verify My Identity</option>
+                        <option value="ConversationalScheduling">Book or Change an Appointment</option>
+                        <option value="PostDischargeCheckIn">Post-Discharge Recovery Check-in</option>
+                        <option value="MedicationAdherence">Medication Reminder</option>
+                        <option value="InsurancePolicyIntake">Insurance & Cost Estimate</option>
+                        <option value="EmergencySeverity">Report an Emergency</option>
+                        <option value="AiNurseAdvice">Ask a Nurse</option>
+                        <option value="ElderCareTerminal">Wellness Check-in</option>
+                        <option value="TelemedicineBridge">Join My Video Consultation</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -1808,6 +1937,13 @@ export default function App() {
                 </button>
               </form>
             </div>
+            ) : (
+            <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <Settings size={40} style={{ color: 'var(--text-muted)', marginBottom: '1rem' }} />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Access Restricted</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>The Prompt Orchestrator is available to clinical staff only. Please contact your administrator.</p>
+            </div>
+            )
           )}
 
           {/* TAB 6: EMERGENCY */}
@@ -1842,6 +1978,7 @@ export default function App() {
               </div>
             </div>
           )}
+          </div>
         </main>
       </div>
     </div>
