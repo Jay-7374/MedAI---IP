@@ -37,9 +37,9 @@ const DEFAULT_PROMPTS = {
 export default function App() {
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [user, setUser] = useState({ name: 'Alex Mercer', role: 'Patient' });
+  const [user, setUser] = useState(null);
   // Only Doctor/Receptionist/Admin/Staff roles can access admin features
-  const isAdmin = user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'staff' || user.role === 'Doctor' || user.role === 'Receptionist' || user.role === 'Admin';
+  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'staff' || user?.role === 'Doctor' || user?.role === 'Receptionist' || user?.role === 'Admin';
   const [toast, setToast] = useState(null);
   const [toastExiting, setToastExiting] = useState(false);
 
@@ -201,7 +201,7 @@ export default function App() {
   const fetchPrompts = async () => {
     try {
       const res = await fetch('/api/prompts', {
-        headers: { 'X-User-Role': user.role }
+        headers: { 'X-User-Role': user?.role || '' }
       });
       if (res.ok) {
         const data = await res.json();
@@ -227,11 +227,18 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchAppointments();
-    fetchMedicines();
-    fetchPrompts();
-    fetchSmsMessages();
-  }, []);
+    if (user) {
+      fetchAppointments();
+      fetchMedicines();
+      fetchPrompts();
+      fetchSmsMessages();
+    } else {
+      setAppointments([]);
+      setMedicines([]);
+      setPrompts([]);
+      setSmsMessages([]);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (prompts.length > 0) {
@@ -581,16 +588,7 @@ export default function App() {
           setAuthError(data.detail || "Authentication failed. Please verify credentials.");
         }
       } catch (err) {
-        // Fallback local mode
-        if (authForm.username.toLowerCase() === 'alex mercer' && authForm.password === '123456') {
-          setUser({ name: 'Alex Mercer', role: 'Patient' });
-          showToast("Welcome back, Alex Mercer (Offline mode)!", 'success');
-          setView('app');
-          setActiveTab('dashboard');
-          setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
-        } else {
-          setAuthError("Authentication server error. Try 'Alex Mercer' / '123456' for offline access.");
-        }
+        setAuthError("Authentication server error. Please check if the authentication service is running.");
       }
     } else {
       // signup mode
@@ -621,12 +619,7 @@ export default function App() {
           setAuthError(data.detail || "Sign up failed. Username or email might be taken.");
         }
       } catch (err) {
-        // Fallback local sign up
-        setUser({ name: authForm.username, role: authForm.role });
-        showToast(`Welcome, ${authForm.username} (Offline signup)!`, 'success');
-        setView('app');
-        setActiveTab('dashboard');
-        setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+        setAuthError("Registration server error. Please check if the authentication service is running.");
       }
     }
   };
@@ -740,7 +733,7 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Role': user.role
+          'X-User-Role': user?.role || ''
         },
         body: JSON.stringify(editingPrompt)
       });
@@ -1151,15 +1144,16 @@ export default function App() {
             </div>
             
             <div className="user-profile-widget-top">
-              <div className="avatar">{user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}</div>
+              <div className="avatar">{user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}</div>
               <div className="user-info-text">
-                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user.role}</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{user?.name}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{user?.role}</div>
               </div>
               <button className="profile-action-btn" title="System Settings">
                 <Settings size={16} />
               </button>
               <button className="profile-action-btn" title="Sign Out" onClick={() => {
+                setUser(null);
                 setView('landing');
                 showToast("Logged out successfully.", "warning");
               }} style={{ color: 'var(--danger)', marginLeft: '4px' }}>

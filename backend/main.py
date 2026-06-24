@@ -229,8 +229,6 @@ def register(request: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/api/auth/login")
 def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
-    import hashlib
-
     # Find user by name (username) first, then email
     db_user = crud.get_user_by_name(db, request.username)
     if not db_user:
@@ -244,8 +242,7 @@ def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
         )
 
     # Validate password
-    pwd_hash = hashlib.sha256(request.password.encode("utf-8")).hexdigest()
-    if db_user.password_hash != pwd_hash:
+    if db_user.password != request.password:
         raise HTTPException(
             status_code=401, detail="Incorrect password. Please try again."
         )

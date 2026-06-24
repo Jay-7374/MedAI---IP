@@ -2,8 +2,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from . import models, schemas
 
-import hashlib
-
 
 # User operations
 def get_user(db: Session, user_id: int):
@@ -19,7 +17,6 @@ def get_user_by_name(db: Session, name: str):
 
 
 def create_user(db: Session, user: schemas.UserCreate, role_name: str = "patient"):
-    pwd_hash = hashlib.sha256(user.password.encode("utf-8")).hexdigest()
     role = (
         db.query(models.Role)
         .filter(models.Role.role_name == role_name)
@@ -31,7 +28,7 @@ def create_user(db: Session, user: schemas.UserCreate, role_name: str = "patient
     db_user = models.User(
         name=user.name,
         email=user.email,
-        password_hash=pwd_hash,
+        password=user.password,
         role_id=role.id,
         is_active=True,
     )
