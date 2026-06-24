@@ -377,22 +377,51 @@ body {
   margin: 0 auto;
 }
 
-/* Grid systems */
+/* Grid systems with spacious 2rem gap */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
 }
 
-.dashboard-split {
+.dashboard-grid-layout {
   display: grid;
-  grid-template-columns: 1.8fr 1.2fr;
-  gap: 1.75rem;
+  grid-template-columns: 1fr 1fr 1.1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
 }
 
-@media (max-width: 1024px) {
-  .dashboard-split {
+.grid-col-span-2 {
+  grid-column: span 2;
+}
+
+.grid-row-span-3 {
+  grid-row: span 3;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+  .grid-col-span-2 {
+    grid-column: span 2;
+  }
+  .grid-row-span-3 {
+    grid-row: span 1;
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid-layout {
     grid-template-columns: 1fr;
+  }
+  .grid-col-span-2 {
+    grid-column: span 1;
+  }
+  .grid-row-span-3 {
+    grid-row: span 1;
+    grid-column: span 1;
   }
 }
 
@@ -402,11 +431,13 @@ body {
   backdrop-filter: blur(28px) saturate(130%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.75rem;
+  padding: 1.25rem;
   transition: var(--transition);
   box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .card::before {
@@ -430,17 +461,18 @@ body {
 .metric-card {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem !important;
 }
 
 .metric-icon {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   transition: var(--transition);
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
@@ -450,16 +482,16 @@ body {
 }
 
 .metric-details h4 {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-secondary);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3;
 }
 
 .metric-value {
-  font-size: 1.8rem;
+  font-size: 1.45rem;
   font-weight: 800;
   letter-spacing: -0.5px;
   color: var(--text-main);
@@ -2155,7 +2187,7 @@ select.form-control {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: 300px;
+  flex-grow: 1;
   overflow-y: auto;
   padding-right: 0.5rem;
 }
@@ -2508,15 +2540,14 @@ select.form-control {
    progressively longer delay via nth-child, so cards cascade in rather
    than popping all at once. */
 .metrics-grid > *,
-.dashboard-split > *,
 .stagger-group > * {
   animation: cardRise 0.6s var(--ease-smooth) both;
 }
 
-.metrics-grid > *:nth-child(1),  .dashboard-split > *:nth-child(1),  .stagger-group > *:nth-child(1)  { animation-delay: calc(var(--stagger-step) * 1); }
-.metrics-grid > *:nth-child(2),  .dashboard-split > *:nth-child(2),  .stagger-group > *:nth-child(2)  { animation-delay: calc(var(--stagger-step) * 2); }
-.metrics-grid > *:nth-child(3),  .dashboard-split > *:nth-child(3),  .stagger-group > *:nth-child(3)  { animation-delay: calc(var(--stagger-step) * 3); }
-.metrics-grid > *:nth-child(4),  .dashboard-split > *:nth-child(4),  .stagger-group > *:nth-child(4)  { animation-delay: calc(var(--stagger-step) * 4); }
+.metrics-grid > *:nth-child(1),  .stagger-group > *:nth-child(1)  { animation-delay: calc(var(--stagger-step) * 1); }
+.metrics-grid > *:nth-child(2),  .stagger-group > *:nth-child(2)  { animation-delay: calc(var(--stagger-step) * 2); }
+.metrics-grid > *:nth-child(3),  .stagger-group > *:nth-child(3)  { animation-delay: calc(var(--stagger-step) * 3); }
+.metrics-grid > *:nth-child(4),  .stagger-group > *:nth-child(4)  { animation-delay: calc(var(--stagger-step) * 4); }
 .metrics-grid > *:nth-child(5),  .stagger-group > *:nth-child(5)  { animation-delay: calc(var(--stagger-step) * 5); }
 .metrics-grid > *:nth-child(6),  .stagger-group > *:nth-child(6)  { animation-delay: calc(var(--stagger-step) * 6); }
 .metrics-grid > *:nth-child(7),  .stagger-group > *:nth-child(7)  { animation-delay: calc(var(--stagger-step) * 7); }
@@ -2534,10 +2565,18 @@ select.form-control {
   }
 }
 
-/* Nested rows inside dashboard-split (the grid two-up rows) cascade too */
-.dashboard-split .card {
+/* Flat layout cards cascade */
+.dashboard-grid-layout .card {
   animation: cardRise 0.6s var(--ease-smooth) both;
 }
+
+/* Staggered rise animation delays for dashboard cards */
+.dashboard-grid-layout > *:nth-child(1) { animation-delay: calc(var(--stagger-step) * 1); }
+.dashboard-grid-layout > *:nth-child(2) { animation-delay: calc(var(--stagger-step) * 2); }
+.dashboard-grid-layout > *:nth-child(3) { animation-delay: calc(var(--stagger-step) * 3); }
+.dashboard-grid-layout > *:nth-child(4) { animation-delay: calc(var(--stagger-step) * 4); }
+.dashboard-grid-layout > *:nth-child(5) { animation-delay: calc(var(--stagger-step) * 5); }
+.dashboard-grid-layout > *:nth-child(6) { animation-delay: calc(var(--stagger-step) * 6); }
 
 /* List rows (medication / appointment / SMS items) cascade in lightly */
 .sms-message-card {
@@ -2590,28 +2629,13 @@ select.form-control {
   transform: translateY(0) scale(0.97);
 }
 
-/* Animated underline sweep for the active top-nav item */
+/* Underlines removed for navigation buttons */
 .top-nav-menu-bar .menu-item button {
   overflow: hidden;
 }
 
 .top-nav-menu-bar .menu-item button::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 2px;
-  width: 0%;
-  height: 2px;
-  background: currentColor;
-  border-radius: 2px;
-  opacity: 0;
-  transform: translateX(-50%);
-  transition: width 0.35s var(--ease-smooth), opacity 0.35s ease;
-}
-
-.top-nav-menu-bar .menu-item.active button::after {
-  width: 60%;
-  opacity: 0.85;
+  display: none !important;
 }
 
 /* Icon micro-motion on nav hover */
@@ -2710,8 +2734,8 @@ select.form-control {
 .card > h3,
 .card h3:first-child {
   position: relative;
-  padding-bottom: 0.85rem;
-  margin-bottom: 1.1rem !important;
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.85rem !important;
   border-bottom: 1px solid var(--divider);
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -2794,12 +2818,32 @@ select.form-control {
    welfare checks) — color-coded by category instead of one flat wash,
    so the dashboard reads as distinct instrument panels at a glance. */
 .subpanel {
-  padding: 1rem;
+  padding: 0.8rem;
   border-radius: 10px;
   border: 1px solid var(--border);
   border-left-width: 3px;
   background: rgba(255, 255, 255, 0.02);
   transition: var(--transition);
+}
+
+.subpanel-fill {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dashboard-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-row-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 }
 
 .subpanel-cyan {

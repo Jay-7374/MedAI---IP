@@ -1316,149 +1316,47 @@ export default function App() {
               </section>
 
               {/* Main Dashboard Layout */}
-              <div className="dashboard-split">
-                {/* Left Column: Communications Logs & Operations Registry */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-                  {/* Row 1: Identity & Insurance Pre-Auth */}
-                  <div className="card">
-                    <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Check size={18} style={{ color: 'var(--success)' }} /> Patient Identity Verification & Insurance Pre-Auth
-                    </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                      <div className="subpanel subpanel-cyan">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Patient Name</span>
-                          <strong style={{ color: 'var(--text-main)' }}>Alex Mercer</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>DOB Authentication</span>
-                          <strong style={{ color: 'var(--success)' }}>July 24, 1995 (VERIFIED)</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>EHR Record Link</span>
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-main)' }}>#EHR-9831A (Active)</span>
-                        </div>
+              <div className="dashboard-grid-layout">
+                {/* Card 1: Patient Identity & Insurance Pre-Auth (Spans 2 columns) */}
+                <div className="card grid-col-span-2">
+                  <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Check size={18} style={{ color: 'var(--success)' }} /> Patient Identity Verification & Insurance Pre-Auth
+                  </h3>
+                  <div className="dashboard-row-grid">
+                    <div className="subpanel subpanel-cyan">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Patient Name</span>
+                        <strong style={{ color: 'var(--text-main)' }}>Alex Mercer</strong>
                       </div>
-
-                      <div className="subpanel subpanel-amber">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Insurance Provider</span>
-                          <strong style={{ color: 'var(--text-main)' }}>BlueCross Shield</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Policy Group ID</span>
-                          <strong style={{ color: 'var(--text-main)' }}>98124</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Est. Out-of-pocket</span>
-                          <strong style={{ color: 'var(--warning)', fontSize: '1.05rem' }}>$45.00</strong>
-                        </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>DOB Authentication</span>
+                        <strong style={{ color: 'var(--success)' }}>July 24, 1995 (VERIFIED)</strong>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Row 2: Post-Discharge Scorecards & Medication Compliance Logs */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.75rem' }}>
-                    {/* Post-Discharge scorecard */}
-                    <div className="card">
-                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FileText size={18} style={{ color: 'var(--secondary)' }} /> Post-Discharge Scorecard
-                      </h3>
-                      <div className="subpanel subpanel-green" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--divider)', paddingBottom: '0.5rem' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>48h Post-Op Survey</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Today</span>
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.35rem', fontSize: '0.8rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Pain Level:</span> <strong style={{ color: 'var(--text-main)' }}>3 / 10</strong></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Wound status:</span> <strong style={{ color: 'var(--success)' }}>Normal</strong></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Food intake:</span> <strong style={{ color: 'var(--success)' }}>Tolerated</strong></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fever status:</span> <strong style={{ color: 'var(--success)' }}>None (98.6°F)</strong></div>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.75rem' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Assessment:</span>
-                          <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>STABLE (5/5 Index)</span>
-                        </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>EHR Record Link</span>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--text-main)' }}>#EHR-9831A (Active)</span>
                       </div>
                     </div>
 
-                    {/* Medication adherence list */}
-                    <div className="card">
-                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Pill size={18} style={{ color: 'var(--primary)' }} /> Regimen Adherence
-                      </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
-                        {medicines.map((med, idx) => (
-                          <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>
-                              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-main)' }}>{med.name}</div>
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{med.dosage}</div>
-                            </div>
-                            <span className={`badge ${med.status === 'Taken' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>
-                              {med.status === 'Taken' ? 'Taken' : 'Alert Sent'}
-                            </span>
-                          </div>
-                        ))}
-                        {medicines.length === 0 && (
-                          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            No active medications.
-                          </div>
-                        )}
+                    <div className="subpanel subpanel-amber">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Insurance Provider</span>
+                        <strong style={{ color: 'var(--text-main)' }}>BlueCross Shield</strong>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Row 3: Elder Companion Welfare Logs & Scheduling Slots */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.75rem' }}>
-                    {/* Elder Care Welfare checks */}
-                    <div className="card">
-                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Heart size={18} style={{ color: 'var(--danger)' }} /> Elder Companion Checks
-                      </h3>
-                      <div className="subpanel subpanel-rose" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.4rem', fontSize: '0.8rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Relative Monitoring:</span> <strong style={{ color: 'var(--text-main)' }}>Welfare Active</strong></div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Acoustic Sentiment:</span> <strong style={{ color: 'var(--success)' }}>Stable / Cozy</strong></div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cognitive Decline:</span> <strong style={{ color: 'var(--success)' }}>Negative (0 Alerts)</strong></div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Background Cue:</span> <strong style={{ color: 'var(--text-secondary)' }}>Normal environment</strong></div>
-                        </div>
-                        <div style={{ borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          Daily Welfare Call status: <span style={{ color: 'var(--success)', fontWeight: 700 }}>Pass</span>
-                        </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Policy Group ID</span>
+                        <strong style={{ color: 'var(--text-main)' }}>98124</strong>
                       </div>
-                    </div>
-
-                    {/* Conversational Diagnostics & EHR slots */}
-                    <div className="card">
-                      <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={18} style={{ color: 'var(--primary-hover)' }} /> Diagnostics Registry
-                      </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
-                        {appointments.map((appt, idx) => (
-                          <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-main)' }}>{appt.doctor}</div>
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{appt.date} at {appt.time}</div>
-                            </div>
-                            <span className={`badge ${appt.status === 'Confirmed' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>
-                              {appt.status}
-                            </span>
-                          </div>
-                        ))}
-                        {appointments.length === 0 && (
-                          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            No scheduled diagnostics slots.
-                          </div>
-                        )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Est. Out-of-pocket</span>
+                        <strong style={{ color: 'var(--warning)', fontSize: '1.05rem' }}>$45.00</strong>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Column: Outbound SMS Activity Logs Feed */}
-                <div className="card sms-panel-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                {/* Card 2: Outbound SMS Activity Logs Feed (Spans 3 rows on the right) */}
+                <div className="card sms-panel-container grid-row-span-3">
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
                     <MessageSquare size={18} style={{ color: 'var(--secondary)' }} /> Outbound Transactional SMS Logs
                   </h3>
@@ -1477,6 +1375,99 @@ export default function App() {
                     {smsMessages.length === 0 && (
                       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                         No transactional SMS alerts logged.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card 3: Post-Discharge scorecard */}
+                <div className="card">
+                  <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FileText size={18} style={{ color: 'var(--secondary)' }} /> Post-Discharge Scorecard
+                  </h3>
+                  <div className="subpanel subpanel-green subpanel-fill">
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--divider)', paddingBottom: '0.5rem' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>48h Post-Op Survey</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Today</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.35rem', fontSize: '0.8rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Pain Level:</span> <strong style={{ color: 'var(--text-main)' }}>3 / 10</strong></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Wound status:</span> <strong style={{ color: 'var(--success)' }}>Normal</strong></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Food intake:</span> <strong style={{ color: 'var(--success)' }}>Tolerated</strong></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fever status:</span> <strong style={{ color: 'var(--success)' }}>None (98.6°F)</strong></div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.75rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Assessment:</span>
+                      <span className="badge badge-success" style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>STABLE (5/5 Index)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 4: Medication Adherence Tracker */}
+                <div className="card">
+                  <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Pill size={18} style={{ color: 'var(--primary)' }} /> Regimen Adherence
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                    {medicines.map((med, idx) => (
+                      <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-main)' }}>{med.name}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{med.dosage}</div>
+                        </div>
+                        <span className={`badge ${med.status === 'Taken' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>
+                          {med.status === 'Taken' ? 'Taken' : 'Alert Sent'}
+                        </span>
+                      </div>
+                    ))}
+                    {medicines.length === 0 && (
+                      <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        No active medications.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card 5: Elder Care Welfare checks */}
+                <div className="card">
+                  <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Heart size={18} style={{ color: 'var(--danger)' }} /> Elder Companion Checks
+                  </h3>
+                  <div className="subpanel subpanel-rose subpanel-fill">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.4rem', fontSize: '0.8rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Relative Monitoring:</span> <strong style={{ color: 'var(--text-main)' }}>Welfare Active</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Acoustic Sentiment:</span> <strong style={{ color: 'var(--success)' }}>Stable / Cozy</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cognitive Decline:</span> <strong style={{ color: 'var(--success)' }}>Negative (0 Alerts)</strong></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Background Cue:</span> <strong style={{ color: 'var(--text-secondary)' }}>Normal environment</strong></div>
+                    </div>
+                    <div style={{ borderTop: '1px solid var(--divider)', paddingTop: '0.5rem', marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Daily Welfare Call status: <span style={{ color: 'var(--success)', fontWeight: 700 }}>Pass</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 6: Conversational Diagnostics & EHR slots */}
+                <div className="card">
+                  <h3 style={{ marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Calendar size={18} style={{ color: 'var(--primary-hover)' }} /> Diagnostics Registry
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                    {appointments.map((appt, idx) => (
+                      <div key={idx} style={{ background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-main)' }}>{appt.doctor}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{appt.date} at {appt.time}</div>
+                        </div>
+                        <span className={`badge ${appt.status === 'Confirmed' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem' }}>
+                          {appt.status}
+                        </span>
+                      </div>
+                    ))}
+                    {appointments.length === 0 && (
+                      <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        No scheduled diagnostics slots.
                       </div>
                     )}
                   </div>
