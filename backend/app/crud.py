@@ -18,13 +18,22 @@ def get_user_by_name(db: Session, name: str):
     return db.query(models.User).filter(models.User.name == name).first()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: schemas.UserCreate, role_name: str = "patient"):
     pwd_hash = hashlib.sha256(user.password.encode("utf-8")).hexdigest()
+    role = (
+        db.query(models.Role)
+        .filter(models.Role.role_name == role_name)
+        .first()
+    )
+    if role is None:
+        raise ValueError(f"Default {role_name} role is missing.")
+
     db_user = models.User(
         name=user.name,
         email=user.email,
         password_hash=pwd_hash,
-        role=user.role,
+        role_id=role.id,
+        is_active=True,
     )
     db.add(db_user)
     db.commit()

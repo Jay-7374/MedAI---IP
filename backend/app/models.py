@@ -1,7 +1,20 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
+
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    role_name = Column(String(50), unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    users = relationship("User", back_populates="role")
 
 
 class User(Base):
@@ -11,9 +24,12 @@ class User(Base):
     name = Column(String(100))
     email = Column(String(100), unique=True, index=True)
     password_hash = Column(String(255), nullable=True)
-    role = Column(String(50), default="Patient")
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
 
+    role = relationship("Role", back_populates="users")
     sessions = relationship("CallSession", back_populates="user")
 
 

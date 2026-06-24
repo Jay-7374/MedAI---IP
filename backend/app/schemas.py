@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional
 
@@ -6,7 +6,6 @@ from typing import Optional
 class UserBase(BaseModel):
     name: str
     email: str
-    role: Optional[str] = "Patient"
 
 
 class UserCreate(UserBase):
@@ -20,10 +19,18 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: int
+    role: Optional[str] = None
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def get_role_name(cls, v):
+        if hasattr(v, "role_name"):
+            return v.role_name
+        return v
 
 
 class CallSessionBase(BaseModel):

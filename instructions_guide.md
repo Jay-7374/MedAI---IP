@@ -63,7 +63,7 @@ To run the application locally on your machine, follow these steps:
 ### Prerequisites
 1.  Install **Python 3.10+**.
 2.  Install **Node.js LTS**.
-3.  Provision a **PostgreSQL** database (locally or using a free cloud option like Supabase).
+3.  Provision a **Supabase PostgreSQL** database. The backend expects Supabase/Postgres in every environment, including local development.
 
 ### Step-by-Step Setup
 1.  **Clone / Prepare Workspace**: Open the project folder `f:\MedAI - IP\`.
@@ -71,7 +71,7 @@ To run the application locally on your machine, follow these steps:
     *   Create a `.env` file inside `backend/` with the following variables:
         ```env
         GROQ_API_KEY=your_groq_api_key_here
-        DATABASE_URL=postgresql://user:password@host:5432/db_name
+        DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?sslmode=require
         TWILIO_ACCOUNT_SID=your_twilio_sid
         TWILIO_AUTH_TOKEN=your_twilio_token
         ```
@@ -102,6 +102,7 @@ To run the application locally on your machine, follow these steps:
     uvicorn main:app --reload
     ```
     Visit `http://localhost:8000/` in your browser.
+    The local server uses the Supabase `DATABASE_URL` from `backend/.env`; it no longer falls back to SQLite.
 
 ---
 
@@ -114,5 +115,5 @@ To run the application locally on your machine, follow these steps:
 
 ### Production Deploy Checklist
 1.  Ensure Nginx/Server utilizes SSL (`https://` / `wss://`). WebRTC and the Web Speech API **require a secure connection** to grant microphone permissions.
-2.  In Render, add environment variables for `GROQ_API_KEY`, `DATABASE_URL`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`.
+2.  In Render, add environment variables for `GROQ_API_KEY`, Supabase `DATABASE_URL`, `TWILIO_ACCOUNT_SID`, and `TWILIO_AUTH_TOKEN`.
 3.  Deploy the built `frontend/dist/` index package.

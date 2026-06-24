@@ -1,11 +1,13 @@
 import os
 import random
 from datetime import datetime
+from uuid import UUID
 from fastapi import (
     FastAPI,
     HTTPException,
     status,
     Depends,
+    Header,
     WebSocket,
     WebSocketDisconnect,
     Request,
@@ -46,26 +48,43 @@ app.add_middleware(
 # Startup Seeding and Table Initialization
 @app.on_event("startup")
 def startup_db_seeding():
-    import os
-
     if engine is not None:
         try:
-            # Drop and recreate local SQLite database to apply password schema changes cleanly
-            db_path = "medai.db"
-            if os.path.exists(db_path):
-                try:
-                    os.remove(db_path)
-                    print(
-                        "Cleared old SQLite database to apply password schema."
-                    )
-                except Exception as ex:
-                    print(f"Could not remove medai.db: {ex}")
-
             Base.metadata.create_all(bind=engine)
             print("Database tables initialized.")
 
-            # Seed default templates
+            # Seed default templates and roles
             db = SessionLocal()
+            
+            roles_to_seed = [
+                {
+                    "id": UUID("e15d9fb8-0eed-4972-a943-4027f35c4033"),
+                    "role_name": "admin",
+                    "description": "Administrator role",
+                },
+                {
+                    "id": UUID("48b1cb7a-c2cd-498c-a85b-6e65fb76397a"),
+                    "role_name": "staff",
+                    "description": "Clinical staff role",
+                },
+                {
+                    "id": UUID("97f70304-757b-4e45-ab65-d7d82367bba0"),
+                    "role_name": "patient",
+                    "description": "Patient role",
+                },
+            ]
+            for r in roles_to_seed:
+                existing_role = (
+                    db.query(models.Role)
+                    .filter(models.Role.role_name == r["role_name"])
+                    .first()
+                )
+                if existing_role:
+                    existing_role.description = r["description"]
+                else:
+                    db.add(models.Role(**r))
+            db.commit()
+
             # Clear old templates first
             db.query(models.PromptTemplate).delete()
             db.commit()
@@ -86,8 +105,17 @@ def startup_db_seeding():
                         name="Alex Mercer",
                         email="patient@medai.com",
                         password="123456",
-                        role="Patient",
                     ),
+                )
+            if not crud.get_user_by_email(db, "admin@medai.com"):
+                crud.create_user(
+                    db,
+                    schemas.UserCreate(
+                        name="MedAI Admin",
+                        email="admin@medai.com",
+                        password="admin123",
+                    ),
+                    role_name="admin",
                 )
             db.close()
             print(
@@ -222,15 +250,13 @@ def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
             status_code=401, detail="Incorrect password. Please try again."
         )
 
+    role_name = db_user.role.role_name if db_user.role else "patient"
+
     return {
-        "status": "success",
-        "message": "Authorization validation passed. Initializing session...",
-        "user": {
-            "id": db_user.id,
-            "name": db_user.name,
-            "role": db_user.role,
-            "email": db_user.email,
-        },
+        "id": db_user.id,
+        "name": db_user.name,
+        "email": db_user.email,
+        "role": role_name,
     }
 
 
@@ -527,16 +553,15 @@ def get_session_transcripts(session_id: str, db: Session = Depends(get_db)):
 
 
 # ---------- Role guard helper ----------
-ADMIN_ROLES = {"Doctor", "Receptionist", "Admin"}
+ADMIN_ROLES = {"admin", "staff", "doctor", "receptionist"}
 
 
-def require_admin_role(request: Request):
+def require_admin_role(x_user_role: str = Header("patient", alias="X-User-Role")):
     """
     Reads X-User-Role header sent by the frontend on every request.
     Raises 403 if the caller is not an admin/staff role.
     """
-    role = request.headers.get("X-User-Role", "Patient")
-    if role not in ADMIN_ROLES:
+    if x_user_role.lower() not in ADMIN_ROLES:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied. Clinical staff only.",
@@ -544,18 +569,19 @@ def require_admin_role(request: Request):
 
 
 @app.get("/api/prompts", response_model=List[schemas.PromptTemplate])
-def get_all_prompts(request: Request, db: Session = Depends(get_db)):
-    require_admin_role(request)
+def get_all_prompts(
+    db: Session = Depends(get_db),
+    _: None = Depends(require_admin_role),
+):
     return db.query(models.PromptTemplate).all()
 
 
 @app.post("/api/prompts", response_model=schemas.PromptTemplate)
 def create_or_update_prompt(
-    request: Request,
     prompt: schemas.PromptTemplateCreate,
     db: Session = Depends(get_db),
+    _: None = Depends(require_admin_role),
 ):
-    require_admin_role(request)
     return crud.create_or_update_prompt_template(db, prompt)
 
 

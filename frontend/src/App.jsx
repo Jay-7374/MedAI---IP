@@ -38,8 +38,8 @@ export default function App() {
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState({ name: 'Alex Mercer', role: 'Patient' });
-  // Only Doctor/Receptionist/Admin roles can access admin features
-  const isAdmin = user.role === 'Doctor' || user.role === 'Receptionist' || user.role === 'Admin';
+  // Only Doctor/Receptionist/Admin/Staff roles can access admin features
+  const isAdmin = user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'staff' || user.role === 'Doctor' || user.role === 'Receptionist' || user.role === 'Admin';
   const [toast, setToast] = useState(null);
   const [toastExiting, setToastExiting] = useState(false);
 
@@ -569,8 +569,10 @@ export default function App() {
 
         const data = await res.json();
         if (res.ok) {
-          setUser({ name: data.user.name, role: data.user.role });
-          showToast(`Welcome back, ${data.user.name}!`, 'success');
+          const name = data.name || data.user?.name;
+          const role = data.role || data.user?.role;
+          setUser({ name, role });
+          showToast(`Welcome back, ${name}!`, 'success');
           setView('app');
           setActiveTab('dashboard');
           // Reset form
@@ -603,8 +605,7 @@ export default function App() {
           body: JSON.stringify({
             name: authForm.username,
             email: authForm.email,
-            password: authForm.password,
-            role: authForm.role
+            password: authForm.password
           })
         });
 
