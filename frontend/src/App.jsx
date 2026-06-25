@@ -38,8 +38,8 @@ export default function App() {
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState(null);
-  // Only Doctor/Receptionist/Admin/Staff roles can access admin features
-  const isAdmin = ['admin', 'staff', 'doctor', 'receptionist'].includes(user?.role?.toLowerCase());
+  // Only Admin role can access admin features
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
   const [toast, setToast] = useState(null);
   const [toastExiting, setToastExiting] = useState(false);
 
@@ -242,7 +242,7 @@ export default function App() {
 
   useEffect(() => {
     if (prompts.length > 0) {
-      const active = prompts.find(p => p.bot_name === selectedBot);
+      const active = prompts.find(p => p.bot_name === editingPrompt.bot_name) || prompts.find(p => p.bot_name === selectedBot);
       if (active) setEditingPrompt(active);
     }
   }, [selectedBot, prompts]);
@@ -726,8 +726,8 @@ export default function App() {
   const handleSavePrompt = async (e) => {
     e.preventDefault();
     if (!isAdmin) {
-      showToast("Access denied. Clinical staff only.", "danger");
-      return;
+      showToast("Access denied. Admin privileges required.", "danger");
+      return false;
     }
     try {
       const res = await fetch('/api/prompts', {
@@ -741,10 +741,12 @@ export default function App() {
       if (res.ok) {
         showToast("System prompt updated and compiled.", "success");
         fetchPrompts();
+        return true;
       }
     } catch (err) {
       showToast("Failed to save prompt configuration.", "danger");
     }
+    return false;
   };
 
   if (view === 'landing') {

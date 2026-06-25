@@ -8,7 +8,8 @@ import {
   Clock, 
   Check, 
   UserCheck, 
-  Calendar 
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function StaffConsole({ 

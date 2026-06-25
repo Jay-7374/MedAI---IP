@@ -566,12 +566,12 @@ ADMIN_ROLES = {"admin", "staff", "doctor", "receptionist"}
 def require_admin_role(x_user_role: str = Header("patient", alias="X-User-Role")):
     """
     Reads X-User-Role header sent by the frontend on every request.
-    Raises 403 if the caller is not an admin/staff role.
+    Raises 403 if the caller is not an admin.
     """
-    if x_user_role.lower() not in ADMIN_ROLES:
+    if x_user_role.lower() != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied. Clinical staff only.",
+            detail="Access denied. Administrator privileges required.",
         )
 
 

@@ -69,11 +69,11 @@ res = requests.get(f"{BASE_URL}/api/prompts", headers=headers)
 print(f"Patient access /api/prompts: Status {res.status_code}, Response {res.json()}")
 assert res.status_code == 403, "Patient was not denied prompts access"
 
-# Doctor should be allowed with 200
+# Doctor should be rejected with 403
 headers = {"X-User-Role": "doctor"}
 res = requests.get(f"{BASE_URL}/api/prompts", headers=headers)
 print(f"Doctor access /api/prompts: Status {res.status_code}")
-assert res.status_code == 200, "Doctor was denied prompts access"
+assert res.status_code == 403, "Doctor was not denied prompts access"
 
 # Admin should be allowed with 200
 headers = {"X-User-Role": "admin"}
