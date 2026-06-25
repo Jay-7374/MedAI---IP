@@ -72,6 +72,16 @@ def startup_db_seeding():
                     "role_name": "patient",
                     "description": "Patient role",
                 },
+                {
+                    "id": UUID("c12d8ab3-e2cc-4911-a89c-48c0375fbda3"),
+                    "role_name": "doctor",
+                    "description": "Doctor / Clinician role",
+                },
+                {
+                    "id": UUID("d34e9bc4-f3dd-4022-b9cd-59d1486fbdb4"),
+                    "role_name": "receptionist",
+                    "description": "Receptionist role",
+                },
             ]
             for r in roles_to_seed:
                 existing_role = (
@@ -223,7 +233,7 @@ def register(request: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=400, detail="Username or email is already registered."
         )
-    user = crud.create_user(db, request)
+    user = crud.create_user(db, request, role_name=(request.role.lower() if request.role else "patient"))
     return user
 
 
