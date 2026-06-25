@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Activity
 } from 'lucide-react';
+import { apiFetch, getWsUrl } from './apiClient';
 
 // Components
 import Header from './components/Header';
@@ -143,7 +144,7 @@ export default function App() {
   useEffect(() => {
     const fetchTelemetry = async () => {
       try {
-        const res = await fetch('/api/telemetry');
+        const res = await apiFetch('/api/telemetry');
         if (res.ok) {
           const data = await res.json();
           setVitals(prev => ({
@@ -176,7 +177,7 @@ export default function App() {
   // Fetch basic lists
   const fetchAppointments = async () => {
     try {
-      const res = await fetch('/api/appointments');
+      const res = await apiFetch('/api/appointments');
       if (res.ok) {
         const data = await res.json();
         setAppointments(data);
@@ -188,7 +189,7 @@ export default function App() {
 
   const fetchMedicines = async () => {
     try {
-      const res = await fetch('/api/medicines');
+      const res = await apiFetch('/api/medicines');
       if (res.ok) {
         const data = await res.json();
         setMedicines(data);
@@ -200,7 +201,7 @@ export default function App() {
 
   const fetchPrompts = async () => {
     try {
-      const res = await fetch('/api/prompts', {
+      const res = await apiFetch('/api/prompts', {
         headers: { 'X-User-Role': user?.role || '' }
       });
       if (res.ok) {
@@ -216,7 +217,7 @@ export default function App() {
 
   const fetchSmsMessages = async () => {
     try {
-      const res = await fetch('/api/sms');
+      const res = await apiFetch('/api/sms');
       if (res.ok) {
         const data = await res.json();
         setSmsMessages(data);
@@ -445,7 +446,7 @@ export default function App() {
 
     // 1. Register Session on Backend DB
     try {
-      await fetch('/api/sessions', {
+      await apiFetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -459,8 +460,7 @@ export default function App() {
     }
 
     // 2. Open WebSocket link
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws/voice`;
+    const wsUrl = getWsUrl('/ws/voice');
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
@@ -559,7 +559,7 @@ export default function App() {
 
     if (authMode === 'login') {
       try {
-        const res = await fetch('/api/auth/login', {
+        const res = await apiFetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -597,7 +597,7 @@ export default function App() {
         return;
       }
       try {
-        const res = await fetch('/api/auth/register', {
+        const res = await apiFetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

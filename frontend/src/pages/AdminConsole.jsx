@@ -8,6 +8,7 @@ import {
   Activity,
   Play
 } from 'lucide-react';
+import { apiFetch } from '../apiClient';
 
 export default function AdminConsole({
   simulateDbTimeout,
@@ -25,7 +26,7 @@ export default function AdminConsole({
     e.preventDefault();
     setOutboundLoading(true);
     try {
-      const res = await fetch('/api/calls/outbound', {
+      const res = await apiFetch('/api/calls/outbound', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
