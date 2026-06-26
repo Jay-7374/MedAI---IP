@@ -2944,7 +2944,7 @@ select.form-control {
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(rgba(4, 16, 12, 0.84), rgba(4, 16, 12, 0.84)), url('/features.png') no-repeat center center;
+  background: linear-gradient(rgba(4, 16, 12, 0.7), rgba(4, 16, 12, 0.7)), url('/features.png') no-repeat center center;
   background-size: cover;
 }
 
