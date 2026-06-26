@@ -63,7 +63,7 @@ export default function Landing({ vitals, navigateTo }) {
       </section>
 
       <div className="landing-capabilities-hud-minimal" onClick={() => navigateTo('features')}>
-        <span>Explore Features</span>
+        <span>Discover</span>
         <ChevronRight size={14} className="hud-arrow-icon" />
       </div>
 
