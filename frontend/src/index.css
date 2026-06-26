@@ -2937,3 +2937,14 @@ select.form-control {
   margin: 0 auto;
 }
 
+/* Features Page Background Image Container */
+.features-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(rgba(4, 16, 12, 0.84), rgba(4, 16, 12, 0.84)), url('/features.png') no-repeat center center;
+  background-size: cover;
+}
+

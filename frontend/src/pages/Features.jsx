@@ -3,7 +3,7 @@ import { Leaf, ArrowLeft, PhoneCall, Activity, Settings, AlertTriangle } from 'l
 
 export default function Features({ navigateTo }) {
   return (
-    <div className="landing-container view-transition-root" key="view-features">
+    <div className="features-container view-transition-root" key="view-features">
       {/* Background Grid & Scanline */}
       <div className="bg-grid-overlay"></div>
       <div className="bg-grid-scanline"></div>
