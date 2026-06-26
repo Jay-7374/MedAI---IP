@@ -11,6 +11,7 @@ import Sidebar from './components/Sidebar';
 
 // Pages
 import Landing from './pages/Landing';
+import Features from './pages/Features';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Scheduling from './pages/Scheduling';
@@ -751,6 +752,10 @@ export default function App() {
 
   if (view === 'landing') {
     return <Landing vitals={vitals} navigateTo={navigateTo} />;
+  }
+
+  if (view === 'features') {
+    return <Features navigateTo={navigateTo} />;
   }
 
   if (view === 'login') {
