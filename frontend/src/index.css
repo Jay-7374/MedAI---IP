@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Instrument+Serif:ital,wght@0,400;1,400&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Dark Botanical Wellness Palette */
@@ -305,10 +305,14 @@ body {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  font-family: 'Syne', sans-serif;
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: -0.5px;
   color: var(--text-main);
+}
+
+.brand span {
   background: linear-gradient(135deg, var(--text-main) 30%, var(--primary-hover) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1301,6 +1305,7 @@ select.form-control {
   overflow: visible;
   background: transparent;
   flex: 1;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .landing-nav {
@@ -1320,9 +1325,17 @@ select.form-control {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  font-size: 1.5rem;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.55rem;
   font-weight: 800;
+  letter-spacing: -0.5px;
   color: var(--text-main);
+}
+
+.landing-nav-logo span {
+  background: linear-gradient(135deg, var(--text-main) 30%, var(--primary-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .landing-nav-logo i {
@@ -1356,8 +1369,9 @@ select.form-control {
 }
 
 .landing-title {
-  font-size: 3.5rem;
-  font-weight: 850;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 3.8rem;
+  font-weight: 800;
   line-height: 1.15;
   letter-spacing: -1.5px;
   background: linear-gradient(135deg, var(--text-main) 20%, var(--primary-hover) 60%, var(--secondary-hover) 100%);
@@ -1366,10 +1380,22 @@ select.form-control {
   filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.03));
 }
 
+.landing-title em {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  background: linear-gradient(135deg, var(--primary-hover) 20%, var(--accent-cyan) 60%, var(--secondary-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-right: 0.08em;
+}
+
 .landing-subtitle {
-  font-size: 1.15rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.2rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.65;
   max-width: 650px;
   text-align: center;
   margin: 0 auto;

@@ -39,7 +39,7 @@ export default function Landing({ vitals, navigateTo }) {
       <section className="landing-hero-section">
         <div className="landing-hero-content">
           <h1 className="landing-title">
-            Autonomous AI Hospital Voice Bot & Telemetry
+            Autonomous <em>AI Hospital Voice Bot</em> & Telemetry
           </h1>
           <p className="landing-subtitle">
             Orchestrate conversational voice agents, live ECG patient tracking, medical reminders, and emergency triage dispatches in a unified, next-generation medical control console.
