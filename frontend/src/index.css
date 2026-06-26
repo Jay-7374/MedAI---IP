@@ -329,9 +329,9 @@ body {
 }
 
 .top-bar {
-  background: rgba(6, 20, 15, 0.45);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
   padding: 1.25rem 2.5rem;
   display: flex;
   justify-content: space-between;
@@ -1145,9 +1145,9 @@ select.form-control {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(6, 20, 15, 0.45);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
   z-index: 50;
 }
 
