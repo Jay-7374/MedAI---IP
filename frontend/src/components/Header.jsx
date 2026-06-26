@@ -6,7 +6,7 @@ export default function Header({ user, setUser, setView, navigateTo, showToast }
     <div className="top-nav-header">
       <div className="brand" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
         <Heart size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))', marginRight: '8px' }} />
-        <span>MedAI Flow</span>
+        <span>Salus</span>
       </div>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>

@@ -37,7 +37,7 @@ export default function Login({
         <div className="login-card">
           <div className="login-card-header">
             <Heart size={32} className="login-logo-icon" />
-            <h2>{authMode === 'login' ? 'Access MedAI Console' : 'Register MedAI Account'}</h2>
+            <h2>{authMode === 'login' ? 'Access Salus Console' : 'Register Salus Account'}</h2>
             <p>{authMode === 'login' ? 'Enter clinical credentials to authorize session.' : 'Create new clinical profile in hospital directory.'}</p>
           </div>
 

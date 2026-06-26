@@ -77,7 +77,7 @@ export default function Dashboard({
         <div className="dashboard-grid-layout" style={{ marginTop: '1.5rem' }}>
           <div className="card grid-col-span-2">
             <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Shield size={18} style={{ color: 'var(--primary-hover)' }} /> MedAI System Overview
+              <Shield size={18} style={{ color: 'var(--primary-hover)' }} /> Salus System Overview
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
               Welcome back to the Admin control dashboard. You have full access to compile voice bot prompts, trigger outbound campaigns, monitor twilio API logs, and configure mock bypass parameters.

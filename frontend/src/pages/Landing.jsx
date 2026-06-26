@@ -40,7 +40,7 @@ export default function Landing({ vitals, navigateTo }) {
       <header className="landing-nav">
         <div className="landing-nav-logo" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
           <Heart size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))' }} />
-          <span>MedAI Flow</span>
+          <span>Salus</span>
         </div>
       </header>
 
@@ -164,7 +164,7 @@ export default function Landing({ vitals, navigateTo }) {
 
       {/* Minimal Footer */}
       <footer className="landing-footer">
-        <p>© {new Date().getFullYear()} MedAI Flow Automation. Designed with high-fidelity healthcare diagnostics.</p>
+        <p>© {new Date().getFullYear()} Salus Automation. Designed with high-fidelity healthcare diagnostics.</p>
       </footer>
     </div>
   );
