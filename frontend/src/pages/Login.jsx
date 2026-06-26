@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Leaf, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export default function Login({ 
   authMode, 
@@ -36,7 +36,7 @@ export default function Login({
       <div className="login-card-wrapper">
         <div className="login-card">
           <div className="login-card-header">
-            <Heart size={32} className="login-logo-icon" />
+            <Leaf size={32} className="login-logo-icon" />
             <h2>{authMode === 'login' ? 'Access Salus Console' : 'Register Salus Account'}</h2>
             <p>{authMode === 'login' ? 'Enter clinical credentials to authorize session.' : 'Create new clinical profile in hospital directory.'}</p>
           </div>

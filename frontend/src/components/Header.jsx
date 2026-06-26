@@ -1,11 +1,11 @@
 import React from 'react';
-import { Heart, Settings, LogOut } from 'lucide-react';
+import { Leaf, Settings, LogOut } from 'lucide-react';
 
 export default function Header({ user, setUser, setView, navigateTo, showToast }) {
   return (
     <div className="top-nav-header">
       <div className="brand" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
-        <Heart size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))', marginRight: '8px' }} />
+        <Leaf size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))', marginRight: '8px' }} />
         <span>Salus</span>
       </div>
       

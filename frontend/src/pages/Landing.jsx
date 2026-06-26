@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Send, PhoneCall, Activity, Settings, AlertTriangle } from 'lucide-react';
+import { Leaf, Send, PhoneCall, Activity, Settings, AlertTriangle } from 'lucide-react';
 
 export default function Landing({ vitals, navigateTo }) {
   return (
@@ -39,7 +39,7 @@ export default function Landing({ vitals, navigateTo }) {
       {/* Navigation Header */}
       <header className="landing-nav">
         <div className="landing-nav-logo" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
-          <Heart size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))' }} />
+          <Leaf size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))' }} />
           <span>Salus</span>
         </div>
       </header>
