@@ -7,6 +7,18 @@ export default function Features({ navigateTo }) {
       {/* Background Grid */}
       <div className="bg-grid-overlay"></div>
 
+      {/* Floating Diagonal Dotted Waves */}
+      <svg className="features-diagonal-wave" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+        <path 
+          className="diagonal-wave-path wave-path-1" 
+          d="M -50 -50 C 300 200, 200 400, 600 450 C 1000 500, 920 700, 1320 750 C 1720 800, 1620 1000, 1970 1130" 
+        />
+        <path 
+          className="diagonal-wave-path wave-path-2" 
+          d="M -50 -30 C 250 150, 250 450, 650 500 C 1050 550, 880 650, 1280 700 C 1680 750, 1650 1050, 1970 1110" 
+        />
+      </svg>
+
       {/* Background Glow Layer */}
       <div className="bg-glow-layer">
         <div className="glow-blob glow-blob-1"></div>
