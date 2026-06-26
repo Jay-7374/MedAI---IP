@@ -27,22 +27,19 @@ export default function Landing({ vitals, navigateTo }) {
         <div className="glow-blob glow-blob-3"></div>
       </div>
 
-      {/* Navigation Header */}
-      <header className="landing-nav">
-        <div className="landing-nav-logo" onClick={() => navigateTo('landing', 'dashboard')} style={{ cursor: 'pointer' }}>
-          <Leaf size={24} style={{ filter: 'drop-shadow(0 0 8px var(--primary))' }} />
-          <span>Salus</span>
-        </div>
-      </header>
 
       {/* Hero Section */}
       <section className="landing-hero-section">
         <div className="landing-hero-content">
           <h1 className="landing-title">
-            Autonomous <em>AI Hospital Voice Bot</em> & Telemetry
+            Salus
           </h1>
+          <h2 className="landing-subheading">
+            Autonomous AI Hospital Voice Bot & Telemetry
+          </h2>
           <p className="landing-subtitle">
-            Orchestrate conversational voice agents, live ECG patient tracking, medical reminders, and emergency triage dispatches in a unified, next-generation medical control console.
+            Orchestrate AI voice agents, patient monitoring, and emergency care from a single intelligent dashboard.<br />
+            Redefining healthcare operations with automation and real-time intelligence.
           </p>
         </div>
 
