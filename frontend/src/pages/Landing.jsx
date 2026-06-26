@@ -35,7 +35,7 @@ export default function Landing({ vitals, navigateTo }) {
             Salus
           </h1>
           <h2 className="landing-subheading">
-            Autonomous AI Hospital Voice Bot & Telemetry
+            Autonomous AI Healthcare
           </h2>
           <p className="landing-subtitle">
             Orchestrate AI voice agents, patient monitoring, and emergency care from a single intelligent dashboard.<br />

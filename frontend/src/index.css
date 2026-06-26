@@ -1377,10 +1377,10 @@ select.form-control {
   text-transform: uppercase;
   letter-spacing: 4px;
   line-height: 1.1;
-  background: linear-gradient(135deg, var(--text-main) 10%, var(--primary-hover) 60%, var(--secondary-hover) 100%);
+  background: linear-gradient(135deg, #ffffff 10%, #2dd4bf 50%, #a78bfa 90%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 25px rgba(82, 183, 136, 0.15));
+  filter: drop-shadow(0 0 35px rgba(45, 212, 191, 0.25));
   margin-bottom: 0.75rem;
   text-align: center;
 }
@@ -2971,10 +2971,10 @@ select.form-control {
 /* Landing hero: richer title glow + a faint mono eyebrow above it for a
    "console boot" feel that matches the clinical-instrument signature */
 .landing-title {
-  background: linear-gradient(120deg, var(--text-main) 10%, var(--accent-cyan) 55%, var(--primary-hover) 100%);
+  background: linear-gradient(120deg, var(--text-main) 10%, var(--accent-cyan) 55%, var(--accent-violet) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 24px rgba(45, 212, 191, 0.12));
+  filter: drop-shadow(0 0 30px rgba(45, 212, 191, 0.25)) drop-shadow(0 0 50px rgba(167, 139, 250, 0.15));
 }
 
 .landing-visual-card {
