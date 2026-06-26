@@ -1246,6 +1246,12 @@ select.form-control {
   pointer-events: none;
   z-index: 1;
 }
+.view-landing .slide-login {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* When viewing features */
 .view-features .slide-landing {
@@ -1255,6 +1261,32 @@ select.form-control {
   z-index: 1;
 }
 .view-features .slide-features {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 2;
+}
+.view-features .slide-login {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* When viewing login */
+.view-login .slide-landing {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-login .slide-features {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-login .slide-login {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
@@ -2432,7 +2464,7 @@ select.form-control {
 .login-container {
   min-height: 100vh;
   position: relative;
-  background-color: var(--bg-dark);
+  background: transparent;
   color: var(--text-main);
   display: flex;
   flex-direction: column;

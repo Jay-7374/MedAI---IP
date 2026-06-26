@@ -750,7 +750,7 @@ export default function App() {
     return false;
   };
 
-  if (view === 'landing' || view === 'features') {
+  if (view === 'landing' || view === 'features' || view === 'login') {
     return (
       <div className={`landing-portal-wrapper view-${view}`}>
         <div className="portal-slide slide-landing">
@@ -759,24 +759,21 @@ export default function App() {
         <div className="portal-slide slide-features">
           <Features navigateTo={navigateTo} />
         </div>
+        <div className="portal-slide slide-login">
+          <Login 
+            authMode={authMode}
+            setAuthMode={setAuthMode}
+            authForm={authForm}
+            setAuthForm={setAuthForm}
+            authError={authError}
+            setAuthError={setAuthError}
+            userUnregistered={userUnregistered}
+            setUserUnregistered={setUserUnregistered}
+            handleAuthSubmit={handleAuthSubmit}
+            setView={setView}
+          />
+        </div>
       </div>
-    );
-  }
-
-  if (view === 'login') {
-    return (
-      <Login 
-        authMode={authMode}
-        setAuthMode={setAuthMode}
-        authForm={authForm}
-        setAuthForm={setAuthForm}
-        authError={authError}
-        setAuthError={setAuthError}
-        userUnregistered={userUnregistered}
-        setUserUnregistered={setUserUnregistered}
-        handleAuthSubmit={handleAuthSubmit}
-        setView={setView}
-      />
     );
   }
 
