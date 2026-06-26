@@ -4,9 +4,8 @@ import { Leaf, ArrowLeft, PhoneCall, Activity, Settings, AlertTriangle } from 'l
 export default function Features({ navigateTo }) {
   return (
     <div className="features-container view-transition-root" key="view-features">
-      {/* Background Grid & Scanline */}
+      {/* Background Grid */}
       <div className="bg-grid-overlay"></div>
-      <div className="bg-grid-scanline"></div>
 
       {/* Background Glow Layer */}
       <div className="bg-glow-layer">

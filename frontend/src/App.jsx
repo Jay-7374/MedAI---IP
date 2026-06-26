@@ -750,12 +750,17 @@ export default function App() {
     return false;
   };
 
-  if (view === 'landing') {
-    return <Landing vitals={vitals} navigateTo={navigateTo} />;
-  }
-
-  if (view === 'features') {
-    return <Features navigateTo={navigateTo} />;
+  if (view === 'landing' || view === 'features') {
+    return (
+      <div className={`landing-portal-wrapper view-${view}`}>
+        <div className="portal-slide slide-landing">
+          <Landing vitals={vitals} navigateTo={navigateTo} />
+        </div>
+        <div className="portal-slide slide-features">
+          <Features navigateTo={navigateTo} />
+        </div>
+      </div>
+    );
   }
 
   if (view === 'login') {

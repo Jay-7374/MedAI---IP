@@ -1131,13 +1131,63 @@ select.form-control {
 }
 
 /* Landing Page Layout and Presentation */
-.landing-container {
+.landing-portal-wrapper {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(rgba(4, 16, 12, 0.75), rgba(4, 16, 12, 0.75)), url('/back.jpg') no-repeat center center / cover;
+}
+
+.portal-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100vh;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  display: flex;
+  flex-direction: column;
+}
+
+/* When viewing landing */
+.view-landing .slide-landing {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  z-index: 2;
+}
+.view-landing .slide-features {
+  opacity: 0;
+  transform: translateX(50px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* When viewing features */
+.view-features .slide-landing {
+  opacity: 0;
+  transform: translateX(-50px);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-features .slide-features {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.landing-container, .features-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  background: var(--background);
+  background: transparent;
+  flex: 1;
 }
 
 .landing-nav {
