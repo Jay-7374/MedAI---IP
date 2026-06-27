@@ -74,7 +74,7 @@ TAGS_METADATA = [
 ]
 
 app = FastAPI(
-    title="MedAI Fullstack GenAI Voice Bot API",
+    title="Salus Fullstack GenAI Voice Bot API",
     version="1.0.0",
     description=(
         "Full-stack clinical AI platform powering voice bots, appointment scheduling, "
@@ -83,6 +83,7 @@ app = FastAPI(
     ),
     openapi_tags=TAGS_METADATA,
 )
+
 
 # CORS — restrict to known origins; use ALLOWED_ORIGIN env-var in production
 _raw_origin = os.getenv("ALLOWED_ORIGIN", "")
@@ -178,7 +179,7 @@ def startup_db_seeding():
                 crud.create_user(
                     db,
                     schemas.UserCreate(
-                        name="MedAI Admin",
+                        name="Salus Admin",
                         email="admin@medai.com",
                         password="admin123",
                     ),
@@ -236,13 +237,13 @@ medicines_db = [
 sms_db = [
     {
         "id": 1,
-        "text": "MedAI Auth: Alex Mercer identity verified successfully at 2026-06-20 10:15 AM.",
+        "text": "Salus Auth: Alex Mercer identity verified successfully at 2026-06-20 10:15 AM.",
         "timestamp": datetime.utcnow().isoformat(),
         "recipient": "+1 (555) 019-2834",
     },
     {
         "id": 2,
-        "text": "MedAI Appointment Confirmed: Cardiology consultation with Dr. Evelyn Reed on 2026-06-22 at 10:30 AM.",
+        "text": "Salus Appointment Confirmed: Cardiology consultation with Dr. Evelyn Reed on 2026-06-22 at 10:30 AM.",
         "timestamp": datetime.utcnow().isoformat(),
         "recipient": "+1 (555) 019-2834",
     },
@@ -549,19 +550,19 @@ def _xml_response(twiml: str) -> Response:
 def twiml_voice_start(bot_name: str = "PostDischargeCheckIn"):
     """First thing Twilio fetches when the call connects: bot speaks, then listens."""
     opening_lines = {
-        "NaturalSpeechAuth": "Hello, this is ARIA from MedAI. I need to verify your identity before we proceed. Could you please tell me your full name?",
-        "ConversationalScheduling": "Hello, this is NOVA from MedAI Scheduling. I can help you book, reschedule, or enquire about appointments and diagnostic tests. What can I help you with today?",
-        "PostDischargeCheckIn": "Hello, this is CARE from MedAI. I'm calling for your post-discharge recovery check-in. I have five quick questions about how you've been feeling since leaving the hospital. Is now a good time?",
-        "MedicationAdherence": "Hello, this is MEDI from MedAI. I'm calling with your daily medication reminder. I'll go through each of your prescribed medications one by one. Are you ready?",
-        "InsurancePolicyIntake": "Hello, this is FELIX from MedAI's billing team. I'm calling to help you understand your insurance coverage and estimated costs. Could you tell me the name of your insurance provider?",
-        "EmergencySeverity": "Hello, this is RAPID from MedAI Emergency Triage. I'm here to assess your situation and get you the right level of care. Please describe your symptoms and how long you've been experiencing them.",
-        "AiNurseAdvice": "Hello, this is NORA, your MedAI nurse assistant. I'm here to answer any questions about your recovery, medications, diet, or wound care. What would you like to know?",
-        "ElderCareTerminal": "Hello! This is GRACE from MedAI. I'm just calling to check in and have a little chat. How are you feeling today?",
-        "TelemedicineBridge": "Hello, this is CONNECT from MedAI. I'm calling to prepare you for your upcoming virtual doctor consultation. I'll just run through a quick checklist to make sure everything is ready. Does that sound okay?",
+        "NaturalSpeechAuth": "Hello, this is ARIA from Salus. I need to verify your identity before we proceed. Could you please tell me your full name?",
+        "ConversationalScheduling": "Hello, this is NOVA from Salus Scheduling. I can help you book, reschedule, or enquire about appointments and diagnostic tests. What can I help you with today?",
+        "PostDischargeCheckIn": "Hello, this is CARE from Salus. I'm calling for your post-discharge recovery check-in. I have five quick questions about how you've been feeling since leaving the hospital. Is now a good time?",
+        "MedicationAdherence": "Hello, this is MEDI from Salus. I'm calling with your daily medication reminder. I'll go through each of your prescribed medications one by one. Are you ready?",
+        "InsurancePolicyIntake": "Hello, this is FELIX from Salus's billing team. I'm calling to help you understand your insurance coverage and estimated costs. Could you tell me the name of your insurance provider?",
+        "EmergencySeverity": "Hello, this is RAPID from Salus Emergency Triage. I'm here to assess your situation and get you the right level of care. Please describe your symptoms and how long you've been experiencing them.",
+        "AiNurseAdvice": "Hello, this is NORA, your Salus nurse assistant. I'm here to answer any questions about your recovery, medications, diet, or wound care. What would you like to know?",
+        "ElderCareTerminal": "Hello! This is GRACE from Salus. I'm just calling to check in and have a little chat. How are you feeling today?",
+        "TelemedicineBridge": "Hello, this is CONNECT from Salus. I'm calling to prepare you for your upcoming virtual doctor consultation. I'll just run through a quick checklist to make sure everything is ready. Does that sound okay?",
     }
     opening = opening_lines.get(
         bot_name,
-        "Hello, this is MedAI calling to check in with you. How are you doing today?",
+        "Hello, this is Salus calling to check in with you. How are you doing today?",
     )
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
@@ -855,7 +856,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
 
                     # Outbound transactional SMS log
                     dispatch_sms(
-                        "MedAI System Warning: Call transferred to receptionist due to scheduling database access timeout."
+                        "Salus System Warning: Call transferred to receptionist due to scheduling database access timeout."
                     )
 
                     await websocket.send_json(
@@ -896,7 +897,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
 
                     # Outbound transactional SMS log
                     dispatch_sms(
-                        "MedAI Connection: Call warm-transferred to front desk following multiple speech recognition failures."
+                        "Salus Connection: Call warm-transferred to front desk following multiple speech recognition failures."
                     )
 
                     await websocket.send_json(
@@ -954,7 +955,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                 ):
                     emergency_routing = True
                     dispatch_sms(
-                        "MedAI EMERGENCY SOS: Crisis classification triggered. Bypassing administrative lines. Ambulance Unit #4B dispatched. ETA: 7 mins."
+                        "Salus EMERGENCY SOS: Crisis classification triggered. Bypassing administrative lines. Ambulance Unit #4B dispatched. ETA: 7 mins."
                     )
 
                 # Check for Telemedicine video bridge transition
@@ -964,7 +965,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                 ):
                     telemedicine_bridge = True
                     dispatch_sms(
-                        "MedAI Consultation Link: Secure video telehealth bridge ready. Connect now: https://medai.flow/telehealth-bridge/vc-3841"
+                        "Salus Consultation Link: Secure video telehealth bridge ready. Connect now: https://salus.flow/telehealth-bridge/vc-3841"
                     )
 
                 # Handle Natural Speech Authentication Success
@@ -973,7 +974,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                     and "verified" in ai_response.lower()
                 ):
                     dispatch_sms(
-                        "MedAI Security Alert: Identity verified successfully for patient Alex Mercer. EHR records unlocked."
+                        "Salus Security Alert: Identity verified successfully for patient Alex Mercer. EHR records unlocked."
                     )
 
                 # Handle Scheduling outcome confirmation
@@ -996,7 +997,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                         }
                     )
                     dispatch_sms(
-                        f"MedAI Booking Confirmed: Pediatric appointment booked via Voice Bot. Date: Today, Time: 10:00 AM. ID: {new_appt_id}"
+                        f"Salus Booking Confirmed: Pediatric appointment booked via Voice Bot. Date: Today, Time: 10:00 AM. ID: {new_appt_id}"
                     )
 
                 # Handle Post-Discharge Wellness scorecard completion
@@ -1006,7 +1007,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                     or "finished" in ai_response.lower()
                 ):
                     dispatch_sms(
-                        "MedAI Wellness Check-in: Recovery scorecard successfully uploaded to clinical dashboard. Recovery Index: Stable (5/5)."
+                        "Salus Wellness Check-in: Recovery scorecard successfully uploaded to clinical dashboard. Recovery Index: Stable (5/5)."
                     )
 
                 # Handle Medication Adherence Yes/No affirmation
@@ -1020,7 +1021,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                         if med["name"] == "Metformin":
                             med["status"] = "Taken"
                     dispatch_sms(
-                        "MedAI Med Alert: Adherence confirmed for Lisinopril and Metformin. Compliance logs updated."
+                        "Salus Med Alert: Adherence confirmed for Lisinopril and Metformin. Compliance logs updated."
                     )
 
                 # Handle Insurance policy intake estimate
@@ -1029,7 +1030,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes 
                     or "out-of-pocket" in ai_response.lower()
                 ):
                     dispatch_sms(
-                        "MedAI Finance: BlueCross pre-auth approved. Est. out-of-pocket co-pay: $45.00. Statement sent."
+                        "Salus Finance: BlueCross pre-auth approved. Est. out-of-pocket co-pay: $45.00. Statement sent."
                     )
 
                 # 5. Build Google TTS audio URL

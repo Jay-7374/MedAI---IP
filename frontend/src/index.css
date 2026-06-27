@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Instrument+Serif:ital,wght@0,400;1,400&family=Syncopate:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Dark Botanical Wellness Palette */
@@ -305,10 +305,15 @@ body {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
   color: var(--text-main);
+}
+
+.brand span {
   background: linear-gradient(135deg, var(--text-main) 30%, var(--primary-hover) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -329,9 +334,9 @@ body {
 }
 
 .top-bar {
-  background: rgba(6, 20, 15, 0.45);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
   padding: 1.25rem 2.5rem;
   display: flex;
   justify-content: space-between;
@@ -1131,33 +1136,208 @@ select.form-control {
 }
 
 /* Landing Page Layout and Presentation */
-.landing-container {
-  min-height: 100vh;
+.landing-portal-wrapper {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(rgba(4, 16, 12, 0.75), rgba(4, 16, 12, 0.75)), url('/back.jpg') no-repeat center center / cover;
+}
+
+/* Floating Diagonal Wavy Dotted Lines */
+.landing-diagonal-wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.35;
+  animation: diagonalFloat 25s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.diagonal-wave-path {
+  fill: none;
+  stroke-width: 1.25;
+  stroke-dasharray: 4, 8;
+  will-change: stroke-dashoffset;
+}
+
+.wave-path-1 {
+  stroke: var(--primary-hover);
+  animation: diagonalCrawl 12s linear infinite;
+}
+
+.wave-path-2 {
+  stroke: var(--secondary-hover);
+  animation: diagonalCrawl 18s linear infinite reverse;
+}
+
+@keyframes diagonalCrawl {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes diagonalFloat {
+  0% {
+    transform: scale(1.04) translate(-20px, -15px);
+  }
+  50% {
+    transform: scale(0.96) translate(20px, 20px) rotate(0.5deg);
+  }
+  100% {
+    transform: scale(1.03) translate(-15px, -25px) rotate(-0.5deg);
+  }
+}
+
+/* Floating Diagonal Wavy Dotted Lines for Features Page */
+.features-diagonal-wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.35;
+  animation: featuresDiagonalFloat 28s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes featuresDiagonalFloat {
+  0% {
+    transform: scale(1.03) translate(-15px, 20px) rotate(-0.5deg);
+  }
+  50% {
+    transform: scale(0.97) translate(15px, -20px) rotate(0.5deg);
+  }
+  100% {
+    transform: scale(1.02) translate(25px, 15px) rotate(-0.25deg);
+  }
+}
+
+.portal-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), 
+              transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+  display: flex;
+  flex-direction: column;
+  transform-origin: center center;
+}
+
+/* When viewing landing */
+.view-landing .slide-landing {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 2;
+}
+.view-landing .slide-features {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-landing .slide-login {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* When viewing features */
+.view-features .slide-landing {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-features .slide-features {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 2;
+}
+.view-features .slide-login {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* When viewing login */
+.view-login .slide-landing {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-login .slide-features {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  z-index: 1;
+}
+.view-login .slide-login {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.landing-container, .features-container {
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
-  background: var(--background);
+  overflow: visible;
+  background: transparent;
+  flex: 1;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .landing-nav {
-  padding: 1.5rem 3.5rem;
+  padding: 1rem 3.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(6, 20, 15, 0.45);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
   z-index: 50;
+  min-height: 80px;
+  box-sizing: border-box;
 }
 
 .landing-nav-logo {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
   color: var(--text-main);
+}
+
+.landing-nav-logo span {
+  background: linear-gradient(135deg, var(--text-main) 30%, var(--primary-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .landing-nav-logo i {
@@ -1191,21 +1371,39 @@ select.form-control {
 }
 
 .landing-title {
-  font-size: 3.5rem;
-  font-weight: 850;
-  line-height: 1.15;
-  letter-spacing: -1.5px;
-  background: linear-gradient(135deg, var(--text-main) 20%, var(--primary-hover) 60%, var(--secondary-hover) 100%);
+  font-family: 'Syncopate', sans-serif;
+  font-size: 5.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #ffffff 10%, #2dd4bf 50%, #a78bfa 90%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.03));
+  filter: drop-shadow(0 0 35px rgba(45, 212, 191, 0.25));
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.landing-subheading {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.3;
+  background: linear-gradient(135deg, var(--text-main) 50%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.25rem;
+  text-align: center;
 }
 
 .landing-subtitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.15rem;
   color: var(--text-secondary);
-  line-height: 1.6;
-  max-width: 650px;
+  line-height: 1.7;
+  max-width: 720px;
   text-align: center;
   margin: 0 auto;
 }
@@ -1282,16 +1480,20 @@ select.form-control {
     padding: 1rem 1.5rem;
   }
 
-  .landing-hero-scroll-indicator {
+  .landing-capabilities-hud-minimal {
     position: relative;
+    top: auto;
     bottom: auto;
     left: auto;
+    right: auto;
     transform: none;
-    margin-top: 3.5rem;
+    margin: 3rem auto 0 auto;
+    width: auto;
+    display: inline-flex;
   }
 
-  .landing-hero-scroll-indicator:hover {
-    transform: translateY(2px);
+  .landing-capabilities-hud-minimal:hover {
+    transform: translateY(-2px);
   }
 }
 
@@ -2024,80 +2226,46 @@ select.form-control {
   text-align: center;
 }
 
-/* Scroll Down Indicator */
-.landing-hero-scroll-indicator {
+/* Minimalist Capabilities Indicator */
+.landing-capabilities-hud-minimal {
   position: absolute;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(0);
+  top: 50%;
+  right: 3rem;
+  left: auto;
+  bottom: auto;
+  transform: translateY(-50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: rgba(82, 183, 136, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 99px;
   cursor: pointer;
   z-index: 20;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.landing-hero-scroll-indicator:hover {
-  transform: translateX(-50%) translateY(2px);
-}
-
-.landing-hero-scroll-indicator:hover .scroll-text {
-  color: var(--primary-hover);
-  text-shadow: 0 0 8px rgba(82, 183, 136, 0.4);
-}
-
-.scroll-text {
+  color: var(--text-secondary);
   font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-secondary);
-  transition: var(--transition);
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.scroll-mouse {
-  width: 20px;
-  height: 32px;
-  border: 2px solid var(--text-secondary);
-  border-radius: 12px;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding-top: 6px;
-  transition: var(--transition);
-}
-
-.landing-hero-scroll-indicator:hover .scroll-mouse {
+.landing-capabilities-hud-minimal:hover {
+  transform: translateY(-50%) translateX(-4px);
   border-color: var(--primary-hover);
-  box-shadow: 0 0 10px rgba(82, 183, 136, 0.2);
+  color: var(--text-main);
+  background: rgba(82, 183, 136, 0.12);
+  box-shadow: 0 0 15px rgba(82, 183, 136, 0.18);
 }
 
-.scroll-wheel {
-  width: 4px;
-  height: 8px;
-  background: var(--primary-hover);
-  border-radius: 2px;
-  animation: scrollWheelAnim 1.6s ease-in-out infinite;
+.landing-capabilities-hud-minimal .hud-arrow-icon {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes scrollWheelAnim {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(8px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 0;
-  }
+.landing-capabilities-hud-minimal:hover .hud-arrow-icon {
+  transform: translateX(3px);
 }
 
 /* ==================== STREAMLINED APP CUSTOM COMPONENT STYLES ==================== */
@@ -2329,7 +2497,7 @@ select.form-control {
 .login-container {
   min-height: 100vh;
   position: relative;
-  background-color: var(--bg-dark);
+  background: transparent;
   color: var(--text-main);
   display: flex;
   flex-direction: column;
@@ -2391,7 +2559,18 @@ select.form-control {
   color: var(--primary);
   filter: drop-shadow(0 0 10px var(--primary));
   margin-bottom: 0.75rem;
-  animation: heartbeat 2s infinite ease-in-out;
+  animation: zen-breath 4s infinite ease-in-out;
+}
+
+@keyframes zen-breath {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px var(--primary));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 20px var(--primary-hover));
+  }
 }
 
 .login-card-header h2 {
@@ -2792,10 +2971,10 @@ select.form-control {
 /* Landing hero: richer title glow + a faint mono eyebrow above it for a
    "console boot" feel that matches the clinical-instrument signature */
 .landing-title {
-  background: linear-gradient(120deg, var(--text-main) 10%, var(--accent-cyan) 55%, var(--primary-hover) 100%);
+  background: linear-gradient(120deg, var(--text-main) 10%, var(--accent-cyan) 55%, var(--accent-violet) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 24px rgba(45, 212, 191, 0.12));
+  filter: drop-shadow(0 0 30px rgba(45, 212, 191, 0.25)) drop-shadow(0 0 50px rgba(167, 139, 250, 0.15));
 }
 
 .landing-visual-card {
@@ -2870,3 +3049,100 @@ select.form-control {
   border-left-color: rgba(167, 139, 250, 0.55);
   background: linear-gradient(90deg, rgba(167, 139, 250, 0.05), rgba(255, 255, 255, 0.015) 30%);
 }
+
+/* Features Page Two-Column Layout */
+.features-page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 4rem 1.5rem 4rem;
+  z-index: 20;
+  gap: 5rem;
+  max-width: 1250px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.features-circle-wrapper {
+  flex: 1.1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 580px;
+}
+
+.features-text-wrapper {
+  flex: 0.9;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  max-width: 520px;
+  padding: 1.5rem;
+}
+
+.features-text-title {
+  font-size: 3.2rem;
+  font-weight: 850;
+  margin-bottom: 1.25rem;
+  line-height: 1.12;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--text-main) 30%, var(--primary-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.features-text-desc {
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  line-height: 1.75;
+}
+
+@media (max-width: 1100px) {
+  .features-page-content {
+    flex-direction: column-reverse;
+    gap: 3rem;
+    padding: 2rem 2rem 5rem 2rem;
+  }
+  
+  .features-circle-wrapper {
+    min-width: auto;
+    width: 100%;
+    transform: scale(0.9);
+  }
+
+  .features-text-wrapper {
+    align-items: center;
+    text-align: center;
+    max-width: 600px;
+  }
+
+  .features-text-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .features-circle-wrapper {
+    transform: scale(0.75);
+    margin: -4rem 0;
+  }
+}
+
+.features-circle-wrapper .landing-features-circle-container {
+  margin: 0 auto;
+}
+
+/* Features Page Background Image Container */
+.features-container {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(rgba(4, 16, 12, 0.7), rgba(4, 16, 12, 0.7)), url('/features.png') no-repeat center center;
+  background-size: cover;
+}
+
