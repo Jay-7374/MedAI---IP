@@ -25,7 +25,64 @@ from app.services.voice_bot import process_voice_turn, DEFAULT_PROMPTS
 from app.services.tts import get_tts_audio_url
 from app.services import twilio_service
 
-app = FastAPI(title="MedAI Fullstack GenAI Voice Bot API", version="1.0.0")
+# ── Swagger tag groups (controls section order + descriptions in /docs) ──────
+TAGS_METADATA = [
+    {
+        "name": "authentication",
+        "description": "🔐 **User registration and login.** Creates accounts and returns session identity with role.",
+    },
+    {
+        "name": "appointments",
+        "description": "📅 **Patient appointment management.** List and book clinical appointments. Fires an SMS confirmation on booking.",
+    },
+    {
+        "name": "medicines",
+        "description": "💊 **Medication schedule management.** Add, list, and remove prescribed medicines for adherence tracking.",
+    },
+    {
+        "name": "telemetry",
+        "description": "📡 **Live patient vitals.** Returns randomised heart-rate, SpO₂, blood-pressure and temperature readings for the monitoring dashboard.",
+    },
+    {
+        "name": "sms",
+        "description": "📲 **SMS notification log.** View all outbound transactional messages and trigger manual sends via Twilio.",
+    },
+    {
+        "name": "emergency",
+        "description": "🚨 **Emergency SOS dispatch.** Broadcasts critical alerts and dispatches ambulance unit.",
+    },
+    {
+        "name": "calls",
+        "description": "📞 **Outbound Twilio voice calls.** Dials the patient's phone and drives a full AI conversation using the selected bot persona.",
+    },
+    {
+        "name": "voice-bot",
+        "description": "🤖 **Core voice-bot pipeline.** Manage users, call sessions, transcripts, and process HTTP-based voice turns.",
+    },
+    {
+        "name": "prompts",
+        "description": "📝 **Prompt template management.** Read and update LLM system prompts for each bot persona. Admin-only via `X-User-Role` header.",
+    },
+    {
+        "name": "twiml-webhooks",
+        "description": "🔁 **Twilio TwiML webhooks.** Called automatically by Twilio during active outbound calls — not intended for direct use.",
+    },
+    {
+        "name": "websocket",
+        "description": "🔌 **Real-time WebSocket voice stream.** Persistent bidirectional channel used by the browser voice bot for streaming turns.",
+    },
+]
+
+app = FastAPI(
+    title="MedAI Fullstack GenAI Voice Bot API",
+    version="1.0.0",
+    description=(
+        "Full-stack clinical AI platform powering voice bots, appointment scheduling, "
+        "medication adherence, emergency dispatch, and telemedicine bridging. "
+        "Built with FastAPI + Groq LLM + Twilio + Supabase PostgreSQL."
+    ),
+    openapi_tags=TAGS_METADATA,
+)
 
 # CORS — restrict to known origins; use ALLOWED_ORIGIN env-var in production
 _raw_origin = os.getenv("ALLOWED_ORIGIN", "")
@@ -224,7 +281,12 @@ def dispatch_sms(text: str, recipient: str = None) -> dict:
     return entry
 
 
-@app.post("/api/auth/register", response_model=schemas.User)
+@app.post(
+    "/api/auth/register",
+    response_model=schemas.User,
+    tags=["authentication"],
+    summary="Register a new user account",
+)
 def register(request: schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if name or email is already registered
     existing_by_name = crud.get_user_by_name(db, request.name)
@@ -237,7 +299,11 @@ def register(request: schemas.UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-@app.post("/api/auth/login")
+@app.post(
+    "/api/auth/login",
+    tags=["authentication"],
+    summary="Login with username and password",
+)
 def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
     # Find user by name (username) first, then email
     db_user = crud.get_user_by_name(db, request.username)
@@ -267,7 +333,11 @@ def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
     }
 
 
-@app.get("/api/telemetry")
+@app.get(
+    "/api/telemetry",
+    tags=["telemetry"],
+    summary="Get live patient vitals (heart rate, SpO₂, BP, temperature)",
+)
 def get_telemetry():
     heartrate = random.randint(70, 78)
     spo2 = random.randint(97, 99)
@@ -279,12 +349,20 @@ def get_telemetry():
     }
 
 
-@app.get("/api/appointments")
+@app.get(
+    "/api/appointments",
+    tags=["appointments"],
+    summary="List all patient appointments",
+)
 def get_appointments():
     return appointments_db
 
 
-@app.post("/api/appointments")
+@app.post(
+    "/api/appointments",
+    tags=["appointments"],
+    summary="Book a new appointment (sends SMS confirmation)",
+)
 def add_appointment(req: dict):
     doctor_mapping = {
         "Dr. Reed": ("Dr. Evelyn Reed", "Cardiology"),
@@ -313,12 +391,20 @@ def add_appointment(req: dict):
     return new_appointment
 
 
-@app.get("/api/medicines")
+@app.get(
+    "/api/medicines",
+    tags=["medicines"],
+    summary="List all prescribed medicines",
+)
 def get_medicines():
     return medicines_db
 
 
-@app.post("/api/medicines")
+@app.post(
+    "/api/medicines",
+    tags=["medicines"],
+    summary="Add a medicine to the patient's schedule",
+)
 def add_medicine(req: dict):
     new_id = len(medicines_db) + 1
     new_med = {
@@ -333,7 +419,11 @@ def add_medicine(req: dict):
     return new_med
 
 
-@app.delete("/api/medicines/{name}")
+@app.delete(
+    "/api/medicines/{name}",
+    tags=["medicines"],
+    summary="Remove a medicine by name",
+)
 def delete_medicine(name: str):
     global medicines_db
     initial_len = len(medicines_db)
@@ -345,12 +435,20 @@ def delete_medicine(name: str):
     return {"status": "success", "message": f"Medicine {name} removed."}
 
 
-@app.get("/api/sms")
+@app.get(
+    "/api/sms",
+    tags=["sms"],
+    summary="List all outbound SMS notifications",
+)
 def get_sms():
     return sms_db
 
 
-@app.post("/api/sms")
+@app.post(
+    "/api/sms",
+    tags=["sms"],
+    summary="Send an SMS via Twilio (or log to mock store)",
+)
 def send_sms(req: dict):
     recipient = (
         req.get("recipient")
@@ -360,7 +458,11 @@ def send_sms(req: dict):
     return dispatch_sms(req.get("text"), recipient=recipient)
 
 
-@app.post("/api/emergency/sos")
+@app.post(
+    "/api/emergency/sos",
+    tags=["emergency"],
+    summary="Trigger emergency SOS — dispatches ambulance and broadcasts critical alert SMS",
+)
 def trigger_sos():
     sms_text = "MedAI Emergency SOS: Vitals critical. Ambulance Unit #4B dispatched. ETA: 7 mins."
     dispatch_sms(sms_text)
@@ -393,7 +495,11 @@ def trigger_sos():
 # (e.g. an ngrok tunnel in dev, your real domain in production).
 
 
-@app.post("/api/calls/outbound")
+@app.post(
+    "/api/calls/outbound",
+    tags=["calls"],
+    summary="Initiate a real outbound call via Twilio to the patient's phone",
+)
 def start_outbound_call(req: dict, db: Session = Depends(get_db)):
     """
     Trigger a real outbound call to a patient.
@@ -434,7 +540,12 @@ def _xml_response(twiml: str) -> Response:
     return Response(content=twiml, media_type="application/xml")
 
 
-@app.api_route("/twiml/voice-start", methods=["GET", "POST"])
+@app.api_route(
+    "/twiml/voice-start",
+    methods=["GET", "POST"],
+    tags=["twiml-webhooks"],
+    summary="[Twilio webhook] Bot opening line + Gather — called automatically when call connects",
+)
 def twiml_voice_start(bot_name: str = "PostDischargeCheckIn"):
     """First thing Twilio fetches when the call connects: bot speaks, then listens."""
     opening_lines = {
@@ -462,7 +573,11 @@ def twiml_voice_start(bot_name: str = "PostDischargeCheckIn"):
     return _xml_response(twiml)
 
 
-@app.post("/twiml/voice-gather")
+@app.post(
+    "/twiml/voice-gather",
+    tags=["twiml-webhooks"],
+    summary="[Twilio webhook] Processes transcribed speech and returns next TwiML response",
+)
 async def twiml_voice_gather(
     request: Request,
     bot_name: str = "PostDischargeCheckIn",
@@ -531,7 +646,12 @@ async def twiml_voice_gather(
 # ==================== VOICE BOT CORE APIs ====================
 
 
-@app.post("/api/users", response_model=schemas.User)
+@app.post(
+    "/api/users",
+    response_model=schemas.User,
+    tags=["voice-bot"],
+    summary="Create or retrieve a user by email",
+)
 def create_or_get_user(
     user: schemas.UserCreate, db: Session = Depends(get_db)
 ):
@@ -541,7 +661,12 @@ def create_or_get_user(
     return db_user
 
 
-@app.post("/api/sessions", response_model=schemas.CallSession)
+@app.post(
+    "/api/sessions",
+    response_model=schemas.CallSession,
+    tags=["voice-bot"],
+    summary="Create or retrieve a call session by ID",
+)
 def create_session(
     session: schemas.CallSessionCreate, db: Session = Depends(get_db)
 ):
@@ -554,6 +679,8 @@ def create_session(
 @app.get(
     "/api/sessions/{session_id}/transcripts",
     response_model=List[schemas.Transcript],
+    tags=["voice-bot"],
+    summary="Get all transcript turns for a call session",
 )
 def get_session_transcripts(session_id: str, db: Session = Depends(get_db)):
     return crud.get_transcripts_by_session(db, session_id)
@@ -575,7 +702,12 @@ def require_admin_role(x_user_role: str = Header("patient", alias="X-User-Role")
         )
 
 
-@app.get("/api/prompts", response_model=List[schemas.PromptTemplate])
+@app.get(
+    "/api/prompts",
+    response_model=List[schemas.PromptTemplate],
+    tags=["prompts"],
+    summary="List all bot prompt templates (Admin only — send X-User-Role: admin header)",
+)
 def get_all_prompts(
     db: Session = Depends(get_db),
     _: None = Depends(require_admin_role),
@@ -583,7 +715,12 @@ def get_all_prompts(
     return db.query(models.PromptTemplate).all()
 
 
-@app.post("/api/prompts", response_model=schemas.PromptTemplate)
+@app.post(
+    "/api/prompts",
+    response_model=schemas.PromptTemplate,
+    tags=["prompts"],
+    summary="Create or update a bot prompt template (Admin only — send X-User-Role: admin header)",
+)
 def create_or_update_prompt(
     prompt: schemas.PromptTemplateCreate,
     db: Session = Depends(get_db),
@@ -592,7 +729,11 @@ def create_or_update_prompt(
     return crud.create_or_update_prompt_template(db, prompt)
 
 
-@app.post("/api/voice/turn")
+@app.post(
+    "/api/voice/turn",
+    tags=["voice-bot"],
+    summary="Process a single voice turn via HTTP (session_id, user_text, bot_name as query params)",
+)
 def voice_turn(
     session_id: str,
     user_text: str,
@@ -645,7 +786,7 @@ def voice_turn(
 
 
 @app.websocket("/ws/voice")
-async def websocket_voice_endpoint(websocket: WebSocket):
+async def websocket_voice_endpoint(websocket: WebSocket):  # noqa — WS routes don't support tags in FastAPI
     await websocket.accept()
     print("WebSocket voice client connected.")
 
