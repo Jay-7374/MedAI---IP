@@ -170,3 +170,54 @@ class PromptTemplate(Base):
     updated_at = Column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+
+class ChatbotSession(Base):
+    __tablename__ = "chatbot_sessions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String(200), default="New Chat")
+    language = Column(String(50), default="English")
+    mode = Column(String(100), default="General Assistant")
+    conversation_summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+    messages = relationship("ChatbotMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatbotMessage.timestamp")
+    documents = relationship("ChatbotDocument", back_populates="session", cascade="all, delete-orphan")
+
+
+class ChatbotMessage(Base):
+    __tablename__ = "chatbot_messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(UUID(as_uuid=True), ForeignKey("chatbot_sessions.id", ondelete="CASCADE"))
+    role = Column(String(50))  # 'user', 'assistant', 'system'
+    content = Column(Text)
+    status = Column(String(50), default="completed")  # 'sending', 'completed', 'failed'
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    prompt_tokens = Column(Integer, nullable=True)
+    completion_tokens = Column(Integer, nullable=True)
+    latency_ms = Column(Integer, nullable=True)
+    model_used = Column(String(100), nullable=True)
+
+    session = relationship("ChatbotSession", back_populates="messages")
+
+
+class ChatbotDocument(Base):
+    __tablename__ = "chatbot_documents"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(UUID(as_uuid=True), ForeignKey("chatbot_sessions.id", ondelete="CASCADE"))
+    filename = Column(String(255))
+    mime_type = Column(String(100))
+    file_size = Column(Integer)
+    extracted_text = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
+    processing_status = Column(String(50), default="pending")  # 'pending', 'completed', 'failed'
+    processing_duration_ms = Column(Integer, nullable=True)
+    upload_time = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("ChatbotSession", back_populates="documents")
