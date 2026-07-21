@@ -116,6 +116,11 @@ async def chat_stream(session_id: UUID, message_data: ChatbotMessageCreate, db: 
     if db.query(ChatbotMessage).filter(ChatbotMessage.session_id == session_id).count() == 0:
         session.title = message_data.content[:30] + ("..." if len(message_data.content) > 30 else "")
     
+    if message_data.language:
+        session.language = message_data.language
+    if message_data.mode:
+        session.mode = message_data.mode
+
     session.updated_at = datetime.utcnow()
     db.commit()
 

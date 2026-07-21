@@ -177,7 +177,8 @@ class ChatbotMessageBase(BaseModel):
     model_used: Optional[str] = None
 
 class ChatbotMessageCreate(ChatbotMessageBase):
-    pass
+    language: Optional[str] = None
+    mode: Optional[str] = None
 
 class ChatbotMessage(ChatbotMessageBase):
     id: UUID

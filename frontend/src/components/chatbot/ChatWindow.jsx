@@ -56,7 +56,9 @@ export default function ChatWindow({ session, setSession }) {
         },
         body: JSON.stringify({
           role: 'user',
-          content: content
+          content: content,
+          mode: mode,
+          language: language
         })
       });
 
@@ -82,9 +84,13 @@ export default function ChatWindow({ session, setSession }) {
                 if (data.content) {
                   setMessages(prev => {
                     const newMessages = [...prev];
-                    const lastMsg = newMessages[newMessages.length - 1];
+                    const lastMsgIndex = newMessages.length - 1;
+                    const lastMsg = newMessages[lastMsgIndex];
                     if (lastMsg.role === 'assistant') {
-                      lastMsg.content += data.content;
+                      newMessages[lastMsgIndex] = {
+                        ...lastMsg,
+                        content: lastMsg.content + data.content
+                      };
                     }
                     return newMessages;
                   });

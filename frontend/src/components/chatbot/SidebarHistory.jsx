@@ -8,8 +8,10 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
     try {
       const res = await apiFetch('/api/chatbot/sessions', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'New Chat', language: 'English', mode: 'General Assistant' })
       });
+      if (!res.ok) throw new Error('Failed to create session');
       const newSession = await res.json();
       setSessions([newSession, ...sessions]);
       setActiveSession(newSession);
