@@ -133,54 +133,93 @@ async def chat_stream(session_id: UUID, message_data: ChatbotMessageCreate, db: 
 @router.post("/sessions/{session_id}/upload")
 async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
     """
-    Handles document uploads. Extracts text/vision summary and saves to DB.
+    Uploads a document, extracts text, summarizes it, and associates it with the chat session.
     """
     user = get_user_from_header(db, x_user_id)
     session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    file_size = 0
-    file.file.seek(0, 2)
-    file_size = file.file.tell()
-    file.file.seek(0)
+    ext = os.path.splitext(file.filename)[1].lower()
+    allowed_exts = [".pdf", ".docx", ".txt"]
+    if ext not in allowed_exts:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type. Allowed: {', '.join(allowed_exts)}")
+
+    content = await file.read()
     
-    max_size_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-    if file_size > max_size_bytes:
-        raise HTTPException(status_code=400, detail=f"File exceeds maximum size of {settings.MAX_UPLOAD_SIZE_MB}MB")
+    # Check max file size (e.g., 10MB)
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
 
-    temp_path = f"temp_{file.filename}"
-    with open(temp_path, "wb") as buffer:
-        buffer.write(file.file.read())
+    from app.services.document_service import extract_text_from_file, summarize_document
+    import time
 
+    start_time = time.time()
     try:
-        if file.content_type.startswith("image/"):
-            extracted_text = analyze_image(temp_path)
-            summary = extracted_text 
-        else:
-            try:
-                with open(temp_path, "r", encoding="utf-8") as f:
-                    extracted_text = f.read()
-                    summary = extracted_text[:1000] 
-            except:
-                extracted_text = "Unsupported document format for direct reading."
-                summary = "Unsupported document."
-
-        doc = ChatbotDocument(
-            session_id=session_id,
-            filename=file.filename,
-            mime_type=file.content_type,
-            file_size=file_size,
-            extracted_text=extracted_text,
-            summary=summary,
-            processing_status="completed"
-        )
-        db.add(doc)
-        db.commit()
+        extracted_text = extract_text_from_file(content, file.filename)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract text: {str(e)}")
         
-        return {"status": "success", "message": "Document processed and added to context.", "document_id": doc.id}
+    summary = summarize_document(extracted_text, file.filename)
+    duration_ms = int((time.time() - start_time) * 1000)
 
-    finally:
-        # Cleanup
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+    # Save to database
+    doc = ChatbotDocument(
+        session_id=session_id,
+        filename=file.filename,
+        mime_type=file.content_type,
+        file_size=len(content),
+        extracted_text=extracted_text,
+        summary=summary,
+        processing_status="completed",
+        processing_duration_ms=duration_ms
+    )
+    db.add(doc)
+    
+    # Optionally add a system message to the chat indicating a file was uploaded
+    system_msg = ChatbotMessage(
+        session_id=session_id,
+        role="system",
+        content=f"Document '{file.filename}' uploaded and analyzed successfully.",
+        status="completed"
+    )
+    db.add(system_msg)
+    
+    db.commit()
+    db.refresh(doc)
+    
+    return doc
+
+@router.get("/sessions/{session_id}/documents")
+async def get_session_documents(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+    user = get_user_from_header(db, x_user_id)
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    return db.query(ChatbotDocument).filter(ChatbotDocument.session_id == session_id).order_by(ChatbotDocument.upload_time.desc()).all()
+
+@router.delete("/sessions/{session_id}/documents/{doc_id}")
+async def delete_document(session_id: UUID, doc_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+    user = get_user_from_header(db, x_user_id)
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    doc = db.query(ChatbotDocument).filter(ChatbotDocument.id == doc_id, ChatbotDocument.session_id == session_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    db.delete(doc)
+    
+    # Optionally add a system message
+    system_msg = ChatbotMessage(
+        session_id=session_id,
+        role="system",
+        content=f"Document '{doc.filename}' was removed from the context.",
+        status="completed"
+    )
+    db.add(system_msg)
+    
+    db.commit()
+    return {"status": "success", "message": "Document deleted"}

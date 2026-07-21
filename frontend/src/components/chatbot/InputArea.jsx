@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Mic, FileText, X } from 'lucide-react';
+import { apiFetch } from '../../apiClient';
 
-export default function InputArea({ onSendMessage, isStreaming }) {
+export default function InputArea({ onSendMessage, isStreaming, session, onDocumentUploaded }) {
   const [content, setContent] = useState('');
   const [mode, setMode] = useState('General Assistant');
   const [language, setLanguage] = useState('English');
-  const [files, setFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -21,9 +24,8 @@ export default function InputArea({ onSendMessage, isStreaming }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if ((!content.trim() && files.length === 0) || isStreaming) return;
+    if (!content.trim() || isStreaming) return;
     
-    // In Phase 4 we will handle files. For now just text.
     onSendMessage({ content, mode, language });
     setContent('');
     if (textareaRef.current) {
@@ -38,12 +40,71 @@ export default function InputArea({ onSendMessage, isStreaming }) {
     }
   };
 
+  const handleFileChange = async (e) => {
+    if (e.target.files && e.target.files.length > 0 && session) {
+      const file = e.target.files[0];
+      await uploadDocument(file);
+      e.target.value = null; // reset input
+    }
+  };
+
+  const uploadDocument = async (file) => {
+    setIsUploading(true);
+    setUploadError('');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const res = await apiFetch(`/api/chatbot/sessions/${session.id}/upload`, {
+        method: 'POST',
+        headers: {
+          'X-User-Id': '1' // Using standard fallback
+          // Do NOT set Content-Type header when sending FormData; the browser sets it with the boundary!
+        },
+        body: formData
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || 'Failed to upload document');
+      }
+      
+      if (onDocumentUploaded) {
+        onDocumentUploaded();
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadError(err.message);
+      setTimeout(() => setUploadError(''), 5000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0 && session && !isUploading && !isStreaming) {
+      uploadDocument(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
-    <div style={{ padding: '1.5rem', borderTop: '1px solid var(--card-border)', backgroundColor: 'var(--bg-main)' }}>
+    <div 
+      onDrop={handleDrop} 
+      onDragOver={handleDragOver} 
+      style={{ padding: '1.5rem', borderTop: '1px solid var(--card-border)', backgroundColor: 'var(--bg-main)' }}
+    >
       <form onSubmit={handleSubmit} style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         
-        {/* Settings Bar */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+        {/* Settings Bar & Upload Status */}
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <select 
             value={mode} 
             onChange={e => setMode(e.target.value)}
@@ -64,6 +125,9 @@ export default function InputArea({ onSendMessage, isStreaming }) {
             <option>French</option>
             <option>Hindi</option>
           </select>
+          
+          {isUploading && <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Uploading document...</span>}
+          {uploadError && <span style={{ fontSize: '0.85rem', color: 'var(--error)' }}>{uploadError}</span>}
         </div>
 
         {/* Input Box */}
@@ -76,7 +140,19 @@ export default function InputArea({ onSendMessage, isStreaming }) {
           border: '1px solid var(--card-border)',
           padding: '0.5rem 1rem'
         }}>
-          <button type="button" style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem' }}>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            style={{ display: 'none' }} 
+            accept=".pdf,.docx,.txt"
+            onChange={handleFileChange}
+          />
+          <button 
+            type="button" 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!session || isUploading || isStreaming}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: (!session || isUploading || isStreaming) ? 'not-allowed' : 'pointer', padding: '0.5rem' }}
+          >
             <Paperclip size={20} />
           </button>
           
@@ -85,7 +161,7 @@ export default function InputArea({ onSendMessage, isStreaming }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your medical query here..."
+            placeholder="Type your medical query or drag and drop a file here..."
             style={{
               flex: 1,
               background: 'transparent',
@@ -106,12 +182,12 @@ export default function InputArea({ onSendMessage, isStreaming }) {
           
           <button 
             type="submit" 
-            disabled={(!content.trim() && files.length === 0) || isStreaming}
+            disabled={!content.trim() || isStreaming || isUploading}
             style={{ 
-              background: (!content.trim() && files.length === 0) || isStreaming ? 'var(--card-border)' : 'var(--primary)', 
+              background: (!content.trim() || isStreaming || isUploading) ? 'var(--card-border)' : 'var(--primary)', 
               border: 'none', 
               color: 'white', 
-              cursor: (!content.trim() && files.length === 0) || isStreaming ? 'not-allowed' : 'pointer', 
+              cursor: (!content.trim() || isStreaming || isUploading) ? 'not-allowed' : 'pointer', 
               padding: '0.5rem',
               borderRadius: '8px',
               display: 'flex',

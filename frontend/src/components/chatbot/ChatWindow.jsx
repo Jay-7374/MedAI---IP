@@ -5,14 +5,17 @@ import { apiFetch } from '../../apiClient';
 
 export default function ChatWindow({ session, setSession }) {
   const [messages, setMessages] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (session) {
       loadMessages(session.id);
+      loadDocuments(session.id);
     } else {
       setMessages([]);
+      setDocuments([]);
     }
   }, [session]);
 
@@ -24,6 +27,31 @@ export default function ChatWindow({ session, setSession }) {
       scrollToBottom();
     } catch (err) {
       console.error('Failed to load messages:', err);
+    }
+  };
+
+  const loadDocuments = async (sessionId) => {
+    try {
+      const res = await apiFetch(`/api/chatbot/sessions/${sessionId}/documents`);
+      const data = await res.json();
+      setDocuments(data);
+    } catch (err) {
+      console.error('Failed to load documents:', err);
+    }
+  };
+
+  const handleDeleteDocument = async (docId) => {
+    try {
+      await apiFetch(`/api/chatbot/sessions/${session.id}/documents/${docId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-User-Id': '1'
+        }
+      });
+      loadDocuments(session.id);
+      loadMessages(session.id); // Reload to show system message
+    } catch (err) {
+      console.error('Failed to delete document:', err);
     }
   };
 
@@ -124,6 +152,18 @@ export default function ChatWindow({ session, setSession }) {
         <h3 style={{ margin: 0 }}>{session.title}</h3>
       </div>
       
+      {/* Document Panel */}
+      {documents.length > 0 && (
+        <div style={{ padding: '0.5rem 1.5rem', backgroundColor: 'var(--sidebar-bg)', borderBottom: '1px solid var(--card-border)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {documents.map(doc => (
+            <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.5rem', background: 'var(--card-bg)', borderRadius: '4px', fontSize: '0.85rem', border: '1px solid var(--card-border)' }}>
+              <span>📄 {doc.filename}</span>
+              <button onClick={() => handleDeleteDocument(doc.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', padding: '0 2px' }}>&times;</button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 0' }}>
         {messages.length === 0 ? (
@@ -140,7 +180,7 @@ export default function ChatWindow({ session, setSession }) {
       </div>
 
       {/* Input */}
-      <InputArea onSendMessage={handleSendMessage} isStreaming={isStreaming} />
+      <InputArea onSendMessage={handleSendMessage} isStreaming={isStreaming} session={session} onDocumentUploaded={() => { loadDocuments(session.id); loadMessages(session.id); }} />
     </div>
   );
 }
