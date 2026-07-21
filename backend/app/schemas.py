@@ -164,3 +164,67 @@ class PromptTemplate(PromptTemplateBase):
 
     class Config:
         from_attributes = True
+
+from uuid import UUID
+
+class ChatbotMessageBase(BaseModel):
+    role: str
+    content: str
+    status: Optional[str] = "completed"
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
+    latency_ms: Optional[int] = None
+    model_used: Optional[str] = None
+
+class ChatbotMessageCreate(ChatbotMessageBase):
+    pass
+
+class ChatbotMessage(ChatbotMessageBase):
+    id: UUID
+    session_id: UUID
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatbotDocumentBase(BaseModel):
+    filename: str
+    mime_type: str
+    file_size: int
+    extracted_text: Optional[str] = None
+    summary: Optional[str] = None
+    processing_status: Optional[str] = "pending"
+    processing_duration_ms: Optional[int] = None
+
+class ChatbotDocumentCreate(ChatbotDocumentBase):
+    pass
+
+class ChatbotDocument(ChatbotDocumentBase):
+    id: UUID
+    session_id: UUID
+    upload_time: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatbotSessionBase(BaseModel):
+    title: Optional[str] = "New Chat"
+    language: Optional[str] = "English"
+    mode: Optional[str] = "General Assistant"
+    conversation_summary: Optional[str] = None
+
+class ChatbotSessionCreate(ChatbotSessionBase):
+    pass
+
+class ChatbotSession(ChatbotSessionBase):
+    id: UUID
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    messages: list[ChatbotMessage] = []
+    documents: list[ChatbotDocument] = []
+
+    class Config:
+        from_attributes = True

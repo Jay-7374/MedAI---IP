@@ -18,7 +18,8 @@ from app.routers import (
     sos,
     prompts,
     voice,
-    telephony
+    telephony,
+    chatbot
 )
 
 TAGS_METADATA = [
@@ -65,6 +66,7 @@ app.include_router(sos.router)
 app.include_router(prompts.router)
 app.include_router(voice.router)
 app.include_router(telephony.router)
+app.include_router(chatbot.router)
 
 @app.on_event("startup")
 def startup_db_seeding():
