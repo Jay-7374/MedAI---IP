@@ -3,64 +3,61 @@
 :root {
   /* ============ HEALTHCARE LIGHT PALETTE ============ */
   --background: transparent;
-  --background-rgb: 244, 251, 248;
-  --panel-bg: rgba(255, 255, 255, 0.76);
-  --card-bg: rgba(255, 255, 255, 0.76);
-  --card-bg-solid: rgba(255, 255, 255, 0.90);
-  --border: rgba(20, 125, 112, 0.12);
-  --border-hover: rgba(20, 125, 112, 0.25);
-  --divider: rgba(20, 125, 112, 0.08);
+  --background-rgb: 246, 251, 249; /* #F6FBF9 */
+  
+  /* Glassmorphism Cards */
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-backdrop: blur(12px);
+  --card-border: rgba(255, 255, 255, 0.35);
+  --sidebar-bg: rgba(255, 255, 255, 0.75);
+  --sidebar-backdrop: blur(16px);
+  
+  --panel-bg: var(--card-bg);
+  --card-bg-solid: rgba(255, 255, 255, 1);
+  --border: rgba(20, 134, 109, 0.15);
+  --border-hover: rgba(20, 134, 109, 0.25);
+  --divider: rgba(20, 134, 109, 0.08);
 
-  /* Primary Brand (Teal) */
-  --primary: #1E8A78;
-  --primary-rgb: 30, 138, 120;
-  --primary-hover: #147D70;
-  --primary-light: rgba(30, 138, 120, 0.1);
+  /* Primary Brand */
+  --primary: #14866D;
+  --primary-rgb: 20, 134, 109;
+  --primary-hover: #0F6A56;
+  --primary-light: rgba(20, 134, 109, 0.1);
 
-  /* Secondary (Mint/Aqua) */
-  --secondary: #83D7C5;
-  --secondary-rgb: 131, 215, 197;
-  --secondary-hover: #38B89D;
-  --secondary-light: rgba(131, 215, 197, 0.20);
-
-  /* Clinical Accent Set */
-  --accent-cyan: #38B89D;
-  --accent-cyan-rgb: 56, 184, 157;
-  --accent-violet: #8F7AD9;
-  --accent-violet-rgb: 143, 122, 217;
-  --accent-amber: #D4923D;
-  --accent-amber-rgb: 212, 146, 61;
-  --accent-rose: #E07A5F;
-  --accent-rose-rgb: 224, 122, 95;
-  --accent-emerald: #147D70;
-  --accent-emerald-rgb: 20, 125, 112;
-  --accent-indigo: #4E9CCB;
-  --accent-indigo-rgb: 78, 156, 203;
+  /* Secondary */
+  --secondary: #2CB89C;
+  --secondary-rgb: 44, 184, 156;
+  --secondary-hover: #22937C;
+  --secondary-light: rgba(44, 184, 156, 0.20);
 
   /* State Colors */
-  --success: #1E8A78;
-  --success-rgb: 30, 138, 120;
-  --warning: #D4923D;
-  --warning-rgb: 212, 146, 61;
-  --danger: #E07A5F;
-  --danger-rgb: 224, 122, 95;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
 
   /* Typography */
   --text-main: #163C35;
   --text-secondary: #30584E;
   --text-muted: #52736C;
   --font-mono: 'JetBrains Mono', monospace;
+  
+  --font-title: 34px;
+  --font-card-title: 22px;
+  --font-body: 16px;
+  --font-meta: 13px;
 
   /* Layout */
-  --transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  --radius: 16px;
-  --radius-sm: 12px;
-  --shadow: 0 12px 40px rgba(26, 100, 85, 0.08), 0 1px 4px rgba(26, 100, 85, 0.04);
-  --shadow-hover: 0 16px 48px rgba(26, 100, 85, 0.12), 0 2px 8px rgba(26, 100, 85, 0.06);
+  --sidebar-collapsed-width: 80px;
+  --sidebar-expanded-width: 240px;
+  --transition: all 0.25s ease;
+  --radius: 24px;
+  --radius-sm: 16px;
+  --shadow: 0 8px 32px rgba(20, 134, 109, 0.06), 0 1px 2px rgba(20, 134, 109, 0.04);
+  --shadow-hover: 0 12px 48px rgba(20, 134, 109, 0.08), 0 2px 4px rgba(20, 134, 109, 0.05);
 
   /* Motion System */
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: ease;
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --stagger-step: 60ms;
 }
@@ -242,10 +239,10 @@ body::before {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--panel-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-right: 1px solid var(--border);
+  background: var(--sidebar-bg);
+  backdrop-filter: var(--sidebar-backdrop);
+  -webkit-backdrop-filter: var(--sidebar-backdrop);
+  border-right: 1px solid var(--card-border);
   overflow-x: hidden;
   overflow-y: auto;
   white-space: nowrap;
@@ -672,12 +669,12 @@ body::before {
 /* ============ PREMIUM GLASS CARDS ============ */
 .card {
   background: var(--card-bg);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid var(--border);
+  backdrop-filter: var(--card-backdrop);
+  -webkit-backdrop-filter: var(--card-backdrop);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 1.25rem;
-  transition: transform 0.45s var(--ease-soft), box-shadow 0.45s var(--ease-soft), border-color 0.3s ease;
+  padding: 1.5rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
@@ -710,7 +707,6 @@ body::before {
 }
 
 .card:hover {
-  border-color: var(--border-hover);
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
 }

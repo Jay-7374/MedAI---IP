@@ -22,27 +22,19 @@ export default function Sidebar({ user, setUser, setView, activeTab, navigateTo,
     showToast("Logged out successfully.", "warning");
   };
 
+  // Flattened navigation list without categories
   const navItems = [
-    { section: 'Workspace', items: [
-      { id: 'dashboard', label: 'Dashboard', icon: ActivitySquare }
-    ]},
-    { section: 'Management', items: [
-      { id: 'appointments', label: 'Scheduling & Diagnostics', icon: Calendar },
-      { id: 'medicines', label: 'Medicine Tracker', icon: Pill }
-    ]},
-    { section: 'AI Assistant', items: [
-      { id: 'voicebot', label: 'Voice / Chatbot', icon: Mic }
-    ]},
-    ...(isStaff ? [{ section: 'Clinical Staff', items: [
-      { id: 'staffconsole', label: 'Staff Console', icon: FileText }
-    ]}] : []),
-    ...(isAdmin ? [{ section: 'System Admin', items: [
+    { id: 'dashboard', label: 'Dashboard', icon: ActivitySquare },
+    { id: 'appointments', label: 'Scheduling', icon: Calendar },
+    { id: 'medicines', label: 'Medication', icon: Pill },
+    { id: 'voicebot', label: 'AI Assistant', icon: Mic },
+    ...(isStaff ? [{ id: 'staffconsole', label: 'Staff Console', icon: FileText }] : []),
+    ...(isAdmin ? [
       { id: 'prompts', label: 'Prompt Orchestrator', icon: Settings },
       { id: 'adminconsole', label: 'Admin Console', icon: Settings }
-    ]}] : []),
-    { section: 'Critical', items: [
-      { id: 'emergency', label: 'EMERGENCY SOS', icon: AlertTriangle, danger: true }
-    ]}
+    ] : []),
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'emergency', label: 'Emergency SOS', icon: AlertTriangle, danger: true }
   ];
 
   return (
@@ -74,45 +66,37 @@ export default function Sidebar({ user, setUser, setView, activeTab, navigateTo,
           </div>
           <div className="sidebar-brand-text">
             <span className="sidebar-brand-name">SALUS</span>
-            <span className="sidebar-brand-subtitle">
-              AI Healthcare
-            </span>
           </div>
         </div>
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {navItems.map((group, gIdx) => (
-            <div key={gIdx} className="nav-section-group">
-              <span className="nav-section-title">{group.section}</span>
-              <div className="nav-buttons-container">
-                {group.items.map((item) => {
-                  const IconComponent = item.icon;
-                  const isActive = activeTab === item.id;
-                  
-                  return (
-                    <div 
-                      key={item.id} 
-                      className={`menu-item ${isActive ? 'active' : ''} ${item.danger ? 'danger-item' : ''}`}
-                    >
-                      <button 
-                        onClick={() => {
-                          navigateTo('app', item.id);
-                          if (window.innerWidth <= 768) setSidebarOpen(false);
-                        }}
-                        title={!isExpanded ? item.label : undefined}
-                      >
-                        <span className="sidebar-icon">
-                          <IconComponent size={20} />
-                        </span>
-                        <span className="sidebar-label">{item.label}</span>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <div className="nav-buttons-container">
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              const isActive = activeTab === item.id;
+              
+              return (
+                <div 
+                  key={item.id} 
+                  className={`menu-item ${isActive ? 'active' : ''} ${item.danger ? 'danger-item' : ''}`}
+                >
+                  <button 
+                    onClick={() => {
+                      navigateTo('app', item.id);
+                      if (window.innerWidth <= 768) setSidebarOpen(false);
+                    }}
+                    title={!isExpanded ? item.label : undefined}
+                  >
+                    <span className="sidebar-icon">
+                      <IconComponent size={20} />
+                    </span>
+                    <span className="sidebar-label">{item.label}</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </nav>
 
         {/* Bottom Section / Profile */}

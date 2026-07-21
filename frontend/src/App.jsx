@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft,
-  Activity
+  Activity,
+  Search,
+  Bell,
+  Menu
 } from 'lucide-react';
 import { apiFetch, getWsUrl } from './apiClient';
 
@@ -44,6 +47,7 @@ export default function App() {
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Only Admin role can access admin features
   const isAdmin = user?.role?.toLowerCase() === 'admin';
   const [toast, setToast] = useState(null);
@@ -831,29 +835,49 @@ export default function App() {
 
         <Sidebar 
           user={user}
+          setUser={setUser}
+          setView={setView}
+          showToast={showToast}
           activeTab={activeTab}
           navigateTo={navigateTo}
           isAdmin={isAdmin}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
         />
       </header>
 
       {/* Main Container */}
       <div className="content">
-        <header className="top-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <button className="btn-back" onClick={goBack}>
-              <ArrowLeft size={16} /> Back
+        <header className="top-bar" style={{ padding: '2.5rem 2.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: 'transparent' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+              <button className="btn-mobile-menu" onClick={() => setSidebarOpen(true)}>
+                <Menu size={24} />
+              </button>
+              <h2 className="top-bar-title" style={{ fontSize: 'var(--font-title)', fontWeight: 800, margin: 0 }}>
+                {activeTab === 'dashboard' && "Patient Dashboard"}
+                {activeTab === 'voicebot' && "Real-time AI Voice Simulator"}
+                {activeTab === 'appointments' && "Conversational Scheduling"}
+                {activeTab === 'medicines' && "Medication Adherence"}
+                {activeTab === 'prompts' && "Prompt Orchestrator"}
+                {activeTab === 'emergency' && "Emergency Classification (ESI)"}
+                {activeTab === 'staffconsole' && "Clinical Staff Console"}
+                {activeTab === 'adminconsole' && "Salus Administration Console"}
+                {activeTab === 'settings' && "System Settings"}
+              </h2>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: 'var(--font-body)', fontWeight: 500, paddingLeft: window.innerWidth <= 768 ? '3rem' : '0' }}>
+              <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+              <span>•</span>
+              <span>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {user?.name?.split(' ')[0] || 'User'}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }} className="top-bar-actions">
+            <button className="btn-icon" style={{ background: 'var(--sidebar-bg)', border: '1px solid var(--card-border)', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', backdropFilter: 'var(--card-backdrop)', cursor: 'pointer', position: 'relative', transition: 'var(--transition)' }}>
+              <Bell size={20} />
+              <span style={{ position: 'absolute', top: '12px', right: '14px', width: '8px', height: '8px', background: 'var(--danger)', borderRadius: '50%', border: '2px solid white' }}></span>
             </button>
-            <h2 className="top-bar-title">
-              {activeTab === 'dashboard' && "Telemetry & Operations Dashboard"}
-              {activeTab === 'voicebot' && "Real-time AI Voice Simulator Portal"}
-              {activeTab === 'appointments' && "Conversational Scheduling & Diagnostics"}
-              {activeTab === 'medicines' && "Active Medication Adherence Alert System"}
-              {activeTab === 'prompts' && "System Prompt Orchestrator"}
-              {activeTab === 'emergency' && "Emergency Severity Classification (ESI)"}
-              {activeTab === 'staffconsole' && "Clinical Staff Console Station"}
-              {activeTab === 'adminconsole' && "Salus System Administration Console"}
-            </h2>
           </div>
         </header>
 
