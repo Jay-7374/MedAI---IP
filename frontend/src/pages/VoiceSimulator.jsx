@@ -200,7 +200,7 @@ export default function VoiceSimulator({
               Dialogue stream is currently empty. Connect above to start.
             </div>
           ) : (
-            <div className="timeline-container" style={{ position: 'relative', borderLeft: '2px solid rgba(255,255,255,0.05)', marginLeft: '1rem', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="timeline-container" style={{ position: 'relative', borderLeft: '2px solid var(--border)', marginLeft: '1rem', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {transcripts.map((msg, idx) => (
                 <div key={idx} className={`timeline-item ${msg.speaker === 'User' ? 'user' : 'ai'}`} style={{ position: 'relative' }}>
                   <div className="timeline-dot" style={{ 
@@ -208,9 +208,9 @@ export default function VoiceSimulator({
                     background: msg.speaker === 'User' ? 'var(--text-secondary)' : 'var(--primary)',
                     boxShadow: msg.speaker === 'User' ? 'none' : '0 0 10px var(--primary)'
                   }}></div>
-                  <div className={`transcript-message ${msg.speaker === 'User' ? 'user' : 'ai'}`} style={{ margin: 0, padding: '0.85rem', borderRadius: '8px', background: msg.speaker === 'User' ? 'rgba(255,255,255,0.05)' : 'rgba(82, 183, 136, 0.08)' }}>
+                  <div className={`transcript-message ${msg.speaker === 'User' ? 'user' : 'ai'}`} style={{ margin: 0, padding: '0.85rem', borderRadius: '8px', background: msg.speaker === 'User' ? 'rgba(0,0,0,0.03)' : 'rgba(82, 183, 136, 0.08)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
-                      <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: msg.speaker === 'User' ? 'rgba(255,255,255,0.15)' : 'var(--primary)', color: '#fff' }}>
+                      <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: msg.speaker === 'User' ? 'var(--text-muted)' : 'var(--primary)', color: '#fff' }}>
                         {msg.speaker === 'User' ? 'Patient' : 'AI Assistant'}
                       </span>
                       {msg.latency_ms && <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>({msg.latency_ms}ms)</span>}
@@ -223,9 +223,9 @@ export default function VoiceSimulator({
               {interimText && (
                 <div className="timeline-item user" style={{ position: 'relative', opacity: 0.6 }}>
                   <div className="timeline-dot" style={{ position: 'absolute', left: '-1.85rem', top: '0', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--text-secondary)' }}></div>
-                  <div className="transcript-message user" style={{ margin: 0, padding: '0.85rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="transcript-message user" style={{ margin: 0, padding: '0.85rem', borderRadius: '8px', background: 'rgba(0,0,0,0.03)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
-                      <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: 'rgba(255,255,255,0.15)', color: '#fff' }}>Patient</span>
+                      <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: 'var(--text-muted)', color: '#fff' }}>Patient</span>
                       <span style={{ fontFamily: 'monospace', fontStyle: 'italic' }}>listening…</span>
                     </div>
                     <div style={{ fontWeight: 500, fontStyle: 'italic' }}>{interimText}</div>
@@ -238,7 +238,7 @@ export default function VoiceSimulator({
         </div>
         
         {callStatus === 'Connected' && (
-          <div className="voice-status-banner" style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="voice-status-banner" style={{ background: 'var(--background)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
               <div className="avatar" style={{ background: isSpeaking ? 'var(--primary)' : 'var(--text-secondary)', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1rem', fontWeight: 800 }}>
                 {isSpeaking ? 'AI' : (user?.name ? user.name[0].toUpperCase() : 'U')}

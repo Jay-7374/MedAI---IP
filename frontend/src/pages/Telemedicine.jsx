@@ -10,10 +10,6 @@ export default function Telemedicine({
 }) {
   return (
     <div className="app-container view-transition-root" style={{ padding: '2.5rem' }} key="view-telemedicine">
-      <div className="bg-glow-layer">
-        <div className="glow-blob glow-blob-1"></div>
-        <div className="glow-blob glow-blob-2"></div>
-      </div>
 
       <div className="telemedicine-bridge-container card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--divider)', paddingBottom: '1rem' }}>
@@ -43,9 +39,9 @@ export default function Telemedicine({
               <div className="avatar" style={{ width: '80px', height: '80px', fontSize: '2rem', background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' }}>ER</div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>Dr. Evelyn Reed</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Cardiologist • Clinic Floor 3</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                <span className="pulse-dot"></span>
-                <span style={{ fontSize: '0.78rem', color: '#fff', fontWeight: 600 }}>Doctor Audio/Video Feed Active</span>
+              <div style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem', borderRadius: '8px', background: 'var(--card-bg)', color: 'var(--text-main)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span className="pulse-dot" style={{ background: 'var(--primary)' }}></span>
+                <span style={{ fontWeight: 600 }}>Doctor Audio/Video Feed Active</span>
               </div>
             </div>
             <div className="webrtc-overlay-label">

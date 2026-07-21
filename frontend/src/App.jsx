@@ -6,8 +6,9 @@ import {
 import { apiFetch, getWsUrl } from './apiClient';
 
 // Components
-import Header from './components/Header';
+
 import Sidebar from './components/Sidebar';
+import SalusLiveBackground from './components/SalusLiveBackground';
 
 // Pages
 import Landing from './pages/Landing';
@@ -23,7 +24,7 @@ import Telemedicine from './pages/Telemedicine';
 import StaffConsole from './pages/StaffConsole';
 import AdminConsole from './pages/AdminConsole';
 import MouseGlow from './components/MouseGlow';
-import useScrollReveal from './hooks/useScrollReveal';
+
 
 
 const DEFAULT_PROMPTS = {
@@ -39,7 +40,6 @@ const DEFAULT_PROMPTS = {
 };
 
 export default function App() {
-  useScrollReveal();
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState(null);
@@ -783,8 +783,9 @@ export default function App() {
   if (view === 'landing' || view === 'features' || view === 'login') {
     return (
       <div className={`landing-portal-wrapper view-${view}`}>
+        {view !== 'landing' && <SalusLiveBackground variant={view === 'login' ? 'auth' : 'landing'} />}
         <div className="portal-slide slide-landing">
-          <Landing vitals={vitals} navigateTo={navigateTo} />
+          <Landing vitals={vitals} navigateTo={navigateTo} isActive={view === 'landing'} />
         </div>
         <div className="portal-slide slide-features">
           <Features navigateTo={navigateTo} />

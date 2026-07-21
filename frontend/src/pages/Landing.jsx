@@ -1,64 +1,39 @@
 import React from 'react';
-import { Leaf, Send, ChevronRight } from 'lucide-react';
+import LandingHeader     from '../components/landing/LandingHeader';
+import HeroSection       from '../components/landing/HeroSection';
+import CapabilityBand    from '../components/landing/CapabilityBand';
+import PlatformOverview  from '../components/landing/PlatformOverview';
+import CapabilitiesSection from '../components/landing/CapabilitiesSection';
+import HowItWorks        from '../components/landing/HowItWorks';
+import PlatformPreview   from '../components/landing/PlatformPreview';
+import SafetySection     from '../components/landing/SafetySection';
+import FinalCTA          from '../components/landing/FinalCTA';
+import LandingFooter     from '../components/landing/LandingFooter';
+import SalusLiveBackground from '../components/SalusLiveBackground';
+import useScrollReveal     from '../hooks/useScrollReveal';
 
-export default function Landing({ vitals, navigateTo }) {
+export default function Landing({ navigateTo, isActive = true }) {
+  useScrollReveal();
+
   return (
-    <div className="landing-container view-transition-root" key="view-landing">
-      {/* Background Grid */}
-      <div className="bg-grid-overlay"></div>
+    <div className="lp-root landing-container view-transition-root" key="view-landing">
+      <SalusLiveBackground variant="landing" withNetwork={false} />
+      {/* Sticky header */}
+      {isActive && <LandingHeader navigateTo={navigateTo} />}
 
-      {/* Floating Diagonal Dotted Waves */}
-      <svg className="landing-diagonal-wave" viewBox="0 0 1920 1080" preserveAspectRatio="none">
-        <path 
-          className="diagonal-wave-path wave-path-1" 
-          d="M -50 1130 C 300 900, 200 700, 600 650 C 1000 600, 920 400, 1320 350 C 1720 300, 1620 100, 1970 -50" 
-        />
-        <path 
-          className="diagonal-wave-path wave-path-2" 
-          d="M -50 1150 C 250 950, 250 650, 650 600 C 1050 550, 880 450, 1280 400 C 1680 350, 1650 50, 1970 -30" 
-        />
-      </svg>
+      {/* Page sections */}
+      <main id="main-content">
+        <HeroSection       navigateTo={navigateTo} />
+        <CapabilityBand />
+        <PlatformOverview />
+        <CapabilitiesSection />
+        <HowItWorks />
+        <PlatformPreview />
+        <SafetySection />
+        <FinalCTA          navigateTo={navigateTo} />
+      </main>
 
-
-      {/* Background Glow Layer */}
-      <div className="bg-glow-layer">
-        <div className="glow-blob glow-blob-1"></div>
-        <div className="glow-blob glow-blob-2"></div>
-        <div className="glow-blob glow-blob-3"></div>
-      </div>
-
-
-      {/* Hero Section */}
-      <section className="landing-hero-section">
-        <div className="landing-hero-content">
-          <h1 className="landing-title">
-            Salus
-          </h1>
-          <h2 className="landing-subheading">
-            Autonomous AI Healthcare
-          </h2>
-          <p className="landing-subtitle">
-            Orchestrate AI voice agents, patient monitoring, and emergency care from a single intelligent dashboard.<br />
-            Redefining healthcare operations with automation and real-time intelligence.
-          </p>
-        </div>
-
-        <div className="landing-hero-actions-container">
-          <button className="btn btn-primary btn-cta btn-cta-single" onClick={() => navigateTo('login')}>
-            Launch Console <Send size={16} />
-          </button>
-        </div>
-      </section>
-
-      <div className="landing-capabilities-hud-minimal" onClick={() => navigateTo('features')}>
-        <span>Discover</span>
-        <ChevronRight size={14} className="hud-arrow-icon" />
-      </div>
-
-      {/* Minimal Footer */}
-      <footer className="landing-footer">
-        <p>© {new Date().getFullYear()} Salus Automation. Designed with high-fidelity healthcare diagnostics.</p>
-      </footer>
+      <LandingFooter navigateTo={navigateTo} />
     </div>
   );
 }
