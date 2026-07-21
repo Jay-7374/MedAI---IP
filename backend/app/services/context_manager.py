@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models import ChatbotSession, ChatbotMessage, ChatbotDocument
-from app.prompts.manager import prompt_manager
+from app.services.prompt_manager import PromptManager
 from app.config import settings
 
 class ContextManagerService:
@@ -18,7 +18,7 @@ class ContextManagerService:
         messages_payload = []
 
         # 2. Load Healthcare Mode Prompt
-        system_prompt = prompt_manager.get_prompt(chat_session.mode)
+        system_prompt = PromptManager.get_prompt(db, chat_session.mode)
         
         # 3. Load Language Enforcer
         language_instruction = f"CRITICAL: Ensure your entire response is translated and formulated strictly in {chat_session.language}."
@@ -52,7 +52,8 @@ class ContextManagerService:
         for msg in recent_messages:
             messages_payload.append({"role": msg.role, "content": msg.content})
 
-        # 7. Append the current user message
-        messages_payload.append({"role": "user", "content": new_user_message})
+        # Note: We do not append new_user_message manually here because the router
+        # saves the user message to the DB *before* calling this service. 
+        # So it is already included in recent_messages.
 
         return messages_payload

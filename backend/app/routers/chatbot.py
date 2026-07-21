@@ -10,11 +10,11 @@ from app.schemas import (
     ChatbotSessionCreate, ChatbotSession as ChatbotSessionSchema,
     ChatbotMessageCreate, ChatbotMessage as ChatbotMessageSchema
 )
-# We will create ContextManagerService later in Phase 2
-# from app.services.context_manager import ContextManagerService
+from app.services.context_manager import ContextManagerService
 from app.services.llm import stream_chat_response, analyze_image
 from app.config import settings
 from datetime import datetime
+import json
 
 router = APIRouter(
     prefix="/chatbot",
@@ -64,6 +64,36 @@ def get_messages(session_id: UUID, db: Session = Depends(get_db), x_user_id: str
     
     return db.query(ChatbotMessage).filter(ChatbotMessage.session_id == session_id).order_by(ChatbotMessage.timestamp.asc()).all()
 
+
+async def stream_and_save_response(session_id: UUID, messages_payload: list):
+    """
+    Generator that consumes the SSE chunks, yields them to the client,
+    and accumulates the full text to save as an assistant message.
+    """
+    from app.database import SessionLocal
+    full_response = ""
+    
+    async for sse_chunk in stream_chat_response(messages_payload):
+        yield sse_chunk
+        if sse_chunk.startswith("data: ") and not sse_chunk.startswith("data: [DONE]"):
+            try:
+                data = json.loads(sse_chunk[6:].strip())
+                if "content" in data:
+                    full_response += data["content"]
+            except json.JSONDecodeError:
+                pass
+                
+    # Save the accumulated response to the database
+    with SessionLocal() as db_session:
+        assistant_msg = ChatbotMessage(
+            session_id=session_id,
+            role="assistant",
+            content=full_response,
+            status="completed"
+        )
+        db_session.add(assistant_msg)
+        db_session.commit()
+
 @router.post("/sessions/{session_id}/chat")
 async def chat_stream(session_id: UUID, message_data: ChatbotMessageCreate, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
     """
@@ -89,13 +119,11 @@ async def chat_stream(session_id: UUID, message_data: ChatbotMessageCreate, db: 
     session.updated_at = datetime.utcnow()
     db.commit()
 
-    # 2. Build Payload (Mocked for Phase 1/2 until ContextManager is ready)
-    # messages_payload = ContextManagerService.build_messages_payload(db, str(session_id), message_data.content)
-    # Temporary fallback:
-    messages_payload = [{"role": "user", "content": message_data.content}]
+    # 2. Build Payload
+    messages_payload = ContextManagerService.build_messages_payload(db, str(session_id), message_data.content)
 
     # 3. Stream Response
-    return StreamingResponse(stream_chat_response(messages_payload), media_type="text/event-stream")
+    return StreamingResponse(stream_and_save_response(session_id, messages_payload), media_type="text/event-stream")
 
 @router.post("/sessions/{session_id}/upload")
 async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
