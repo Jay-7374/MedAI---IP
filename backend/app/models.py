@@ -1,14 +1,15 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Date, Time, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
+import uuid
 from .database import Base
 
 
 class Role(Base):
     __tablename__ = "roles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role_name = Column(String(50), unique=True, nullable=False)
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -31,6 +32,100 @@ class User(Base):
 
     role = relationship("Role", back_populates="users")
     sessions = relationship("CallSession", back_populates="user")
+
+    patient_profile = relationship("Patient", back_populates="user", uselist=False)
+    doctor_profile = relationship("Doctor", back_populates="user", uselist=False)
+
+
+class Department(Base):
+    __tablename__ = "departments"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True)
+    description = Column(Text, nullable=True)
+
+    doctors = relationship("Doctor", back_populates="department")
+
+
+class Doctor(Base):
+    __tablename__ = "doctors"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    department_id = Column(Integer, ForeignKey("departments.id"))
+    specialty = Column(String(100))
+
+    user = relationship("User", back_populates="doctor_profile")
+    department = relationship("Department", back_populates="doctors")
+    appointments = relationship("Appointment", back_populates="doctor")
+
+
+class Patient(Base):
+    __tablename__ = "patients"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    dob = Column(Date)
+    phone_number = Column(String(20))
+    ssn_last_4 = Column(String(4))
+    insurance_provider = Column(String(100), nullable=True)
+    policy_number = Column(String(100), nullable=True)
+    emergency_contact_name = Column(String(100), nullable=True)
+    emergency_contact_phone = Column(String(20), nullable=True)
+
+    user = relationship("User", back_populates="patient_profile")
+    appointments = relationship("Appointment", back_populates="patient")
+    medical_history = relationship("MedicalHistory", back_populates="patient")
+    prescriptions = relationship("Prescription", back_populates="patient")
+    lab_tests = relationship("LabTest", back_populates="patient")
+
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    doctor_id = Column(Integer, ForeignKey("doctors.id"))
+    date = Column(Date)
+    time = Column(Time)
+    status = Column(String(50), default="Scheduled") # Scheduled, Completed, Cancelled
+    symptoms = Column(Text, nullable=True)
+
+    patient = relationship("Patient", back_populates="appointments")
+    doctor = relationship("Doctor", back_populates="appointments")
+
+
+class MedicalHistory(Base):
+    __tablename__ = "medical_history"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    condition = Column(String(200))
+    diagnosis_date = Column(Date)
+    notes = Column(Text, nullable=True)
+
+    patient = relationship("Patient", back_populates="medical_history")
+
+
+class Prescription(Base):
+    __tablename__ = "prescriptions"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    medication_name = Column(String(100))
+    dosage = Column(String(50))
+    frequency = Column(String(100))
+    purpose = Column(String(200), nullable=True)
+    side_effects = Column(Text, nullable=True)
+    status = Column(String(50), default="Active")
+
+    patient = relationship("Patient", back_populates="prescriptions")
+
+
+class LabTest(Base):
+    __tablename__ = "lab_tests"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    test_name = Column(String(100))
+    date = Column(Date)
+    result = Column(String(200), nullable=True)
+    status = Column(String(50), default="Pending")
+
+    patient = relationship("Patient", back_populates="lab_tests")
 
 
 class CallSession(Base):

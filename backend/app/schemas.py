@@ -1,6 +1,6 @@
 from pydantic import BaseModel, field_validator
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, date, time
+from typing import Optional, List
 
 
 class UserBase(BaseModel):
@@ -32,6 +32,81 @@ class User(UserBase):
         if hasattr(v, "role_name"):
             return v.role_name
         return v
+
+
+class DepartmentBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class Department(DepartmentBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+
+class DoctorBase(BaseModel):
+    specialty: str
+
+class Doctor(DoctorBase):
+    id: int
+    user_id: int
+    department_id: int
+    user: User
+    department: Department
+    class Config:
+        from_attributes = True
+
+
+class PatientBase(BaseModel):
+    dob: date
+    phone_number: str
+    ssn_last_4: str
+    insurance_provider: Optional[str] = None
+    policy_number: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
+
+class Patient(PatientBase):
+    id: int
+    user_id: int
+    user: User
+    class Config:
+        from_attributes = True
+
+
+class AppointmentBase(BaseModel):
+    date: date
+    time: time
+    symptoms: Optional[str] = None
+    status: Optional[str] = "Scheduled"
+
+class AppointmentCreate(AppointmentBase):
+    doctor_id: int
+
+class Appointment(AppointmentBase):
+    id: int
+    patient_id: int
+    doctor_id: int
+    class Config:
+        from_attributes = True
+
+
+class PrescriptionBase(BaseModel):
+    medication_name: str
+    dosage: str
+    frequency: str
+    purpose: Optional[str] = None
+    side_effects: Optional[str] = None
+    status: Optional[str] = "Active"
+
+class PrescriptionCreate(PrescriptionBase):
+    patient_id: int
+
+class Prescription(PrescriptionBase):
+    id: int
+    patient_id: int
+    class Config:
+        from_attributes = True
 
 
 class CallSessionBase(BaseModel):

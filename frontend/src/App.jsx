@@ -22,6 +22,8 @@ import EmergencySOS from './pages/EmergencySOS';
 import Telemedicine from './pages/Telemedicine';
 import StaffConsole from './pages/StaffConsole';
 import AdminConsole from './pages/AdminConsole';
+import MouseGlow from './components/MouseGlow';
+import useScrollReveal from './hooks/useScrollReveal';
 
 
 const DEFAULT_PROMPTS = {
@@ -37,6 +39,7 @@ const DEFAULT_PROMPTS = {
 };
 
 export default function App() {
+  useScrollReveal();
   const [view, setView] = useState('landing'); // 'landing' or 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [user, setUser] = useState(null);
@@ -341,6 +344,11 @@ export default function App() {
 
     rec.onerror = (event) => {
       console.warn("Speech recognition error:", event.error);
+      if (event.error === 'not-allowed') {
+        showToast("Microphone permission denied. Please allow microphone access in your browser settings.", "danger");
+        endCallSession();
+        return;
+      }
       if (event.error === 'no-speech' || event.error === 'audio-capture') {
         setConsecutiveErrors(prev => {
           const nextVal = prev + 1;
@@ -384,52 +392,74 @@ export default function App() {
     return () => { try { rec.stop(); } catch(e) {} };
   }, []); // empty deps: create once, never re-create
 
-  // Trigger web speech synthesis
-  const speakTextOutLoud = (text) => {
+  // Audio element ref for ElevenLabs playback
+  const audioRef = useRef(null);
+
+  // Trigger web speech synthesis or play ElevenLabs Audio
+  const speakTextOutLoud = (text, audioUrl = null) => {
+    isSpeakingRef.current = true;
+    setIsSpeaking(true);
+    setInterimText(''); // clear any partial transcription
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop(); // Stop listening while bot is speaking
+      } catch(e){}
+    }
+
+    const onAudioEnd = () => {
+      isSpeakingRef.current = false;
+      setIsSpeaking(false);
+      if (telemedicineActiveRef.current) {
+        setView('telemedicine');
+        setCallStatusSynced('Idle');
+        if (wsRef.current) wsRef.current.close();
+      } else if (sipTransferActiveRef.current) {
+        setCallStatusSynced('Idle');
+        if (wsRef.current) wsRef.current.close();
+      } else if (callStatusRef.current === 'Connected' && recognitionRef.current) {
+        setTimeout(() => {
+          if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
+              !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
+            try { recognitionRef.current.start(); } catch(e) {}
+          }
+        }, 150);
+      }
+    };
+
+    if (audioUrl && audioUrl.startsWith('data:audio/')) {
+      // Play ElevenLabs audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = onAudioEnd;
+      audio.onerror = () => {
+        console.error("Error playing ElevenLabs audio, falling back to speech synthesis");
+        fallbackToSpeechSynthesis(text, onAudioEnd);
+      };
+      audio.play().catch(e => {
+        console.error("Audio autoplay prevented", e);
+        fallbackToSpeechSynthesis(text, onAudioEnd);
+      });
+    } else {
+      // Fallback
+      fallbackToSpeechSynthesis(text, onAudioEnd);
+    }
+  };
+
+  const fallbackToSpeechSynthesis = (text, onEnd) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
-
-      utterance.onstart = () => {
-        isSpeakingRef.current = true;
-        setIsSpeaking(true);
-        setInterimText(''); // clear any partial transcription
-        if (recognitionRef.current) {
-          try {
-            recognitionRef.current.stop(); // Stop listening while bot is speaking
-          } catch(e){}
-        }
-      };
-
-      utterance.onend = () => {
-        // Update the ref synchronously FIRST so any concurrent rec.onend
-        // timer that fires during the 150 ms window sees the correct value.
-        isSpeakingRef.current = false;
-        setIsSpeaking(false);
-        if (telemedicineActiveRef.current) {
-          setView('telemedicine');
-          setCallStatusSynced('Idle');
-          if (wsRef.current) wsRef.current.close();
-        } else if (sipTransferActiveRef.current) {
-          setCallStatusSynced('Idle');
-          if (wsRef.current) wsRef.current.close();
-        } else if (callStatusRef.current === 'Connected' && recognitionRef.current) {
-          // Small delay so the browser audio subsystem fully releases from TTS
-          // before we try to open the mic again.  Without this, rec.start()
-          // silently fails on Chrome and the mic goes permanently dark.
-          setTimeout(() => {
-            if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
-                !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
-              try { recognitionRef.current.start(); } catch(e) {}
-            }
-          }, 150);
-        }
-      };
-
+      utterance.onend = onEnd;
       window.speechSynthesis.speak(utterance);
+    } else {
+      // No TTS available, just call onEnd after a small delay
+      setTimeout(onEnd, 1000);
     }
   };
 
@@ -508,7 +538,7 @@ export default function App() {
           telemedicineActiveRef.current = true;
         }
 
-        speakTextOutLoud(data.text);
+        speakTextOutLoud(data.text, data.audio_url);
         
         // Refresh telemetry database elements
         fetchAppointments();
@@ -791,6 +821,7 @@ export default function App() {
 
   return (
     <div className="app-container view-transition-root" key="view-app">
+      <MouseGlow />
       {/* Background Glow Layer */}
       <div className="bg-glow-layer">
         <div className="glow-blob glow-blob-1"></div>
