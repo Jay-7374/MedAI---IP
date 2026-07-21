@@ -9,6 +9,7 @@ import { apiFetch, getWsUrl } from './apiClient';
 
 import Sidebar from './components/Sidebar';
 import SalusLiveBackground from './components/SalusLiveBackground';
+import SalusDashboardBackground from './components/SalusDashboardBackground';
 
 // Pages
 import Landing from './pages/Landing';
@@ -823,12 +824,7 @@ export default function App() {
   return (
     <div className="app-container view-transition-root" key="view-app">
       <MouseGlow />
-      {/* Background Glow Layer */}
-      <div className="bg-glow-layer">
-        <div className="glow-blob glow-blob-1"></div>
-        <div className="glow-blob glow-blob-2"></div>
-        <div className="glow-blob glow-blob-3"></div>
-      </div>
+      <SalusDashboardBackground />
 
       {/* Top Navigation Panel */}
       <header className="top-navigation-panel">

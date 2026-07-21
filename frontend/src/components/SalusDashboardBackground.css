@@ -1,0 +1,31 @@
+.salus-dashboard-background {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.salus-dashboard-background__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
+.salus-dashboard-background__overlay {
+  position: absolute;
+  inset: 0;
+  /* Light soft mint/white translucent gradient */
+  background: linear-gradient(
+    135deg,
+    rgba(244, 250, 248, 0.72),
+    rgba(238, 248, 246, 0.64)
+  );
+  pointer-events: none;
+}
