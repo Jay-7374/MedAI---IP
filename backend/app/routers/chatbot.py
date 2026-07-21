@@ -17,7 +17,7 @@ from datetime import datetime
 import json
 
 router = APIRouter(
-    prefix="/chatbot",
+    prefix="/api/chatbot",
     tags=["Chatbot"]
 )
 

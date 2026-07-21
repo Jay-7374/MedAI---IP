@@ -13,6 +13,7 @@ import { apiFetch, getWsUrl } from './apiClient';
 import Sidebar from './components/Sidebar';
 import SalusLiveBackground from './components/SalusLiveBackground';
 import SalusDashboardBackground from './components/SalusDashboardBackground';
+import ChatbotLayout from './components/chatbot/ChatbotLayout';
 
 // Pages
 import Landing from './pages/Landing';
@@ -55,6 +56,12 @@ export default function App() {
 
   // Navigation History Stack
   const [historyStack, setHistoryStack] = useState([]);
+
+  useEffect(() => {
+    if (window.location.pathname === '/chatbot-dev') {
+      setView('chatbot-dev');
+    }
+  }, []);
 
   const navigateTo = (newView, newTab) => {
     // Prevent pushing duplicate consecutive states onto history
@@ -823,6 +830,10 @@ export default function App() {
         showToast={showToast}
       />
     );
+  }
+
+  if (view === 'chatbot-dev') {
+    return <ChatbotLayout />;
   }
 
   return (
