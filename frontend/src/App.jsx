@@ -832,13 +832,7 @@ export default function App() {
 
       {/* Top Navigation Panel */}
       <header className="top-navigation-panel">
-        <Header 
-          user={user}
-          setUser={setUser}
-          setView={setView}
-          navigateTo={navigateTo}
-          showToast={showToast}
-        />
+
         <Sidebar 
           user={user}
           activeTab={activeTab}
