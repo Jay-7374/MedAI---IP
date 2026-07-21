@@ -10,7 +10,6 @@ if settings.GROQ_API_KEY:
     except Exception as e:
         print(f"Failed to initialize Groq client: {e}")
 
-
 def get_chat_response(messages: list, system_prompt: str = None) -> str:
     """
     Query the Groq LLaMA model for a response based on the conversation log history.
@@ -43,7 +42,7 @@ async def stream_chat_response(messages: list):
     Query the Groq LLaMA model and stream back the response chunks using Server-Sent Events (SSE) format.
     """
     if not client:
-        yield f"data: {json.dumps({'error': 'AI core offline. Check GROQ_API_KEY.'})}\\n\\n"
+        yield f"data: {json.dumps({'error': 'AI core offline. Check GROQ_API_KEY.'})}\n\n"
         return
 
     try:
@@ -57,13 +56,13 @@ async def stream_chat_response(messages: list):
         for chunk in chat_completion:
             if chunk.choices[0].delta.content is not None:
                 content = chunk.choices[0].delta.content
-                yield f"data: {json.dumps({'content': content})}\\n\\n"
+                yield f"data: {json.dumps({'content': content})}\n\n"
         
         # Signal completion
-        yield "data: [DONE]\\n\\n"
+        yield "data: [DONE]\n\n"
     except Exception as e:
         print(f"Groq API Streaming failed: {e}")
-        yield f"data: {json.dumps({'error': str(e)})}\\n\\n"
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
 def analyze_image(image_path: str, prompt: str = "Extract all medical text and telemetry from this image.") -> str:
     """
