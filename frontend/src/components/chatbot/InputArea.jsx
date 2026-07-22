@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Mic, FileText, X } from 'lucide-react';
 import { apiFetch } from '../../apiClient';
+import { SPEECH_LANGUAGE_MAP } from '../../utils/voice';
 
-export default function InputArea({ onSendMessage, isStreaming, session, onDocumentUploaded }) {
+export default function InputArea({ onSendMessage, isStreaming, session, onDocumentUploaded, currentLanguage, setCurrentLanguage }) {
   const [content, setContent] = useState('');
   const [mode, setMode] = useState('General Assistant');
-  const [language, setLanguage] = useState('English');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const textareaRef = useRef(null);
@@ -26,7 +26,7 @@ export default function InputArea({ onSendMessage, isStreaming, session, onDocum
     e.preventDefault();
     if (!content.trim() || isStreaming) return;
     
-    onSendMessage({ content, mode, language });
+    onSendMessage({ content, mode, language: currentLanguage });
     setContent('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -82,6 +82,67 @@ export default function InputArea({ onSendMessage, isStreaming, session, onDocum
     }
   };
 
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      
+      recognition.onresult = (event) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          setContent(prev => prev + (prev ? ' ' : '') + finalTranscript);
+        }
+        // Note: interim results could be shown as a placeholder if desired, but we'll stick to final for simplicity
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsRecording(false);
+        setUploadError(`Speech error: ${event.error}`);
+        setTimeout(() => setUploadError(''), 5000);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      setUploadError('Speech recognition not supported in this browser.');
+      setTimeout(() => setUploadError(''), 5000);
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.lang = SPEECH_LANGUAGE_MAP[currentLanguage] || 'en-US';
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -116,18 +177,18 @@ export default function InputArea({ onSendMessage, isStreaming, session, onDocum
             <option>Post-Discharge Recovery</option>
           </select>
           <select 
-            value={language} 
-            onChange={e => setLanguage(e.target.value)}
+            value={currentLanguage} 
+            onChange={e => setCurrentLanguage(e.target.value)}
             style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)' }}
           >
-            <option>English</option>
-            <option>Spanish</option>
-            <option>French</option>
-            <option>Hindi</option>
+            {Object.keys(SPEECH_LANGUAGE_MAP).map(lang => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
           </select>
           
           {isUploading && <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Uploading document...</span>}
           {uploadError && <span style={{ fontSize: '0.85rem', color: 'var(--error)' }}>{uploadError}</span>}
+          {isRecording && <span style={{ fontSize: '0.85rem', color: 'var(--error)', fontWeight: 'bold' }}>Recording...</span>}
         </div>
 
         {/* Input Box */}
@@ -176,7 +237,19 @@ export default function InputArea({ onSendMessage, isStreaming, session, onDocum
             }}
           />
           
-          <button type="button" style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem' }}>
+          <button 
+            type="button" 
+            onClick={toggleRecording}
+            title={isRecording ? "Stop Recording" : "Start Recording"}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: isRecording ? 'var(--error)' : 'var(--text-secondary)', 
+              cursor: 'pointer', 
+              padding: '0.5rem',
+              animation: isRecording ? 'pulse 1.5s infinite' : 'none'
+            }}
+          >
             <Mic size={20} />
           </button>
           

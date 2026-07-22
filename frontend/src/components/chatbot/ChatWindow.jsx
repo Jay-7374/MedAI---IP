@@ -2,14 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
 import InputArea from './InputArea';
 import { apiFetch } from '../../apiClient';
+import { getBestVoice, SPEECH_LANGUAGE_MAP } from '../../utils/voice';
 
 export default function ChatWindow({ session, setSession }) {
   const [messages, setMessages] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  
+  // Centralized TTS state
+  const [ttsState, setTtsState] = useState('idle'); // 'idle', 'playing', 'paused'
+  const [activeTtsId, setActiveTtsId] = useState(null);
+  const [ttsError, setTtsError] = useState('');
+  const [currentLanguage, setCurrentLanguage] = useState('English');
+  
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    // Stop speech when switching sessions
+    window.speechSynthesis.cancel();
+    setActiveTtsId(null);
+    setTtsState('idle');
+
     if (session) {
       loadMessages(session.id);
       loadDocuments(session.id);
@@ -63,6 +77,72 @@ export default function ChatWindow({ session, setSession }) {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Prime the voices
+    window.speechSynthesis.getVoices();
+    const handleVoicesChanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  // Safe TTS control functions
+  const handlePlayMessage = (messageId, text, language) => {
+    if (!window.speechSynthesis) {
+      setTtsError('Text-to-speech is not available in this browser.');
+      setTimeout(() => setTtsError(''), 5000);
+      return;
+    }
+    window.speechSynthesis.cancel(); // Stop any overlapping speech
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    if (language && getBestVoice(language)) {
+       const voice = getBestVoice(language);
+       utterance.voice = voice;
+       utterance.lang = voice.lang;
+    } else if (language) {
+       // Just set the lang hint and let the browser figure it out (this restores previous behavior)
+       utterance.lang = SPEECH_LANGUAGE_MAP[language] || 'en-US';
+    }
+
+    utterance.onstart = () => {
+      setActiveTtsId(messageId);
+      setTtsState('playing');
+    };
+    utterance.onpause = () => setTtsState('paused');
+    utterance.onresume = () => setTtsState('playing');
+    utterance.onend = () => {
+      setActiveTtsId(null);
+      setTtsState('idle');
+    };
+    utterance.onerror = (e) => {
+      console.error('Speech error:', e);
+      setActiveTtsId(null);
+      setTtsState('idle');
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handlePauseMessage = () => {
+    window.speechSynthesis.pause();
+  };
+
+  const handleResumeMessage = () => {
+    window.speechSynthesis.resume();
+  };
+
+  const handleStopMessage = () => {
+    window.speechSynthesis.cancel();
+    setActiveTtsId(null);
+    setTtsState('idle');
+  };
+
   const handleSendMessage = async ({ content, mode, language }) => {
     if (!session) return;
     
@@ -72,8 +152,11 @@ export default function ChatWindow({ session, setSession }) {
     setIsStreaming(true);
 
     // Prepare assistant message stub
-    const assistantMsg = { id: (Date.now() + 1).toString(), role: 'assistant', content: '' };
+    const assistantId = (Date.now() + 1).toString();
+    const assistantMsg = { id: assistantId, role: 'assistant', content: '' };
     setMessages(prev => [...prev, assistantMsg]);
+
+    let fullAssistantResponse = "";
 
     try {
       const response = await apiFetch(`/api/chatbot/sessions/${session.id}/chat`, {
@@ -110,6 +193,7 @@ export default function ChatWindow({ session, setSession }) {
               try {
                 const data = JSON.parse(line.slice(6));
                 if (data.content) {
+                  fullAssistantResponse += data.content;
                   setMessages(prev => {
                     const newMessages = [...prev];
                     const lastMsgIndex = newMessages.length - 1;
@@ -130,6 +214,11 @@ export default function ChatWindow({ session, setSession }) {
           }
         }
       }
+
+      if (autoSpeak) {
+        handlePlayMessage(assistantId, fullAssistantResponse, language);
+      }
+
     } catch (err) {
       console.error('Chat error:', err);
     } finally {
@@ -150,6 +239,22 @@ export default function ChatWindow({ session, setSession }) {
       {/* Header */}
       <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0 }}>{session.title}</h3>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+          {ttsError && <span style={{ color: 'var(--error)', marginRight: '1rem', fontSize: '0.85rem' }}>{ttsError}</span>}
+          <input 
+            type="checkbox" 
+            checked={autoSpeak} 
+            onChange={(e) => {
+              setAutoSpeak(e.target.checked);
+              if (!e.target.checked) {
+                window.speechSynthesis.cancel();
+                setActiveTtsId(null);
+                setTtsState('idle');
+              }
+            }} 
+          />
+          Auto-Speak Responses
+        </label>
       </div>
       
       {/* Document Panel */}
@@ -173,14 +278,30 @@ export default function ChatWindow({ session, setSession }) {
           </div>
         ) : (
           messages.map((msg, i) => (
-            <MessageBubble key={msg.id || i} message={msg} />
+            <MessageBubble 
+              key={msg.id || i} 
+              message={msg} 
+              isActiveTts={activeTtsId === msg.id}
+              ttsState={ttsState}
+              onPlay={() => handlePlayMessage(msg.id, msg.content, msg.language || currentLanguage)} 
+              onPause={handlePauseMessage}
+              onResume={handleResumeMessage}
+              onStop={handleStopMessage}
+            />
           ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <InputArea onSendMessage={handleSendMessage} isStreaming={isStreaming} session={session} onDocumentUploaded={() => { loadDocuments(session.id); loadMessages(session.id); }} />
+      <InputArea 
+        onSendMessage={handleSendMessage} 
+        isStreaming={isStreaming} 
+        session={session} 
+        onDocumentUploaded={() => { loadDocuments(session.id); loadMessages(session.id); }} 
+        currentLanguage={currentLanguage}
+        setCurrentLanguage={setCurrentLanguage}
+      />
     </div>
   );
 }

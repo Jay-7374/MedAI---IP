@@ -3,10 +3,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { User, Bot, Copy, Check } from 'lucide-react';
+import { User, Bot, Copy, Check, Play, Pause, Square } from 'lucide-react';
 import { useState } from 'react';
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, onPause, onResume, onStop }) {
   const isUser = message.role === 'user';
   
   const [copiedText, setCopiedText] = useState(null);
@@ -99,6 +99,64 @@ export default function MessageBubble({ message }) {
         >
           {message.content}
         </ReactMarkdown>
+
+        {!isUser && (
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => {
+                if (isActiveTts && ttsState === 'playing') {
+                  onStop();
+                } else if (isActiveTts && ttsState === 'paused') {
+                  onResume();
+                } else {
+                  onPlay();
+                }
+              }}
+              style={{
+                background: 'none',
+                border: '1px solid var(--card-border)',
+                borderRadius: '4px',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '0.25rem 0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                fontSize: '0.85rem'
+              }}
+            >
+              {(isActiveTts && ttsState === 'playing') ? <Square size={14} /> : (isActiveTts && ttsState === 'paused' ? <Play size={14} /> : <Play size={14} />)}
+              {(isActiveTts && ttsState === 'playing') ? 'Stop' : (isActiveTts && ttsState === 'paused' ? 'Resume' : 'Play Audio')}
+            </button>
+            
+            {(isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) && (
+              <button
+                onClick={() => {
+                  if (ttsState === 'playing') {
+                    onPause();
+                  } else {
+                    onResume();
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '4px',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  fontSize: '0.85rem'
+                }}
+              >
+                {ttsState === 'playing' ? <Pause size={14} /> : <Play size={14} />}
+                {ttsState === 'playing' ? 'Pause' : 'Resume'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
