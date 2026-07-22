@@ -181,6 +181,7 @@ class ChatbotSession(Base):
     language = Column(String(50), default="English")
     mode = Column(String(100), default="General Assistant")
     conversation_summary = Column(Text, nullable=True)
+    summarized_until = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

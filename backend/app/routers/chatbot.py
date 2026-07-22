@@ -94,8 +94,21 @@ async def stream_and_save_response(session_id: UUID, messages_payload: list):
         db_session.add(assistant_msg)
         db_session.commit()
 
+from fastapi import BackgroundTasks
+
+def trigger_summarization(session_id: str):
+    from app.database import SessionLocal
+    with SessionLocal() as db:
+        ContextManagerService.check_and_summarize(db, session_id)
+
 @router.post("/sessions/{session_id}/chat")
-async def chat_stream(session_id: UUID, message_data: ChatbotMessageCreate, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+async def chat_stream(
+    session_id: UUID, 
+    message_data: ChatbotMessageCreate, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db), 
+    x_user_id: str = Header(None, alias="X-User-Id")
+):
     """
     Core streaming endpoint.
     """
@@ -127,8 +140,12 @@ async def chat_stream(session_id: UUID, message_data: ChatbotMessageCreate, db: 
     # 2. Build Payload
     messages_payload = ContextManagerService.build_messages_payload(db, str(session_id), message_data.content)
 
-    # 3. Stream Response
-    return StreamingResponse(stream_and_save_response(session_id, messages_payload), media_type="text/event-stream")
+    # 3. Stream Response and trigger summarization check after stream
+    background_tasks.add_task(trigger_summarization, str(session_id))
+    return StreamingResponse(
+        stream_and_save_response(session_id, messages_payload), 
+        media_type="text/event-stream"
+    )
 
 @router.post("/sessions/{session_id}/upload")
 async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
