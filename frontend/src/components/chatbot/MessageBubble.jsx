@@ -6,7 +6,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { User, Bot, Copy, Check, Play, Pause, Square } from 'lucide-react';
 import { useState } from 'react';
 
-export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, onPause, onResume, onStop }) {
+export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, onPause, onResume, onStop, onRetry }) {
   const isUser = message.role === 'user';
   
   const [copiedText, setCopiedText] = useState(null);
@@ -39,97 +39,107 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
       </div>
       
       <div style={{ flex: 1, overflow: 'hidden' }} className="markdown-body">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            code({ node, inline, className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || '');
-              const codeText = String(children).replace(/\n$/, '');
-              
-              if (!inline && match) {
-                return (
-                  <div style={{ position: 'relative', marginTop: '1rem', marginBottom: '1rem' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      backgroundColor: '#1e1e1e',
-                      padding: '0.25rem 1rem',
-                      borderTopLeftRadius: '0.5rem',
-                      borderTopRightRadius: '0.5rem',
-                      fontSize: '0.75rem',
-                      color: '#a0a0a0'
-                    }}>
-                      <span>{match[1]}</span>
-                      <button
-                        onClick={() => handleCopy(codeText)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#a0a0a0',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem'
-                        }}
+        {message.status === 'loading' ? (
+          <div style={{ animation: 'pulse 1.5s infinite', letterSpacing: '2px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>•••</div>
+        ) : (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code({ node, inline, className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || '');
+                const codeText = String(children).replace(/\n$/, '');
+                
+                if (!inline && match) {
+                  return (
+                    <div style={{ position: 'relative', marginTop: '1rem', marginBottom: '1rem' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: '#1e1e1e',
+                        padding: '0.25rem 1rem',
+                        borderTopLeftRadius: '0.5rem',
+                        borderTopRightRadius: '0.5rem',
+                        fontSize: '0.75rem',
+                        color: '#a0a0a0'
+                      }}>
+                        <span>{match[1]}</span>
+                        <button
+                          onClick={() => handleCopy(codeText)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#a0a0a0',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          {copiedText === codeText ? <Check size={14} /> : <Copy size={14} />}
+                          {copiedText === codeText ? 'Copied!' : 'Copy code'}
+                        </button>
+                      </div>
+                      <SyntaxHighlighter
+                        style={vscDarkPlus}
+                        language={match[1]}
+                        PreTag="div"
+                        customStyle={{ margin: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+                        {...props}
                       >
-                        {copiedText === codeText ? <Check size={14} /> : <Copy size={14} />}
-                        {copiedText === codeText ? 'Copied!' : 'Copy code'}
-                      </button>
+                        {codeText}
+                      </SyntaxHighlighter>
                     </div>
-                    <SyntaxHighlighter
-                      style={vscDarkPlus}
-                      language={match[1]}
-                      PreTag="div"
-                      customStyle={{ margin: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
-                      {...props}
-                    >
-                      {codeText}
-                    </SyntaxHighlighter>
-                  </div>
+                  );
+                }
+                return (
+                  <code className={className} style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.4rem', borderRadius: '4px' }} {...props}>
+                    {children}
+                  </code>
                 );
               }
-              return (
-                <code className={className} style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.4rem', borderRadius: '4px' }} {...props}>
-                  {children}
-                </code>
-              );
-            }
-          }}
-        >
-          {message.content}
-        </ReactMarkdown>
+            }}
+          >
+            {typeof message.content === 'string' ? message.content : ''}
+          </ReactMarkdown>
+        )}
+
+        {message.status === 'failed' && (
+          <div style={{ marginTop: '0.5rem', color: 'var(--error)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontWeight: 'bold' }}>Error:</span> {message.errorText || "Unable to generate a response right now. Please try again."}
+          </div>
+        )}
 
         {!isUser && (
           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => {
-                if (isActiveTts && ttsState === 'playing') {
-                  onStop();
-                } else if (isActiveTts && ttsState === 'paused') {
-                  onResume();
-                } else {
-                  onPlay();
-                }
-              }}
-              style={{
-                background: 'none',
-                border: '1px solid var(--card-border)',
-                borderRadius: '4px',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                padding: '0.25rem 0.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                fontSize: '0.85rem'
-              }}
-            >
-              {(isActiveTts && ttsState === 'playing') ? <Square size={14} /> : (isActiveTts && ttsState === 'paused' ? <Play size={14} /> : <Play size={14} />)}
-              {(isActiveTts && ttsState === 'playing') ? 'Stop' : (isActiveTts && ttsState === 'paused' ? 'Resume' : 'Play Audio')}
-            </button>
+            {!(message.status === 'failed' && !message.content) && (
+              <button
+                onClick={() => {
+                  if (isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) {
+                    onStop();
+                  } else {
+                    onPlay();
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '4px',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  fontSize: '0.85rem'
+                }}
+              >
+                {(isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) ? <Square size={14} /> : <Play size={14} />}
+                {(isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) ? 'Stop' : 'Play Audio'}
+              </button>
+            )}
             
-            {(isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) && (
+            {(isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) && !(message.status === 'failed' && !message.content) && (
               <button
                 onClick={() => {
                   if (ttsState === 'playing') {
@@ -153,6 +163,27 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
               >
                 {ttsState === 'playing' ? <Pause size={14} /> : <Play size={14} />}
                 {ttsState === 'playing' ? 'Pause' : 'Resume'}
+              </button>
+            )}
+
+            {message.status === 'failed' && onRetry && (
+              <button
+                onClick={onRetry}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--card-border)',
+                  borderRadius: '4px',
+                  color: 'var(--primary)',
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  fontSize: '0.85rem',
+                  fontWeight: '500'
+                }}
+              >
+                Retry
               </button>
             )}
           </div>

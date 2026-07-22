@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Header
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Header, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from uuid import UUID
 import os
+import asyncio
 
 from app.database import get_db
 from app.models import User, ChatbotSession, ChatbotMessage, ChatbotDocument
 from app.schemas import (
     ChatbotSessionCreate, ChatbotSession as ChatbotSessionSchema,
+    ChatbotSessionList as ChatbotSessionListSchema,
     ChatbotMessageCreate, ChatbotMessage as ChatbotMessageSchema
 )
 from app.services.context_manager import ContextManagerService
@@ -33,7 +35,7 @@ def get_user_from_header(db: Session, x_user_id: str = Header(None, alias="X-Use
     return user
 
 
-@router.get("/sessions", response_model=list[ChatbotSessionSchema])
+@router.get("/sessions", response_model=list[ChatbotSessionListSchema])
 def get_sessions(db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
     """Retrieve all chatbot sessions for the current user."""
     user = get_user_from_header(db, x_user_id)
@@ -65,34 +67,59 @@ def get_messages(session_id: UUID, db: Session = Depends(get_db), x_user_id: str
     return db.query(ChatbotMessage).filter(ChatbotMessage.session_id == session_id).order_by(ChatbotMessage.timestamp.asc()).all()
 
 
-async def stream_and_save_response(session_id: UUID, messages_payload: list):
+async def stream_and_save_response(session_id: UUID, messages_payload: list, request: Request = None):
     """
     Generator that consumes the SSE chunks, yields them to the client,
     and accumulates the full text to save as an assistant message.
     """
     from app.database import SessionLocal
     full_response = ""
+    has_error = False
     
-    async for sse_chunk in stream_chat_response(messages_payload):
-        yield sse_chunk
-        if sse_chunk.startswith("data: ") and not sse_chunk.startswith("data: [DONE]"):
-            try:
-                data = json.loads(sse_chunk[6:].strip())
-                if "content" in data:
-                    full_response += data["content"]
-            except json.JSONDecodeError:
-                pass
-                
-    # Save the accumulated response to the database
-    with SessionLocal() as db_session:
-        assistant_msg = ChatbotMessage(
-            session_id=session_id,
-            role="assistant",
-            content=full_response,
-            status="completed"
-        )
-        db_session.add(assistant_msg)
-        db_session.commit()
+    has_saved = False
+    
+    try:
+        async for sse_chunk in stream_chat_response(messages_payload, request=request):
+            if request and await request.is_disconnected():
+                raise asyncio.CancelledError()
+            
+            yield sse_chunk
+            if sse_chunk.startswith("data: ") and not sse_chunk.startswith("data: [DONE]"):
+                try:
+                    data = json.loads(sse_chunk[6:].strip())
+                    if "content" in data:
+                        full_response += data["content"]
+                    if "error" in data:
+                        has_error = True
+                except json.JSONDecodeError:
+                    pass
+    except asyncio.CancelledError:
+        # Client intentionally stopped generation
+        # We catch this cleanly and proceed to the finally/persistence block
+        pass
+    except Exception as e:
+        has_error = True
+        raise e
+    finally:
+        if not has_saved:
+            has_saved = True
+            # Save the accumulated response to the database
+            with SessionLocal() as db_session:
+                # User requested: if stopped intentionally (CancelledError implies this on stream drop)
+                # we still preserve partial text as completed. 
+                # But if it's completely blank, we just don't save the blank assistant message.
+                if full_response.strip() == "":
+                    pass # Do not save blank assistant message, leave user message unanswered
+                else:
+                    status = "failed" if has_error else "completed"
+                    assistant_msg = ChatbotMessage(
+                        session_id=session_id,
+                        role="assistant",
+                        content=full_response,
+                        status=status
+                    )
+                    db_session.add(assistant_msg)
+                    db_session.commit()
 
 from fastapi import BackgroundTasks
 
@@ -101,8 +128,24 @@ def trigger_summarization(session_id: str):
     with SessionLocal() as db:
         ContextManagerService.check_and_summarize(db, session_id)
 
+
+@router.get("/test-stream")
+async def test_stream():
+    async def generator():
+        yield "ONE\n\n"
+        await asyncio.sleep(1)
+        yield "TWO\n\n"
+        await asyncio.sleep(1)
+        yield "THREE\n\n"
+        
+    return StreamingResponse(
+        generator(),
+        media_type="text/event-stream"
+    )
+
 @router.post("/sessions/{session_id}/chat")
 async def chat_stream(
+    request: Request,
     session_id: UUID, 
     message_data: ChatbotMessageCreate, 
     background_tasks: BackgroundTasks,
@@ -142,10 +185,59 @@ async def chat_stream(
 
     # 3. Stream Response and trigger summarization check after stream
     background_tasks.add_task(trigger_summarization, str(session_id))
+    
     return StreamingResponse(
         stream_and_save_response(session_id, messages_payload), 
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
     )
+
+
+@router.post("/sessions/{session_id}/chat/retry")
+async def chat_retry(
+    request: Request,
+    session_id: UUID, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db), 
+    x_user_id: str = Header(None, alias="X-User-Id")
+):
+    """
+    Retry endpoint. Finds the last user message and re-streams the response without creating a duplicate user message.
+    """
+    user = get_user_from_header(db, x_user_id)
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    last_user_message = (
+        db.query(ChatbotMessage)
+        .filter(ChatbotMessage.session_id == session_id, ChatbotMessage.role == "user")
+        .order_by(ChatbotMessage.timestamp.desc())
+        .first()
+    )
+    
+    if not last_user_message:
+        raise HTTPException(status_code=400, detail="No user message found to retry.")
+        
+    # Build payload using the existing user message content
+    messages_payload = ContextManagerService.build_messages_payload(db, str(session_id), last_user_message.content)
+
+    # Stream Response and trigger summarization check after stream
+    background_tasks.add_task(trigger_summarization, str(session_id))
+    return StreamingResponse(
+        stream_and_save_response(session_id, messages_payload), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 
 @router.post("/sessions/{session_id}/upload")
 async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
@@ -164,18 +256,28 @@ async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Se
 
     content = await file.read()
     
-    # Check max file size (e.g., 10MB)
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+    if len(content) == 0:
+        raise HTTPException(status_code=400, detail="File is empty.")
+    
+    max_size_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+    if len(content) > max_size_bytes:
+        raise HTTPException(status_code=413, detail=f"File too large. Maximum size is {settings.MAX_UPLOAD_SIZE_MB}MB.")
 
     from app.services.document_service import extract_text_from_file, summarize_document
     import time
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     start_time = time.time()
     try:
         extracted_text = extract_text_from_file(content, file.filename)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to extract text: {str(e)}")
+        logger.error(f"Document extraction failed for {file.filename}: {e}")
+        raise HTTPException(status_code=422, detail="Failed to read or extract text from document. It may be corrupted or unsupported.")
+        
+    if not extracted_text or not extracted_text.strip():
+        raise HTTPException(status_code=422, detail="No readable text found in document.")
         
     summary = summarize_document(extracted_text, file.filename)
     duration_ms = int((time.time() - start_time) * 1000)

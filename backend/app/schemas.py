@@ -180,6 +180,31 @@ class ChatbotMessageCreate(ChatbotMessageBase):
     language: Optional[str] = None
     mode: Optional[str] = None
 
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Message content cannot be empty or whitespace only.")
+        if len(v) > 5000:
+            raise ValueError("Message content exceeds maximum allowed length.")
+        return v
+    
+    @field_validator("language")
+    @classmethod
+    def validate_language(cls, v):
+        from app.config import settings
+        if v and v not in settings.SUPPORTED_LANGUAGES:
+            raise ValueError(f"Unsupported language. Supported options are listed in config.")
+        return v
+        
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v):
+        valid_modes = ["General Assistant", "Symptom Checker", "Medicine Guide"]
+        if v and v not in valid_modes:
+            raise ValueError(f"Unsupported mode: {v}. Must be one of {valid_modes}")
+        return v
+
 class ChatbotMessage(ChatbotMessageBase):
     id: UUID
     session_id: UUID
@@ -218,6 +243,15 @@ class ChatbotSessionBase(BaseModel):
 
 class ChatbotSessionCreate(ChatbotSessionBase):
     pass
+
+class ChatbotSessionList(ChatbotSessionBase):
+    id: UUID
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class ChatbotSession(ChatbotSessionBase):
     id: UUID

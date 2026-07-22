@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Mic, FileText, X } from 'lucide-react';
+import { Send, Paperclip, Mic, FileText, X, Square } from 'lucide-react';
 import { apiFetch } from '../../apiClient';
 import { SPEECH_LANGUAGE_MAP } from '../../utils/voice';
 
-export default function InputArea({ onSendMessage, isStreaming, session, onDocumentUploaded, currentLanguage, setCurrentLanguage }) {
+export default function InputArea({ onSendMessage, onStopGeneration, isStreaming, session, onDocumentUploaded, currentLanguage, setCurrentLanguage }) {
   const [content, setContent] = useState('');
   const [mode, setMode] = useState('General Assistant');
   const [isUploading, setIsUploading] = useState(false);
@@ -26,7 +26,9 @@ export default function InputArea({ onSendMessage, isStreaming, session, onDocum
     e.preventDefault();
     if (!content.trim() || isStreaming) return;
     
-    onSendMessage({ content, mode, language: currentLanguage });
+    onSendMessage({ content, mode, language: currentLanguage }).catch(err => {
+      console.error('Unhandled error in send message:', err);
+    });
     setContent('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -253,24 +255,46 @@ export default function InputArea({ onSendMessage, isStreaming, session, onDocum
             <Mic size={20} />
           </button>
           
-          <button 
-            type="submit" 
-            disabled={!content.trim() || isStreaming || isUploading}
-            style={{ 
-              background: (!content.trim() || isStreaming || isUploading) ? 'var(--card-border)' : 'var(--primary)', 
-              border: 'none', 
-              color: 'white', 
-              cursor: (!content.trim() || isStreaming || isUploading) ? 'not-allowed' : 'pointer', 
-              padding: '0.5rem',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s'
-            }}
-          >
-            <Send size={18} />
-          </button>
+          {isStreaming ? (
+            <button 
+              type="button" 
+              onClick={onStopGeneration}
+              title="Stop generating"
+              style={{ 
+                background: 'var(--card-border)', 
+                border: 'none', 
+                color: 'var(--error)', 
+                cursor: 'pointer', 
+                padding: '0.5rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s'
+              }}
+            >
+              <Square size={18} fill="currentColor" />
+            </button>
+          ) : (
+            <button 
+              type="submit" 
+              disabled={!content.trim() || isUploading}
+              style={{ 
+                background: (!content.trim() || isUploading) ? 'var(--card-border)' : 'var(--primary)', 
+                border: 'none', 
+                color: 'white', 
+                cursor: (!content.trim() || isUploading) ? 'not-allowed' : 'pointer', 
+                padding: '0.5rem',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s'
+              }}
+            >
+              <Send size={18} />
+            </button>
+          )}
         </div>
       </form>
     </div>
