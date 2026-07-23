@@ -3,9 +3,9 @@ import MessageBubble from './MessageBubble';
 import InputArea from './InputArea';
 import { apiFetch } from '../../apiClient';
 import { getBestVoice, SPEECH_LANGUAGE_MAP } from '../../utils/voice';
-import { ArrowDown, History } from 'lucide-react';
+import { ArrowDown, History, Plus, MessageSquare } from 'lucide-react';
 
-export default function ChatWindow({ session, setSession, onOpenSidebar, isIntegrated }) {
+export default function ChatWindow({ session, setSession, onOpenSidebar, isIntegrated, onCreateSession }) {
   const [messages, setMessages] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [streamingSessions, setStreamingSessions] = useState({});
@@ -516,8 +516,45 @@ export default function ChatWindow({ session, setSession, onOpenSidebar, isInteg
 
   if (!session) {
     return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-        Select or create a chat session to begin.
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isIntegrated ? 'transparent' : 'var(--bg-main)' }}>
+        <div style={{ 
+          maxWidth: '400px', 
+          width: '90%', 
+          padding: '2rem', 
+          textAlign: 'center', 
+          backgroundColor: 'var(--card-bg)', 
+          borderRadius: '12px', 
+          border: '1px solid var(--card-border)',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--primary-light)',
+            color: 'var(--primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '0.5rem'
+          }}>
+            <MessageSquare size={24} />
+          </div>
+          <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.25rem' }}>Start a new conversation</h3>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Ask medical questions, upload documents, or use the voice assistant.
+          </p>
+          <button 
+            onClick={onCreateSession}
+            className="empty-state-new-chat-btn"
+          >
+            <Plus size={18} /> New Chat
+          </button>
+        </div>
       </div>
     );
   }
@@ -579,7 +616,19 @@ export default function ChatWindow({ session, setSession, onOpenSidebar, isInteg
 
       {/* Messages */}
       <div 
-        style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '1rem', backgroundColor: '#FFFFFF', position: 'relative' }}
+        style={{ 
+          flex: 1, 
+          minHeight: 0, 
+          minWidth: 0,
+          width: '100%',
+          maxWidth: '100%',
+          overflowY: 'auto', 
+          overflowX: 'hidden',
+          padding: '1rem', 
+          backgroundColor: '#FFFFFF', 
+          position: 'relative',
+          boxSizing: 'border-box'
+        }}
         onScroll={handleScroll}
         ref={scrollContainerRef}
       >

@@ -13,7 +13,6 @@ import { apiFetch, getWsUrl } from './apiClient';
 import Sidebar from './components/Sidebar';
 import SalusLiveBackground from './components/SalusLiveBackground';
 import SalusDashboardBackground from './components/SalusDashboardBackground';
-import ChatbotLayout from './components/chatbot/ChatbotLayout';
 
 // Pages
 import Landing from './pages/Landing';
@@ -47,7 +46,6 @@ const DEFAULT_PROMPTS = {
 
 export default function App() {
   const [view, setView] = useState(() => {
-    if (window.location.pathname === '/chatbot-dev') return 'chatbot-dev';
     const savedUser = localStorage.getItem('user');
     if (savedUser && localStorage.getItem('access_token')) return 'app';
     return 'landing';
@@ -708,12 +706,34 @@ export default function App() {
 
         const data = await res.json();
         if (res.ok) {
-          setUser({ name: data.name, role: data.role });
-          showToast(`Account created successfully! Welcome, ${data.name}!`, 'success');
-          setView('app');
-          setActiveTab('dashboard');
-          // Reset form
-          setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+          // Immediately log in to get JWT token
+          const loginRes = await apiFetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: authForm.username,
+              password: authForm.password
+            })
+          });
+          
+          if (loginRes.ok) {
+            const loginData = await loginRes.json();
+            const name = loginData.name || loginData.user?.name;
+            const role = loginData.role || loginData.user?.role;
+            setUser({ name, role });
+            
+            if (loginData.access_token) {
+              localStorage.setItem('access_token', loginData.access_token);
+              localStorage.setItem('user', JSON.stringify({ name, role, id: loginData.user?.id, email: loginData.user?.email }));
+            }
+            
+            showToast(`Account created successfully! Welcome, ${name}!`, 'success');
+            setView('app');
+            setActiveTab('dashboard');
+            setAuthForm({ username: '', password: '', email: '', role: 'Patient' });
+          } else {
+             setAuthError("Registration succeeded, but auto-login failed. Please log in manually.");
+          }
         } else {
           setAuthError(data.detail || "Sign up failed. Username or email might be taken.");
         }
@@ -887,9 +907,6 @@ export default function App() {
     );
   }
 
-  if (view === 'chatbot-dev') {
-    return <ChatbotLayout />;
-  }
 
   return (
     <div className="app-container view-transition-root" key="view-app">
@@ -958,7 +975,7 @@ export default function App() {
             </div>
           )}
 
-          <div className="view-fade-in" key={activeTab} style={activeTab === 'voicebot' ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 } : undefined}>
+          <div className="view-fade-in" key={activeTab} style={activeTab === 'voicebot' ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 } : undefined}>
             {activeTab === 'dashboard' && (
               <Dashboard 
                 user={user}

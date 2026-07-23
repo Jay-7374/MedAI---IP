@@ -28,7 +28,7 @@ export default function AIAssistantView({
   const [activeMode, setActiveMode] = useState('chat'); // 'chat' or 'voice'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', minHeight: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', minHeight: 0, minWidth: 0 }}>
       {/* Top Header/Tab Switch */}
       <div style={{ 
         display: 'flex', 
@@ -82,7 +82,7 @@ export default function AIAssistantView({
       </div>
 
       {/* Content Area */}
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0, minWidth: 0 }}>
         {activeMode === 'chat' && (
           <ChatbotLayout isIntegrated={true} />
         )}

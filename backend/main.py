@@ -68,16 +68,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from fastapi.responses import PlainTextResponse
-from starlette.requests import Request
-import traceback
 
-@app.exception_handler(Exception)
-async def dump_exception_handler(request: Request, exc: Exception):
-    with open("f:\\MedAI - IP\\backend\\500_error.txt", "w") as f:
-        f.write(f"{type(exc).__name__}: {str(exc)}\n")
-        f.write(traceback.format_exc())
-    return PlainTextResponse("Internal Server Error", status_code=500)
 
 app.include_router(auth.router)
 app.include_router(appointments.router)

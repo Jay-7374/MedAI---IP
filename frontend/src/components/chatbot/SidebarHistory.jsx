@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { apiFetch } from '../../apiClient';
 
-export default function SidebarHistory({ activeSession, setActiveSession, sessions, setSessions, loadSessions, isOpen, onClose, isIntegrated }) {
+export default function SidebarHistory({ activeSession, setActiveSession, sessions, setSessions, loadSessions, isOpen, onClose, isIntegrated, onCreateSession }) {
   
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -23,22 +23,7 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
     };
   }, [isOpen, onClose]);
 
-  const handleCreateSession = async () => {
-    try {
-      const res = await apiFetch('/api/chatbot/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'New Chat', language: 'English', mode: 'General Assistant' })
-      });
-      if (!res.ok) throw new Error('Failed to create session');
-      const newSession = await res.json();
-      setSessions([newSession, ...sessions]);
-      setActiveSession(newSession);
-      if (window.innerWidth <= 768) onClose();
-    } catch (err) {
-      console.error('Failed to create session', err);
-    }
-  };
+
 
   const handleDeleteSession = async (e, id) => {
     e.stopPropagation();
@@ -61,7 +46,7 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
       <div className={`chatbot-sidebar ${isOpen ? 'mobile-open' : ''} ${isIntegrated ? 'integrated-sidebar' : ''}`}>
         <div style={{ padding: '1rem' }}>
           <button 
-            onClick={handleCreateSession}
+            onClick={onCreateSession}
             aria-label="New Chat"
             style={{ 
               width: '100%', 

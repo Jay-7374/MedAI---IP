@@ -38,6 +38,24 @@ export default function ChatbotLayout({ isIntegrated = false }) {
     }
   };
 
+  const handleCreateSession = async () => {
+    try {
+      const res = await apiFetch('/api/chatbot/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New Chat', language: 'English', mode: 'General Assistant' })
+      });
+      if (!res.ok) throw new Error('Failed to create session');
+      const newSession = await res.json();
+      setSessions([newSession, ...sessions]);
+      setActiveSession(newSession);
+      if (window.innerWidth <= 768) setIsMobileSidebarOpen(false);
+    } catch (err) {
+      console.error('Failed to create session', err);
+    }
+  };
+
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -46,6 +64,7 @@ export default function ChatbotLayout({ isIntegrated = false }) {
       flex: isIntegrated ? 1 : 'unset',
       overflow: 'hidden',
       minHeight: 0,
+      minWidth: 0,
       backgroundColor: 'var(--bg-main)', 
       color: 'var(--text-main)', 
       fontFamily: 'var(--font-family, system-ui)', 
@@ -60,12 +79,14 @@ export default function ChatbotLayout({ isIntegrated = false }) {
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
         isIntegrated={isIntegrated}
+        onCreateSession={handleCreateSession}
       />
       <ChatWindow 
         session={activeSession}
         setSession={setActiveSession}
         onOpenSidebar={() => setIsMobileSidebarOpen(true)}
         isIntegrated={isIntegrated}
+        onCreateSession={handleCreateSession}
       />
     </div>
   );

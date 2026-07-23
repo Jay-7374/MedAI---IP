@@ -25,7 +25,9 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
       gap: '0.75rem',
       padding: '0.5rem 1rem',
       maxWidth: '100%',
-      width: '100%'
+      width: '100%',
+      minWidth: 0,
+      boxSizing: 'border-box'
     }}>
       <div style={{
         width: '28px',
@@ -51,7 +53,10 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
         padding: '0.75rem 1rem',
         color: 'var(--text-main)',
         minWidth: 0,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        overflowWrap: 'anywhere',
+        wordBreak: 'break-word',
+        boxSizing: 'border-box'
       }} className="markdown-body bubble-content">
         {message.status === 'loading' ? (
           <div style={{ animation: 'pulse 1.5s infinite', letterSpacing: '2px', fontSize: '1.2rem', color: 'var(--text-secondary)' }} aria-live="polite">
@@ -62,6 +67,26 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
+              table({ node, ...props }) {
+                return (
+                  <div style={{ width: '100%', maxWidth: '100%', overflowX: 'auto', marginBottom: '1rem' }}>
+                    <table style={{ minWidth: '100%', borderCollapse: 'collapse' }} {...props} />
+                  </div>
+                );
+              },
+              th({ node, ...props }) {
+                return <th style={{ border: '1px solid var(--card-border)', padding: '0.5rem', backgroundColor: 'var(--primary-light)' }} {...props} />;
+              },
+              td({ node, ...props }) {
+                return <td style={{ border: '1px solid var(--card-border)', padding: '0.5rem' }} {...props} />;
+              },
+              pre({ node, children, ...props }) {
+                return (
+                  <div style={{ maxWidth: '100%', overflowX: 'auto', margin: '0' }} {...props}>
+                    {children}
+                  </div>
+                );
+              },
               code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
                 const codeText = String(children).replace(/\n$/, '');
