@@ -1,10 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Date, Time, Float
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Date, Time, Float, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
 from .database import Base
-
 
 class Role(Base):
     __tablename__ = "roles"
@@ -189,6 +188,10 @@ class ChatbotSession(Base):
     messages = relationship("ChatbotMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatbotMessage.timestamp")
     documents = relationship("ChatbotDocument", back_populates="session", cascade="all, delete-orphan")
 
+    __table_args__ = (
+        Index('ix_chatbot_sessions_user_id_updated_at', 'user_id', 'updated_at'),
+    )
+
 
 class ChatbotMessage(Base):
     __tablename__ = "chatbot_messages"
@@ -205,6 +208,10 @@ class ChatbotMessage(Base):
     model_used = Column(String(100), nullable=True)
 
     session = relationship("ChatbotSession", back_populates="messages")
+
+    __table_args__ = (
+        Index('ix_chatbot_messages_session_id_timestamp', 'session_id', 'timestamp'),
+    )
 
 
 class ChatbotDocument(Base):

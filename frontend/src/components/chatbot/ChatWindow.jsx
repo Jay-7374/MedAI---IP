@@ -594,12 +594,13 @@ export default function ChatWindow({ session, setSession }) {
       {/* Input */}
       <div style={{ flexShrink: 0, borderTop: '1px solid var(--card-border)' }}>
         <InputArea 
-        onSendMessage={handleSendMessage} 
-        onStopGeneration={handleStopGeneration}
-        isStreaming={isCurrentSessionStreaming} 
-        isUploading={false}
-        onDocumentUploaded={() => { loadDocuments(session.id); loadMessages(session.id); }} 
-        currentLanguage={currentLanguage}
+          session={session}
+          onSendMessage={handleSendMessage} 
+          onStopGeneration={handleStopGeneration}
+          isStreaming={isCurrentSessionStreaming} 
+          isUploading={false}
+          onDocumentUploaded={() => { loadDocuments(session?.id); loadMessages(session?.id); }} 
+          currentLanguage={currentLanguage}
           setCurrentLanguage={setCurrentLanguage}
         />
       </div>

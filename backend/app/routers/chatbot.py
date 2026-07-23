@@ -24,11 +24,18 @@ router = APIRouter(
 )
 
 def get_user_from_header(db: Session, x_user_id: str = Header(None, alias="X-User-Id")):
+    # WARNING: SECURITY VULNERABILITY (DEVELOPMENT ONLY)
+    # The X-User-Id header is explicitly for development/demo compatibility.
+    # Trusting client-supplied identity without cryptographic verification is insecure.
+    # In production, this must be replaced with a verified JWT, OAuth token, or server-side session.
     if x_user_id and x_user_id.isdigit():
         user = db.query(User).filter(User.id == int(x_user_id)).first()
         if user:
             return user
-    # Fallback to first user for development like appointments.py
+    
+    # CRITICAL WARNING: If the ID is invalid or missing, this silently falls back to the first user.
+    # This prevents development crashes but allows silent identity spoofing.
+    # MUST NOT be used as production authentication.
     user = db.query(User).first()
     if not user:
         raise HTTPException(status_code=404, detail="No users found in database.")
