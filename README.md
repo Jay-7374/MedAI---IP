@@ -5,10 +5,9 @@ SALUS is a healthcare management platform with an integrated AI Assistant. Desig
 ## Main Features
 - Patient authentication & session persistence
 - Dashboard for unified view
-- Appointments & Conversational Scheduling
-- Medicine information & Adherence tracker
+- **Pending/Incomplete Integrations:** Scheduling backend integration and Medication backend integration are intentionally pending for this prototype.
 - Unified AI Assistant:
-  - **Chat Assistant** (streaming LLM responses)
+  - **Chat Assistant** (streaming LLM responses with fallback behavior)
   - **Voice Assistant** (speech-to-text / text-to-speech)
   - **Multiple AI personas** (General, Symptom Checker, Medicine Guide, Post-Discharge Recovery)
   - **Multi-language support**
@@ -39,6 +38,12 @@ External AI/TTS services
 ```
 
 ## Setup Instructions (Windows)
+
+### Prerequisites
+- Node.js (v18+)
+- Python (3.9+)
+- A Supabase PostgreSQL database
+- API Keys for Groq (LLM) and ElevenLabs (TTS)
 
 ### Backend Setup
 1. Open a terminal and navigate to the backend directory:
@@ -125,11 +130,13 @@ SALUS/
 
 ## Security Notes
 - **JWT Authentication**: Users securely authenticate using JSON Web Tokens.
-- **Resource Ownership**: The backend enforces strict ownership checks; users can only query their own chat sessions and histories.
+- **Resource Ownership**: The backend enforces strict ownership checks; users can only query their own chat sessions and histories. User chat isolation is implemented.
 - **Secrets Management**: All sensitive API keys and database strings are confined to local `.env` variables and excluded from the repository.
-- *(Note: Supabase Row Level Security (RLS) and advanced password hashing (bcrypt) are intentionally deferred due to the scope of this college mini-project).*
+- *(Note: Supabase Row Level Security (RLS) is not relied upon for backend authorization because the backend uses application-level ownership checks. Advanced password hashing (bcrypt) was intentionally not implemented for this college prototype).*
 
 ## Known Limitations
+- **Not a Production System**: This is a college mini-project prototype and is NOT a production medical system.
+- **Pending Features**: Scheduling backend integration and Medication backend integration are pending/incomplete.
 - **Browser Dependency**: The Voice Assistant's STT relies on the Web Speech API, which requires a compatible browser (like Chrome or Edge) to function reliably.
 - **Rate Limits**: Heavy usage may trigger LLM or TTS API rate limits (e.g., Groq's Tokens Per Day).
 - **Scope**: Developed as a college prototype; not intended for real-world production medical deployment. Certain resilience features (like forced cancellation of active streaming loops) are intentionally skipped in automated tests to prevent quota exhaustion.

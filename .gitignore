@@ -29,6 +29,7 @@ backend/medai.db
 # Environment variables and secrets
 .env
 .env.*
+!.env.example
 backend/.env
 api-keys.txt
 
