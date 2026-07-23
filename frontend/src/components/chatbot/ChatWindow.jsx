@@ -3,9 +3,9 @@ import MessageBubble from './MessageBubble';
 import InputArea from './InputArea';
 import { apiFetch } from '../../apiClient';
 import { getBestVoice, SPEECH_LANGUAGE_MAP } from '../../utils/voice';
-import { ArrowDown, Menu } from 'lucide-react';
+import { ArrowDown, History } from 'lucide-react';
 
-export default function ChatWindow({ session, setSession, onOpenSidebar }) {
+export default function ChatWindow({ session, setSession, onOpenSidebar, isIntegrated }) {
   const [messages, setMessages] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [streamingSessions, setStreamingSessions] = useState({});
@@ -523,36 +523,36 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
   }
 
   return (
-    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--bg-main)' }}>
+    <div style={{ flex: 1, minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: isIntegrated ? 'transparent' : 'var(--bg-main)' }}>
       {/* Header */}
       <div style={{ 
-        padding: '1rem', 
+        flexShrink: 0,
+        padding: '0.5rem 1rem', 
         borderBottom: '1px solid var(--card-border)', 
         backgroundColor: 'var(--card-bg)',
         display: 'flex', 
         alignItems: 'center',
         justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
         zIndex: 10
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button 
             className="btn-mobile-menu" 
             onClick={onOpenSidebar}
             aria-label="Open chat history"
             aria-expanded="false"
             aria-controls="sidebar-drawer"
-            style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}
+            style={{ display: isIntegrated ? 'flex' : '', alignItems: 'center', gap: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '6px', padding: '0.35rem 0.75rem', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem' }}
           >
-            <Menu size={24} />
+            <History size={18} />
+            History
           </button>
-          <h2 style={{ fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: 600 }}>
-            {session ? session.title : 'MedAI Assistant'}
+          <h2 style={{ fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: 600, margin: 0 }}>
+            {session ? session.title : 'New Chat'}
           </h2>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-          {ttsError && <span style={{ color: 'var(--error)', marginRight: '1rem', fontSize: '0.85rem' }}>{ttsError}</span>}
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+          {ttsError && <span style={{ color: 'var(--error)', marginRight: '0.5rem', fontSize: '0.8rem' }}>{ttsError}</span>}
           <input 
             type="checkbox" 
             checked={autoSpeak} 
@@ -579,7 +579,7 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
 
       {/* Messages */}
       <div 
-        style={{ flex: 1, overflowY: 'auto', padding: '1rem 0' }}
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '1rem', backgroundColor: '#FFFFFF', position: 'relative' }}
         onScroll={handleScroll}
         ref={scrollContainerRef}
       >
@@ -604,23 +604,20 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
           ))
         )}
         <div ref={messagesEndRef} />
-      </div>
-
-      {isUserScrolledUp && (
-        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', marginTop: '-20px', position: 'relative', zIndex: 10, height: 0, overflow: 'visible' }}>
+        {isUserScrolledUp && (
           <button 
             onClick={() => { setIsUserScrolledUp(false); scrollToBottom('smooth'); }}
-            style={{ transform: 'translateY(-20px)', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+            style={{ position: 'absolute', bottom: '1rem', right: '1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', zIndex: 20 }}
             title="Jump to latest"
             aria-label="Jump to latest"
           >
             <ArrowDown size={18} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Input */}
-      <div style={{ flexShrink: 0, borderTop: '1px solid var(--card-border)' }}>
+      <div style={{ flexShrink: 0, backgroundColor: '#FFFFFF', zIndex: 10 }}>
         <InputArea 
           session={session}
           onSendMessage={handleSendMessage} 

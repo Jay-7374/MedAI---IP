@@ -30,8 +30,9 @@ class ContextManagerService:
         documents = db.query(ChatbotDocument).filter(ChatbotDocument.session_id == session_id).all()
         doc_messages = []
         for doc in documents:
-            if doc.summary:
-                doc_messages.append({"role": "system", "content": f"[DOCUMENT CONTENT START - {doc.filename}]\n{doc.summary}\n[DOCUMENT CONTENT END]"})
+            content_to_use = doc.extracted_text if doc.extracted_text else doc.summary
+            if content_to_use:
+                doc_messages.append({"role": "system", "content": f"[DOCUMENT CONTENT START - {doc.filename}]\n{content_to_use}\n[DOCUMENT CONTENT END]"})
         
         # Load Recent Messages (sliding window)
         # Fetch the most recent N messages, then reverse them so they are chronological

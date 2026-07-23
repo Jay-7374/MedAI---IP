@@ -1,0 +1,140 @@
+Exception type: RateLimitError
+Exception string: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99934, Requested 363. Please try again in 4m16.608s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+Traceback: Traceback (most recent call last):
+  File "F:\MedAI - IP\backend\app\services\llm.py", line 35, in get_chat_response
+    chat_completion = client.chat.completions.create(
+        messages=formatted_messages,
+    ...<2 lines>...
+        max_tokens=300,
+    )
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\resources\chat\completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1284, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1071, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99934, Requested 363. Please try again in 4m16.608s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+Response: {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99934, Requested 363. Please try again in 4m16.608s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+Exception type: RateLimitError
+Exception string: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99930, Requested 629. Please try again in 8m2.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+Traceback: Traceback (most recent call last):
+  File "F:\MedAI - IP\backend\app\services\llm.py", line 35, in get_chat_response
+    chat_completion = client.chat.completions.create(
+        messages=formatted_messages,
+    ...<2 lines>...
+        max_tokens=300,
+    )
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\resources\chat\completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1284, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1071, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99930, Requested 629. Please try again in 8m2.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+Response: {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99930, Requested 629. Please try again in 8m2.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+Exception type: RateLimitError
+Exception string: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99926, Requested 363. Please try again in 4m9.696s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+Traceback: Traceback (most recent call last):
+  File "F:\MedAI - IP\backend\app\services\llm.py", line 35, in get_chat_response
+    chat_completion = client.chat.completions.create(
+        messages=formatted_messages,
+    ...<2 lines>...
+        max_tokens=300,
+    )
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\resources\chat\completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1284, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1071, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99926, Requested 363. Please try again in 4m9.696s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+Response: {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99926, Requested 363. Please try again in 4m9.696s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+Exception type: RateLimitError
+Exception string: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99922, Requested 363. Please try again in 4m6.24s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+Traceback: Traceback (most recent call last):
+  File "F:\MedAI - IP\backend\app\services\llm.py", line 35, in get_chat_response
+    chat_completion = client.chat.completions.create(
+        messages=formatted_messages,
+    ...<2 lines>...
+        max_tokens=300,
+    )
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\resources\chat\completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1284, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1071, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99922, Requested 363. Please try again in 4m6.24s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+Response: {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99922, Requested 363. Please try again in 4m6.24s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+
+Exception type: RateLimitError
+Exception string: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99918, Requested 369. Please try again in 4m7.968s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+Traceback: Traceback (most recent call last):
+  File "F:\MedAI - IP\backend\app\services\llm.py", line 35, in get_chat_response
+    chat_completion = client.chat.completions.create(
+        messages=formatted_messages,
+    ...<2 lines>...
+        max_tokens=300,
+    )
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\resources\chat\completions.py", line 461, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/openai/v1/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1284, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\MedAI - IP\backend\venv\Lib\site-packages\groq\_base_client.py", line 1071, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99918, Requested 369. Please try again in 4m7.968s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+
+Response: {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kv7cx8spfvdt90rezb82qg0h` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99918, Requested 369. Please try again in 4m7.968s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+

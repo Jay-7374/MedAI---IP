@@ -67,14 +67,18 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                 user_text = data.get("text", "")
                 bot_name = data.get("bot_name", "NaturalSpeechAuth")
                 
-                # Save user transcript (skip if DB unavailable)
-                if db is not None:
+                # Save user transcript unless it's the initialization ping
+                is_init = (user_text == "[INITIALIZE_CALL]")
+                if db is not None and not is_init:
                     try:
                         crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="User", text=user_text))
                     except Exception as e:
                         print(f"Skipping DB save (Supabase down): {e}")
                 
                 start_time = datetime.now(timezone.utc).replace(tzinfo=None)
+                if is_init:
+                    user_text = "The user has just connected to the call. Please introduce yourself and ask how you can help."
+                
                 ai_response = process_voice_turn(db, session_id, user_text, bot_name)
                 latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
                 

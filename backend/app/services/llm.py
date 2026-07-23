@@ -30,18 +30,38 @@ def get_chat_response(messages: list, system_prompt: str = None) -> str:
     # Append conversation log history
     formatted_messages.extend(messages)
 
-    try:
-        # llama-3.3-70b: much better clinical reasoning, still low latency on Groq
-        chat_completion = client.chat.completions.create(
-            messages=formatted_messages,
-            model="llama-3.3-70b-versatile",
-            temperature=0.5,
-            max_tokens=300,
-        )
-        return chat_completion.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Groq API Completion failed: {type(e).__name__}")
-        return "I encountered a temporary processing interruption in my AI core. Please re-send your query."
+    models_to_try = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it"
+    ]
+
+    import groq
+    
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            chat_completion = client.chat.completions.create(
+                messages=formatted_messages,
+                model=model_name,
+                temperature=0.5,
+                max_tokens=300,
+            )
+            return chat_completion.choices[0].message.content
+        except groq.RateLimitError as e:
+            logger.warning(f"Groq RateLimitError on {model_name}: {str(e)}")
+            last_error = e
+            continue
+        except Exception as e:
+            logger.error(f"Groq API Completion failed: {type(e).__name__} - {str(e)}")
+            return "I encountered a temporary processing interruption in my AI core. Please re-send your query."
+            
+    # If all models failed due to rate limit
+    if last_error:
+        return f"[EXTERNAL_PROVIDER_ERROR] Provider: Groq, Service: chat/completions, Error: 429 RateLimitExceeded (Daily Token Limit Reached). Please upgrade tier or wait."
+    
+    return "I encountered a temporary processing interruption in my AI core. Please re-send your query."
 
 async def _stream_model_chunks(messages: list, model: str, request=None):
     """

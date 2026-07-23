@@ -23,6 +23,7 @@ import Dashboard from './pages/Dashboard';
 import Scheduling from './pages/Scheduling';
 import Adherence from './pages/Adherence';
 import VoiceSimulator from './pages/VoiceSimulator';
+import AIAssistantView from './components/AIAssistantView';
 import PromptOrchestrator from './pages/PromptOrchestrator';
 import EmergencySOS from './pages/EmergencySOS';
 import Telemedicine from './pages/Telemedicine';
@@ -136,7 +137,7 @@ export default function App() {
   const [editingPrompt, setEditingPrompt] = useState({ bot_name: 'NaturalSpeechAuth', system_prompt: '' });
 
   // Voice Call Bot States
-  const [selectedBot, setSelectedBot] = useState('NaturalSpeechAuth');
+  const [selectedBot, setSelectedBot] = useState('');
   const [callStatus, setCallStatus] = useState('Idle'); // 'Idle', 'Connecting', 'Connected'
   const setCallStatusSynced = (val) => {
     callStatusRef.current = val;
@@ -335,6 +336,7 @@ export default function App() {
   const simulateDbTimeoutRef = useRef(false);
   const consecutiveErrorsRef = useRef(0);
   const isSpeakingRef = useRef(false);
+  const activeCallIdRef = useRef('');
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
   useEffect(() => { selectedBotRef.current = selectedBot; }, [selectedBot]);
@@ -353,6 +355,8 @@ export default function App() {
     rec.lang = 'en-US';
 
     rec.onresult = (event) => {
+      if (isSpeakingRef.current) return; // Prevent echo from stale recognition
+      
       // Build the latest interim transcript from all current results
       let interim = '';
       let finalText = '';
@@ -421,23 +425,18 @@ export default function App() {
     };
 
     rec.onend = () => {
-      // Give the audio subsystem a short moment to fully release before restarting.
-      // Without this delay, rec.start() can throw InvalidStateError on Chrome/Safari
-      // when onend fires right after onerror or immediately after utterance.onend
-      // already started a new session.
       if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
           !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
-        setTimeout(() => {
-          if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
-              !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
-            try { rec.start(); } catch(e) {}
-          }
-        }, 150);
+        try { rec.start(); } catch(e) {}
       }
     };
 
     recognitionRef.current = rec;
-    return () => { try { rec.stop(); } catch(e) {} };
+    return () => { 
+      try { rec.stop(); } catch(e) {} 
+      audioRef.current?.pause();
+      window.speechSynthesis.cancel();
+    };
   }, []); // empty deps: create once, never re-create
 
   // Audio element ref for ElevenLabs playback
@@ -455,6 +454,7 @@ export default function App() {
     }
 
     const onAudioEnd = () => {
+      if (activeCallIdRef.current !== sessionIdRef.current) return; // Prevent stale restarts
       isSpeakingRef.current = false;
       setIsSpeaking(false);
       if (telemedicineActiveRef.current) {
@@ -465,12 +465,10 @@ export default function App() {
         setCallStatusSynced('Idle');
         if (wsRef.current) wsRef.current.close();
       } else if (callStatusRef.current === 'Connected' && recognitionRef.current) {
-        setTimeout(() => {
-          if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
-              !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
-            try { recognitionRef.current.start(); } catch(e) {}
-          }
-        }, 150);
+        // Prevent stale async from restarting if we ended session
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          try { recognitionRef.current.start(); } catch(e) {}
+        }
       }
     };
 
@@ -483,10 +481,12 @@ export default function App() {
       audioRef.current = audio;
       audio.onended = onAudioEnd;
       audio.onerror = () => {
+        if (activeCallIdRef.current !== sessionIdRef.current) return;
         console.error("Error playing ElevenLabs audio, falling back to speech synthesis");
         fallbackToSpeechSynthesis(text, onAudioEnd);
       };
       audio.play().catch(e => {
+        if (activeCallIdRef.current !== sessionIdRef.current) return;
         console.error("Audio autoplay prevented", e);
         fallbackToSpeechSynthesis(text, onAudioEnd);
       });
@@ -515,6 +515,7 @@ export default function App() {
   const startCallSession = async () => {
     const newSessionId = 'SESS-' + Date.now();
     setSessionId(newSessionId);
+    activeCallIdRef.current = newSessionId;
     setCallStatusSynced('Connecting');
     setTranscripts([]);
     setConsecutiveErrors(0);
@@ -559,10 +560,17 @@ export default function App() {
         return;
       }
       
-      // Send welcoming statement
-      const welcomeText = `Hello. I am your Salus ${selectedBot === 'NaturalSpeechAuth' ? 'Natural Speech Authentication' : selectedBot} Bot. How can I help you today?`;
-      setTranscripts([{ speaker: 'AI', text: welcomeText }]);
-      speakTextOutLoud(welcomeText);
+      // Do not play a local TTS greeting here.
+      // Instead, we will wait for the user to explicitly connect in VoiceSimulator.
+      // The backend will handle the greeting if we send [INITIALIZE_CALL].
+      ws.send(JSON.stringify({
+        type: 'text',
+        session_id: newSessionId,
+        text: '[INITIALIZE_CALL]',
+        bot_name: selectedBotRef.current,
+        simulate_db_timeout: false,
+        consecutive_errors: 0
+      }));
     };
 
     ws.onmessage = (event) => {
@@ -598,9 +606,6 @@ export default function App() {
     ws.onerror = () => {
       showToast("WebSocket connection error. Using offline voice simulator.", "warning");
       setCallStatusSynced('Connected');
-      const welcomeText = `Hello. Voice bot running in offline fallback mode. How can I help?`;
-      setTranscripts([{ speaker: 'AI', text: welcomeText }]);
-      speakTextOutLoud(welcomeText);
     };
 
     ws.onclose = () => {
@@ -613,6 +618,7 @@ export default function App() {
 
   // End Voice Bot session
   const endCallSession = () => {
+    activeCallIdRef.current = ''; // Invalidate callbacks
     if (wsRef.current) {
       wsRef.current.close();
     }
@@ -620,6 +626,11 @@ export default function App() {
       try {
         recognitionRef.current.stop();
       } catch(e){}
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = "";
     }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -904,15 +915,14 @@ export default function App() {
 
       {/* Main Container */}
       <div className="content">
-        <header className="top-bar" style={{ padding: '2.5rem 2.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: 'transparent' }}>
+        <header className="top-bar" style={{ padding: activeTab === 'voicebot' ? '1rem 2.5rem 0' : '2.5rem 2.5rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: 'transparent' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
               <button className="btn-mobile-menu" onClick={() => setSidebarOpen(true)}>
                 <Menu size={24} />
               </button>
-              <h2 className="top-bar-title" style={{ fontSize: 'var(--font-title)', fontWeight: 800, margin: 0 }}>
+              <h2 className="top-bar-title" style={{ fontSize: 'var(--font-title)', fontWeight: 800, margin: 0, display: activeTab === 'voicebot' ? 'none' : 'block' }}>
                 {activeTab === 'dashboard' && "Patient Dashboard"}
-                {activeTab === 'voicebot' && "Real-time AI Voice Simulator"}
                 {activeTab === 'appointments' && "Conversational Scheduling"}
                 {activeTab === 'medicines' && "Medication Adherence"}
                 {activeTab === 'prompts' && "Prompt Orchestrator"}
@@ -922,14 +932,14 @@ export default function App() {
                 {activeTab === 'settings' && "System Settings"}
               </h2>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: 'var(--font-body)', fontWeight: 500, paddingLeft: window.innerWidth <= 768 ? '3rem' : '0' }}>
+            <div style={{ display: activeTab === 'voicebot' ? 'none' : 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: 'var(--font-body)', fontWeight: 500, paddingLeft: window.innerWidth <= 768 ? '3rem' : '0' }}>
               <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
               <span>•</span>
               <span>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {user?.name?.split(' ')[0] || 'User'}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }} className="top-bar-actions">
+          <div style={{ display: activeTab === 'voicebot' ? 'none' : 'flex', alignItems: 'center', gap: '1rem' }} className="top-bar-actions">
             <button className="btn-icon" style={{ background: 'var(--sidebar-bg)', border: '1px solid var(--card-border)', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-main)', backdropFilter: 'var(--card-backdrop)', cursor: 'pointer', position: 'relative', transition: 'var(--transition)' }}>
               <Bell size={20} />
               <span style={{ position: 'absolute', top: '12px', right: '14px', width: '8px', height: '8px', background: 'var(--danger)', borderRadius: '50%', border: '2px solid white' }}></span>
@@ -937,7 +947,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="main-view">
+        <main className={`main-view ${activeTab === 'voicebot' ? 'no-padding' : ''}`}>
           {/* Toast Container */}
           {toast && (
             <div id="toast-container">
@@ -948,7 +958,7 @@ export default function App() {
             </div>
           )}
 
-          <div className="view-fade-in" key={activeTab}>
+          <div className="view-fade-in" key={activeTab} style={activeTab === 'voicebot' ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 } : undefined}>
             {activeTab === 'dashboard' && (
               <Dashboard 
                 user={user}
@@ -963,7 +973,7 @@ export default function App() {
             )}
             
             {activeTab === 'voicebot' && (
-              <VoiceSimulator 
+              <AIAssistantView 
                 user={user}
                 isAdmin={isAdmin}
                 selectedBot={selectedBot}

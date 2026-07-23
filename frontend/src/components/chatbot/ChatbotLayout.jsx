@@ -3,7 +3,7 @@ import SidebarHistory from './SidebarHistory';
 import ChatWindow from './ChatWindow';
 import { apiFetch } from '../../apiClient';
 
-export default function ChatbotLayout() {
+export default function ChatbotLayout({ isIntegrated = false }) {
   const [sessions, setSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -39,7 +39,18 @@ export default function ChatbotLayout() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', fontFamily: 'var(--font-family, system-ui)', position: 'relative' }}>
+    <div style={{ 
+      display: 'flex', 
+      height: isIntegrated ? '100%' : '100vh', 
+      width: isIntegrated ? '100%' : '100vw',
+      flex: isIntegrated ? 1 : 'unset',
+      overflow: 'hidden',
+      minHeight: 0,
+      backgroundColor: 'var(--bg-main)', 
+      color: 'var(--text-main)', 
+      fontFamily: 'var(--font-family, system-ui)', 
+      position: 'relative' 
+    }}>
       <SidebarHistory 
         sessions={sessions} 
         setSessions={setSessions} 
@@ -48,11 +59,13 @@ export default function ChatbotLayout() {
         loadSessions={loadSessions}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
+        isIntegrated={isIntegrated}
       />
       <ChatWindow 
         session={activeSession}
         setSession={setActiveSession}
         onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+        isIntegrated={isIntegrated}
       />
     </div>
   );

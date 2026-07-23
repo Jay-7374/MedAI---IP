@@ -20,25 +20,39 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
   return (
     <div style={{
       display: 'flex',
-      gap: '1rem',
-      padding: '1.5rem',
-      backgroundColor: isUser ? 'transparent' : 'var(--card-bg)',
-      borderBottom: '1px solid var(--card-border)'
+      flexDirection: isUser ? 'row-reverse' : 'row',
+      alignItems: 'flex-start',
+      gap: '0.75rem',
+      padding: '0.5rem 1rem',
+      maxWidth: '100%',
+      width: '100%'
     }}>
       <div style={{
-        width: '32px',
-        height: '32px',
+        width: '28px',
+        height: '28px',
         borderRadius: '50%',
-        backgroundColor: isUser ? 'var(--primary)' : 'var(--accent)',
+        backgroundColor: isUser ? 'var(--primary)' : '#e0f2ec',
+        border: isUser ? 'none' : '1px solid var(--primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexShrink: 0
+        flexShrink: 0,
+        marginTop: '0.25rem'
       }}>
-        {isUser ? <User size={18} color="white" /> : <Bot size={18} color="white" />}
+        {isUser ? <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>U</span> : <Bot size={16} color="var(--primary)" />}
       </div>
       
-      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }} className="markdown-body">
+      <div style={{ 
+        flex: '0 1 auto',
+        maxWidth: '85%', // Fallback for mobile, can be overridden by CSS if needed, but flex will handle it mostly. We use a media query in index.css if necessary, but 85% is fine for both here as it's just max.
+        backgroundColor: isUser ? 'var(--primary-light)' : '#FCFBF7',
+        border: isUser ? 'none' : '1px solid rgba(20, 134, 109, 0.15)',
+        borderRadius: isUser ? '12px 12px 0 12px' : '12px 12px 12px 0',
+        padding: '0.75rem 1rem',
+        color: 'var(--text-main)',
+        minWidth: 0,
+        overflow: 'hidden'
+      }} className="markdown-body bubble-content">
         {message.status === 'loading' ? (
           <div style={{ animation: 'pulse 1.5s infinite', letterSpacing: '2px', fontSize: '1.2rem', color: 'var(--text-secondary)' }} aria-live="polite">
             •••

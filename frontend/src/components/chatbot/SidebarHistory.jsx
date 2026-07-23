@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { apiFetch } from '../../apiClient';
 
-export default function SidebarHistory({ activeSession, setActiveSession, sessions, setSessions, loadSessions, isOpen, onClose }) {
+export default function SidebarHistory({ activeSession, setActiveSession, sessions, setSessions, loadSessions, isOpen, onClose, isIntegrated }) {
   
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -56,9 +56,9 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
   return (
     <>
       {isOpen && (
-        <div className="chatbot-sidebar-backdrop" onClick={onClose} aria-hidden="true" />
+        <div className={`chatbot-sidebar-backdrop ${isIntegrated ? 'integrated-backdrop' : ''}`} onClick={onClose} aria-hidden="true" />
       )}
-      <div className={`chatbot-sidebar ${isOpen ? 'mobile-open' : ''}`}>
+      <div className={`chatbot-sidebar ${isOpen ? 'mobile-open' : ''} ${isIntegrated ? 'integrated-sidebar' : ''}`}>
         <div style={{ padding: '1rem' }}>
           <button 
             onClick={handleCreateSession}

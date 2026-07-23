@@ -188,17 +188,17 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
     <div 
       onDrop={handleDrop} 
       onDragOver={handleDragOver} 
-      style={{ padding: '1.5rem', borderTop: '1px solid var(--card-border)', backgroundColor: 'var(--bg-main)' }}
+      style={{ padding: '0.75rem', borderTop: '1px solid var(--card-border)', backgroundColor: 'var(--card-bg)' }}
     >
-      <form onSubmit={handleSubmit} style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <form onSubmit={handleSubmit} style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         
         {/* Settings Bar & Upload Status */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0', alignItems: 'center', flexWrap: 'wrap', padding: '0 0.25rem' }}>
           <select 
             value={mode} 
             onChange={e => setMode(e.target.value)}
             aria-label="Persona Selector"
-            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)', maxWidth: '140px' }}
+            style={{ padding: '0.15rem 0.25rem', borderRadius: '4px', background: 'transparent', color: 'var(--text-secondary)', border: 'none', maxWidth: '140px', fontSize: '0.75rem', cursor: 'pointer', outline: 'none' }}
           >
             <option>General Assistant</option>
             <option>Symptom Checker</option>
@@ -209,28 +209,28 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
             value={currentLanguage} 
             onChange={e => setCurrentLanguage(e.target.value)}
             aria-label="Language Selector"
-            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)', maxWidth: '100px' }}
+            style={{ padding: '0.15rem 0.25rem', borderRadius: '4px', background: 'transparent', color: 'var(--text-secondary)', border: 'none', maxWidth: '100px', fontSize: '0.75rem', cursor: 'pointer', outline: 'none' }}
           >
             {Object.keys(SPEECH_LANGUAGE_MAP).map(lang => (
               <option key={lang} value={lang}>{lang}</option>
             ))}
           </select>
           
-          {isUploading && <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Uploading document...</span>}
-          {uploadError && <span style={{ fontSize: '0.85rem', color: 'var(--error)' }}>{uploadError}</span>}
-          {isRecording && <span style={{ fontSize: '0.85rem', color: 'var(--error)', fontWeight: 'bold' }}>Recording...</span>}
+          {isUploading && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Uploading document...</span>}
+          {uploadError && <span style={{ fontSize: '0.75rem', color: 'var(--error)' }}>{uploadError}</span>}
+          {isRecording && <span style={{ fontSize: '0.75rem', color: 'var(--error)', fontWeight: 'bold' }}>Recording...</span>}
         </div>
 
         {/* Input Box */}
         <div style={{ 
           display: 'flex', 
-          alignItems: 'flex-end', 
+          alignItems: 'center', 
           gap: '0.5rem', 
-          backgroundColor: 'var(--card-bg)', 
-          padding: '0.5rem', 
-          borderRadius: '12px', 
-          border: '1px solid var(--card-border)',
-          boxShadow: 'var(--shadow)',
+          backgroundColor: '#FFFFFF', 
+          padding: '0.25rem 0.5rem', 
+          borderRadius: '24px', 
+          border: '1px solid var(--border)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           flexWrap: 'nowrap'
         }}>
           <button 
@@ -265,12 +265,15 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
               color: 'var(--text-main)', 
               resize: 'none', 
               minHeight: '24px',
-              maxHeight: '200px',
+              maxHeight: '120px',
               padding: '0.5rem 0',
               outline: 'none',
               fontFamily: 'inherit',
-              minWidth: 0
+              minWidth: 0,
+              fontSize: '0.95rem',
+              lineHeight: '1.4'
             }}
+            rows={1}
           />
 
           <button 
@@ -278,9 +281,9 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
             onClick={toggleRecording}
             disabled={!session || isStreaming}
             aria-label={isRecording ? "Stop voice input" : "Start voice input"}
-            style={{ background: 'none', border: 'none', padding: '0.5rem', color: isRecording ? 'var(--error)' : 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', padding: '0.5rem', color: isRecording ? 'var(--error)' : 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}
           >
-            <Mic size={20} />
+            <Mic size={18} />
           </button>
 
           {isStreaming ? (
@@ -300,8 +303,9 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
               style={{ 
                 background: (!session || !content.trim()) ? 'var(--card-border)' : 'var(--primary)', 
                 border: 'none', 
-                borderRadius: '8px', 
-                padding: '0.5rem', 
+                borderRadius: '50%', 
+                width: '32px',
+                height: '32px',
                 color: 'white', 
                 cursor: (!session || !content.trim()) ? 'not-allowed' : 'pointer', 
                 display: 'flex', 
@@ -312,7 +316,7 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
                 flexShrink: 0
               }}
             >
-              <Send size={18} />
+              <Send size={16} />
             </button>
           )}
         </div>

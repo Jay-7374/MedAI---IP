@@ -11,6 +11,7 @@ import {
   LogOut,
   X,
   Home
+, MessageSquare
 } from 'lucide-react';
 
 export default function Sidebar({ user, setUser, setView, activeTab, navigateTo, isAdmin, sidebarOpen, setSidebarOpen, showToast, handleLogout }) {
