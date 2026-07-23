@@ -45,9 +45,23 @@ const DEFAULT_PROMPTS = {
 };
 
 export default function App() {
-  const [view, setView] = useState('landing'); // 'landing' or 'app'
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [user, setUser] = useState(null);
+  const [view, setView] = useState(() => {
+    if (window.location.pathname === '/chatbot-dev') return 'chatbot-dev';
+    const savedUser = localStorage.getItem('user');
+    if (savedUser && localStorage.getItem('access_token')) return 'app';
+    return 'landing';
+  });
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('activeTab') || 'dashboard';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Only Admin role can access admin features
   const isAdmin = user?.role?.toLowerCase() === 'admin';
@@ -57,13 +71,22 @@ export default function App() {
   // Navigation History Stack
   const [historyStack, setHistoryStack] = useState([]);
 
-  useEffect(() => {
-    if (window.location.pathname === '/chatbot-dev') {
-      setView('chatbot-dev');
-    }
-  }, []);
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setView('landing');
+    showToast("Logged out successfully.", "warning");
+  };
+
+
+
 
   const navigateTo = (newView, newTab) => {
+    if (newView === 'login' && user && localStorage.getItem('access_token')) {
+      newView = 'app';
+      newTab = newTab || 'dashboard';
+    }
     // Prevent pushing duplicate consecutive states onto history
     setHistoryStack(prev => {
       if (prev.length > 0) {
@@ -247,7 +270,9 @@ export default function App() {
     if (user) {
       fetchAppointments();
       fetchMedicines();
-      fetchPrompts();
+      if (isAdmin) {
+        fetchPrompts();
+      }
       fetchSmsMessages();
     } else {
       setAppointments([]);
@@ -256,6 +281,17 @@ export default function App() {
       setSmsMessages([]);
     }
   }, [user]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      handleLogout();
+      showToast("Session expired. Please log in again.", "danger");
+      setAuthMode('login');
+      setView('login');
+    };
+    window.addEventListener('unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('unauthorized', handleUnauthorized);
+  }, []);
 
   useEffect(() => {
     if (prompts.length > 0) {
@@ -617,12 +653,20 @@ export default function App() {
           return;
         }
 
+
         const data = await res.json();
         if (res.ok) {
           const name = data.name || data.user?.name;
           const role = data.role || data.user?.role;
           setUser({ name, role });
+          
+          if (data.access_token) {
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('user', JSON.stringify({ name, role, id: data.user?.id, email: data.user?.email }));
+          }
+
           showToast(`Welcome back, ${name}!`, 'success');
+
           setView('app');
           setActiveTab('dashboard');
           // Reset form
@@ -854,6 +898,7 @@ export default function App() {
           isAdmin={isAdmin}
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
+          handleLogout={handleLogout}
         />
       </header>
 

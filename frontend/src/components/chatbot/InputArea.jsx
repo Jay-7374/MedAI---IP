@@ -79,7 +79,7 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
       const res = await apiFetch(`/api/chatbot/sessions/${session.id}/upload`, {
         method: 'POST',
         headers: {
-          'X-User-Id': '1' // Using standard fallback
+          
           // Do NOT set Content-Type header when sending FormData; the browser sets it with the boundary!
         },
         body: formData

@@ -2,7 +2,7 @@ import pytest
 from app.models import ChatbotSession, ChatbotMessage
 import json
 
-def test_normal_chat(client, test_user, block_external_llm_calls):
+def test_normal_chat(client, test_user, block_external_llm_calls, auth_headers):
     mock_primary = block_external_llm_calls["primary"]
     mock_fallback = block_external_llm_calls["fallback"]
     
@@ -38,14 +38,14 @@ def test_normal_chat(client, test_user, block_external_llm_calls):
     session_response = client.post(
         "/api/chatbot/sessions",
         json={"title": "Chat Test"},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     session_id = session_response.json()["id"]
     
     response = client.post(
         f"/api/chatbot/sessions/{session_id}/chat",
         json={"role": "user", "content": "Hi", "language": "English", "mode": "General Assistant"},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
@@ -58,7 +58,7 @@ def test_normal_chat(client, test_user, block_external_llm_calls):
     
     msgs_response = client.get(
         f"/api/chatbot/sessions/{session_id}/messages",
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     msgs = msgs_response.json()
     assert len(msgs) == 2

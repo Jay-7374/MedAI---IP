@@ -84,7 +84,7 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
     try {
       await apiFetch(`/api/chatbot/sessions/${session.id}/documents/${docId}`, {
         method: 'DELETE',
-        headers: { 'X-User-Id': '1' }
+        headers: { }
       });
       loadDocuments(session.id);
       loadMessages(session.id); // Reload to show system message
@@ -391,7 +391,7 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': '1' 
+          
         },
         body: JSON.stringify({
           role: 'user',
@@ -474,7 +474,7 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
       const response = await apiFetch(`/api/chatbot/sessions/${currentSessionId}/chat/retry`, {
         method: 'POST',
         signal: controller.signal,
-        headers: { 'Content-Type': 'application/json', 'X-User-Id': '1' }
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) throw new Error('Streaming request failed');

@@ -20,11 +20,17 @@ def register(request: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
     # --- HARDCODED BYPASS FOR TESTING WHEN SUPABASE IS DOWN ---
     if request.username == "admin" and request.password == "admin":
+        from app.services.auth_service import create_access_token
+        access_token = create_access_token(data={"sub": "999", "role": "admin"})
         return {
-            "id": 999,
-            "name": "Salus Admin",
-            "email": "admin@medai.com",
-            "role": "admin",
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": 999,
+                "name": "Salus Admin",
+                "email": "admin@medai.com",
+                "role": "admin",
+            }
         }
     # --------------------------------------------------------
 
@@ -45,9 +51,17 @@ def login(request: schemas.UserLogin, db: Session = Depends(get_db)):
 
     role_name = db_user.role.role_name if db_user.role else "patient"
 
+    from app.services.auth_service import create_access_token
+
+    access_token = create_access_token(data={"sub": str(db_user.id), "role": role_name})
+    
     return {
-        "id": db_user.id,
-        "name": db_user.name,
-        "email": db_user.email,
-        "role": role_name,
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": db_user.id,
+            "name": db_user.name,
+            "email": db_user.email,
+            "role": role_name,
+        }
     }

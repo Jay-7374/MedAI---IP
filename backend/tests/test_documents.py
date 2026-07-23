@@ -2,7 +2,7 @@ import pytest
 from app.models import ChatbotSession, ChatbotDocument
 import io
 
-def test_document_upload_validation(client, test_user, db_session):
+def test_document_upload_validation(client, test_user, db_session, auth_headers):
     session = ChatbotSession(user_id=test_user.id, title="Doc Test")
     db_session.add(session)
     db_session.commit()
@@ -13,11 +13,11 @@ def test_document_upload_validation(client, test_user, db_session):
     response = client.post(
         f"/api/chatbot/sessions/{session.id}/upload",
         files={"file": ("test.exe", invalid_file, "application/octet-stream")},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     assert response.status_code == 400
     
-def test_document_prompt_injection_defense(client, test_user, db_session, block_external_llm_calls):
+def test_document_prompt_injection_defense(client, test_user, db_session, block_external_llm_calls, auth_headers):
     session = ChatbotSession(user_id=test_user.id, title="Injection Test")
     db_session.add(session)
     db_session.commit()
@@ -44,7 +44,7 @@ def test_document_prompt_injection_defense(client, test_user, db_session, block_
     response = client.post(
         f"/api/chatbot/sessions/{session.id}/upload",
         files={"file": ("malicious.txt", test_file, "text/plain")},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     assert response.status_code == 200
     
@@ -70,7 +70,7 @@ def test_document_prompt_injection_defense(client, test_user, db_session, block_
     assert "UNTRUSTED DOCUMENT" in messages[1]["content"]
     assert malicious_text in messages[1]["content"]
 
-def test_conversation_summary_injection_defense(client, test_user, db_session):
+def test_conversation_summary_injection_defense(client, test_user, db_session, auth_headers):
     from app.services.context_manager import ContextManagerService
     
     session = ChatbotSession(

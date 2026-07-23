@@ -6,6 +6,7 @@ import os
 import asyncio
 
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.models import User, ChatbotSession, ChatbotMessage, ChatbotDocument
 from app.schemas import (
     ChatbotSessionCreate, ChatbotSession as ChatbotSessionSchema,
@@ -23,37 +24,16 @@ router = APIRouter(
     tags=["Chatbot"]
 )
 
-def get_user_from_header(db: Session, x_user_id: str = Header(None, alias="X-User-Id")):
-    # WARNING: SECURITY VULNERABILITY (DEVELOPMENT ONLY)
-    # The X-User-Id header is explicitly for development/demo compatibility.
-    # Trusting client-supplied identity without cryptographic verification is insecure.
-    # In production, this must be replaced with a verified JWT, OAuth token, or server-side session.
-    if x_user_id and x_user_id.isdigit():
-        user = db.query(User).filter(User.id == int(x_user_id)).first()
-        if user:
-            return user
-    
-    # CRITICAL WARNING: If the ID is invalid or missing, this silently falls back to the first user.
-    # This prevents development crashes but allows silent identity spoofing.
-    # MUST NOT be used as production authentication.
-    user = db.query(User).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="No users found in database.")
-    return user
-
-
 @router.get("/sessions", response_model=list[ChatbotSessionListSchema])
-def get_sessions(db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+def get_sessions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Retrieve all chatbot sessions for the current user."""
-    user = get_user_from_header(db, x_user_id)
-    return db.query(ChatbotSession).filter(ChatbotSession.user_id == user.id).order_by(ChatbotSession.updated_at.desc()).all()
+    return db.query(ChatbotSession).filter(ChatbotSession.user_id == current_user.id).order_by(ChatbotSession.updated_at.desc()).all()
 
 @router.post("/sessions", response_model=ChatbotSessionSchema)
-def create_session(session_data: ChatbotSessionCreate, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+def create_session(session_data: ChatbotSessionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Create a new chatbot session."""
-    user = get_user_from_header(db, x_user_id)
     db_session = ChatbotSession(
-        user_id=user.id,
+        user_id=current_user.id,
         title=session_data.title,
         language=session_data.language,
         mode=session_data.mode
@@ -63,31 +43,34 @@ def create_session(session_data: ChatbotSessionCreate, db: Session = Depends(get
     db.refresh(db_session)
     return db_session
 @router.get("/sessions/{session_id}", response_model=ChatbotSessionSchema)
-def get_session(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+def get_session(session_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Retrieve a specific chatbot session."""
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     return session
 
 @router.delete("/sessions/{session_id}")
-def delete_session(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+def delete_session(session_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Delete a specific chatbot session."""
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     db.delete(session)
     db.commit()
     return {"status": "success", "message": "Session deleted"}
 @router.get("/sessions/{session_id}/messages", response_model=list[ChatbotMessageSchema])
-def get_messages(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+def get_messages(session_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Retrieve all messages for a specific session."""
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     
     return db.query(ChatbotMessage).filter(ChatbotMessage.session_id == session_id).order_by(ChatbotMessage.timestamp.asc()).all()
 
@@ -175,15 +158,16 @@ async def chat_stream(
     message_data: ChatbotMessageCreate, 
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), 
-    x_user_id: str = Header(None, alias="X-User-Id")
+    current_user: User = Depends(get_current_user)
 ):
     """
     Core streaming endpoint.
     """
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     
     # 1. Save User Message
     user_msg = ChatbotMessage(
@@ -228,15 +212,16 @@ async def chat_retry(
     session_id: UUID, 
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db), 
-    x_user_id: str = Header(None, alias="X-User-Id")
+    current_user: User = Depends(get_current_user)
 ):
     """
     Retry endpoint. Finds the last user message and re-streams the response without creating a duplicate user message.
     """
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
         
     last_user_message = (
         db.query(ChatbotMessage)
@@ -265,14 +250,15 @@ async def chat_retry(
 
 
 @router.post("/sessions/{session_id}/upload")
-async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """
     Uploads a document, extracts text, summarizes it, and associates it with the chat session.
     """
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     ext = os.path.splitext(file.filename)[1].lower()
     allowed_exts = [".pdf", ".docx", ".txt"]
@@ -335,20 +321,22 @@ async def upload_document(session_id: UUID, file: UploadFile = File(...), db: Se
     return doc
 
 @router.get("/sessions/{session_id}/documents")
-async def get_session_documents(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+async def get_session_documents(session_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
         
     return db.query(ChatbotDocument).filter(ChatbotDocument.session_id == session_id).order_by(ChatbotDocument.upload_time.desc()).all()
 
 @router.delete("/sessions/{session_id}/documents/{doc_id}")
-async def delete_document(session_id: UUID, doc_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
-    user = get_user_from_header(db, x_user_id)
-    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+async def delete_document(session_id: UUID, doc_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
         
     doc = db.query(ChatbotDocument).filter(ChatbotDocument.id == doc_id, ChatbotDocument.session_id == session_id).first()
     if not doc:

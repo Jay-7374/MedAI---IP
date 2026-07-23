@@ -2,10 +2,10 @@ import pytest
 from app.models import ChatbotSession, ChatbotMessage
 from tests.test_fallback import setup_fallback_mocks
 
-def test_retry(client, test_user, db_session, block_external_llm_calls):
+def test_retry(client, test_user, db_session, block_external_llm_calls, auth_headers):
     mock_primary, _ = setup_fallback_mocks(block_external_llm_calls)
     
-    session_response = client.post("/api/chatbot/sessions", json={"title": "Retry Test"}, headers={"X-User-Id": str(test_user.id)})
+    session_response = client.post("/api/chatbot/sessions", json={"title": "Retry Test"}, headers=auth_headers)
     session_id = session_response.json()["id"]
     
     msg1 = ChatbotMessage(session_id=session_id, role="user", content="Test", status="completed")
@@ -39,14 +39,14 @@ def test_retry(client, test_user, db_session, block_external_llm_calls):
             
     mock_primary.return_value = AsyncMockSuccessStream()
     
-    response = client.post(f"/api/chatbot/sessions/{session_id}/chat/retry", headers={"X-User-Id": str(test_user.id)})
+    response = client.post(f"/api/chatbot/sessions/{session_id}/chat/retry", headers=auth_headers)
     assert response.status_code == 200
     
     content = response.content.decode("utf-8")
     assert 'data: {"content": "Retry "}' in content
     assert 'data: {"content": "Worked"}' in content
     
-    msgs = client.get(f"/api/chatbot/sessions/{session_id}/messages", headers={"X-User-Id": str(test_user.id)}).json()
+    msgs = client.get(f"/api/chatbot/sessions/{session_id}/messages", headers=auth_headers).json()
     assert len(msgs) == 3
     assert msgs[0]["role"] == "user"
     assert msgs[1]["role"] == "assistant"

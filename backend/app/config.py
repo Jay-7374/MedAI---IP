@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     # LLM (Groq)
     GROQ_API_KEY: Optional[str] = None
 
+    # Authentication
+    JWT_SECRET_KEY: str = "your-super-secret-jwt-key-change-me"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 1 week
+
     # ElevenLabs TTS
     ELEVENLABS_API_KEY: Optional[str] = None
 

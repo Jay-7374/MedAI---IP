@@ -27,7 +27,7 @@ def setup_fallback_mocks(block_external_llm_calls):
     mock_fallback.side_effect = fallback_success_stream
     return mock_primary, mock_fallback
 
-def test_fallback_on_429(client, test_user, block_external_llm_calls):
+def test_fallback_on_429(client, test_user, block_external_llm_calls, auth_headers):
     mock_primary, mock_fallback = setup_fallback_mocks(block_external_llm_calls)
     
     import groq
@@ -39,13 +39,13 @@ def test_fallback_on_429(client, test_user, block_external_llm_calls):
             
     mock_primary.side_effect = primary_fail_stream
     
-    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers={"X-User-Id": str(test_user.id)})
+    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers=auth_headers)
     session_id = session_response.json()["id"]
     
     response = client.post(
         f"/api/chatbot/sessions/{session_id}/chat",
         json={"role": "user", "content": "Hi", "language": "English", "mode": "General Assistant"},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     
     content = response.content.decode("utf-8")
@@ -58,10 +58,10 @@ def test_fallback_on_429(client, test_user, block_external_llm_calls):
     fallback_call_kwargs = mock_fallback.call_args.kwargs
     assert fallback_call_kwargs["model"] == "openai/gpt-oss-120b"
     
-    msgs = client.get(f"/api/chatbot/sessions/{session_id}/messages", headers={"X-User-Id": str(test_user.id)}).json()
+    msgs = client.get(f"/api/chatbot/sessions/{session_id}/messages", headers=auth_headers).json()
     assert msgs[-1]["content"] == "Fallback Success"
 
-def test_no_fallback_midstream(client, test_user, block_external_llm_calls):
+def test_no_fallback_midstream(client, test_user, block_external_llm_calls, auth_headers):
     mock_primary, mock_fallback = setup_fallback_mocks(block_external_llm_calls)
     
     import groq
@@ -87,13 +87,13 @@ def test_no_fallback_midstream(client, test_user, block_external_llm_calls):
             
     mock_primary.side_effect = primary_mid_fail_stream
     
-    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers={"X-User-Id": str(test_user.id)})
+    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers=auth_headers)
     session_id = session_response.json()["id"]
     
     response = client.post(
         f"/api/chatbot/sessions/{session_id}/chat",
         json={"role": "user", "content": "Hi", "language": "English", "mode": "General Assistant"},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     
     content = response.content.decode("utf-8")
@@ -102,7 +102,7 @@ def test_no_fallback_midstream(client, test_user, block_external_llm_calls):
     
     assert mock_fallback.call_count == 0
 
-def test_no_fallback_on_auth_error(client, test_user, block_external_llm_calls):
+def test_no_fallback_on_auth_error(client, test_user, block_external_llm_calls, auth_headers):
     mock_primary, mock_fallback = setup_fallback_mocks(block_external_llm_calls)
     
     import groq
@@ -114,20 +114,20 @@ def test_no_fallback_on_auth_error(client, test_user, block_external_llm_calls):
             
     mock_primary.side_effect = primary_auth_fail
     
-    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers={"X-User-Id": str(test_user.id)})
+    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers=auth_headers)
     session_id = session_response.json()["id"]
     
     response = client.post(
         f"/api/chatbot/sessions/{session_id}/chat",
         json={"role": "user", "content": "Hi", "language": "English", "mode": "General Assistant"},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     
     content = response.content.decode("utf-8")
     assert 'data: {"error":' in content
     assert mock_fallback.call_count == 0
 
-def test_both_fail(client, test_user, block_external_llm_calls):
+def test_both_fail(client, test_user, block_external_llm_calls, auth_headers):
     mock_primary, mock_fallback = setup_fallback_mocks(block_external_llm_calls)
     
     import groq
@@ -144,17 +144,17 @@ def test_both_fail(client, test_user, block_external_llm_calls):
     mock_primary.side_effect = primary_fail_stream
     mock_fallback.side_effect = fallback_fail_stream
     
-    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers={"X-User-Id": str(test_user.id)})
+    session_response = client.post("/api/chatbot/sessions", json={"title": "T"}, headers=auth_headers)
     session_id = session_response.json()["id"]
     
     response = client.post(
         f"/api/chatbot/sessions/{session_id}/chat",
         json={"role": "user", "content": "Hi", "language": "English", "mode": "General Assistant"},
-        headers={"X-User-Id": str(test_user.id)}
+        headers=auth_headers
     )
     
     content = response.content.decode("utf-8")
     assert 'data: {"error":' in content
     
-    msgs = client.get(f"/api/chatbot/sessions/{session_id}/messages", headers={"X-User-Id": str(test_user.id)}).json()
+    msgs = client.get(f"/api/chatbot/sessions/{session_id}/messages", headers=auth_headers).json()
     assert msgs[-1]["role"] == "user"

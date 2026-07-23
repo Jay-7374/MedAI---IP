@@ -9,21 +9,16 @@ import {
   FileText,
   Leaf,
   LogOut,
-  X
+  X,
+  Home
 } from 'lucide-react';
 
-export default function Sidebar({ user, setUser, setView, activeTab, navigateTo, isAdmin, sidebarOpen, setSidebarOpen, showToast }) {
+export default function Sidebar({ user, setUser, setView, activeTab, navigateTo, isAdmin, sidebarOpen, setSidebarOpen, showToast, handleLogout }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isStaff = ['staff', 'doctor', 'receptionist', 'admin'].includes(user?.role?.toLowerCase());
-
-  const handleLogout = () => {
-    setUser(null);
-    setView('landing');
-    showToast("Logged out successfully.", "warning");
-  };
-
   // Flattened navigation list without categories
   const navItems = [
+    { id: 'landing', label: 'Homepage', icon: Home },
     { id: 'dashboard', label: 'Dashboard', icon: ActivitySquare },
     { id: 'appointments', label: 'Scheduling', icon: Calendar },
     { id: 'medicines', label: 'Medication', icon: Pill },
@@ -83,7 +78,11 @@ export default function Sidebar({ user, setUser, setView, activeTab, navigateTo,
                 >
                   <button 
                     onClick={() => {
-                      navigateTo('app', item.id);
+                      if (item.id === 'landing') {
+                        navigateTo('landing');
+                      } else {
+                        navigateTo('app', item.id);
+                      }
                       if (window.innerWidth <= 768) setSidebarOpen(false);
                     }}
                     title={!isExpanded ? item.label : undefined}
