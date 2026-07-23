@@ -6,6 +6,7 @@ import { apiFetch } from '../../apiClient';
 export default function ChatbotLayout() {
   const [sessions, setSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadSessions();
@@ -38,17 +39,20 @@ export default function ChatbotLayout() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', fontFamily: 'var(--font-family, system-ui)' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', fontFamily: 'var(--font-family, system-ui)', position: 'relative' }}>
       <SidebarHistory 
         sessions={sessions} 
         setSessions={setSessions} 
         activeSession={activeSession} 
         setActiveSession={setActiveSession}
         loadSessions={loadSessions}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
       />
       <ChatWindow 
         session={activeSession}
         setSession={setActiveSession}
+        onOpenSidebar={() => setIsMobileSidebarOpen(true)}
       />
     </div>
   );

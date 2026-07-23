@@ -38,9 +38,12 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
         {isUser ? <User size={18} color="white" /> : <Bot size={18} color="white" />}
       </div>
       
-      <div style={{ flex: 1, overflow: 'hidden' }} className="markdown-body">
+      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }} className="markdown-body">
         {message.status === 'loading' ? (
-          <div style={{ animation: 'pulse 1.5s infinite', letterSpacing: '2px', fontSize: '1.2rem', color: 'var(--text-secondary)' }}>•••</div>
+          <div style={{ animation: 'pulse 1.5s infinite', letterSpacing: '2px', fontSize: '1.2rem', color: 'var(--text-secondary)' }} aria-live="polite">
+            •••
+            <span style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>Generating response</span>
+          </div>
         ) : (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -66,6 +69,7 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
                         <span>{match[1]}</span>
                         <button
                           onClick={() => handleCopy(codeText)}
+                          aria-label="Copy code"
                           style={{
                             background: 'none',
                             border: 'none',
@@ -121,6 +125,7 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
                     onPlay();
                   }
                 }}
+                aria-label={(isActiveTts && (ttsState === 'playing' || ttsState === 'paused')) ? 'Stop Audio' : 'Play Audio'}
                 style={{
                   background: 'none',
                   border: '1px solid var(--card-border)',
@@ -148,6 +153,7 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
                     onResume();
                   }
                 }}
+                aria-label={ttsState === 'playing' ? 'Pause Audio' : 'Resume Audio'}
                 style={{
                   background: 'none',
                   border: '1px solid var(--card-border)',
@@ -166,21 +172,21 @@ export default function MessageBubble({ message, isActiveTts, ttsState, onPlay, 
               </button>
             )}
 
-            {message.status === 'failed' && onRetry && (
+            {message.status === 'failed' && (
               <button
                 onClick={onRetry}
+                aria-label="Retry generating message"
                 style={{
                   background: 'none',
-                  border: '1px solid var(--card-border)',
+                  border: '1px solid var(--error)',
                   borderRadius: '4px',
-                  color: 'var(--primary)',
+                  color: 'var(--error)',
                   cursor: 'pointer',
                   padding: '0.25rem 0.5rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.25rem',
-                  fontSize: '0.85rem',
-                  fontWeight: '500'
+                  fontSize: '0.85rem'
                 }}
               >
                 Retry

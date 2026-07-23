@@ -2,7 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { apiFetch } from '../../apiClient';
 
-export default function SidebarHistory({ activeSession, setActiveSession, sessions, setSessions, loadSessions }) {
+export default function SidebarHistory({ activeSession, setActiveSession, sessions, setSessions, loadSessions, isOpen, onClose }) {
+  
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    // Prevent background scrolling when open
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   const handleCreateSession = async () => {
     try {
@@ -15,6 +34,7 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
       const newSession = await res.json();
       setSessions([newSession, ...sessions]);
       setActiveSession(newSession);
+      if (window.innerWidth <= 768) onClose();
     } catch (err) {
       console.error('Failed to create session', err);
     }
@@ -34,12 +54,17 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
   };
 
   return (
-    <div style={{ width: '260px', backgroundColor: 'var(--sidebar-bg)', borderRight: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '1rem' }}>
-        <button 
-          onClick={handleCreateSession}
-          style={{ 
-            width: '100%', 
+    <>
+      {isOpen && (
+        <div className="chatbot-sidebar-backdrop" onClick={onClose} aria-hidden="true" />
+      )}
+      <div className={`chatbot-sidebar ${isOpen ? 'mobile-open' : ''}`}>
+        <div style={{ padding: '1rem' }}>
+          <button 
+            onClick={handleCreateSession}
+            aria-label="New Chat"
+            style={{ 
+              width: '100%', 
             padding: '0.75rem', 
             borderRadius: '8px', 
             border: '1px solid var(--card-border)', 
@@ -62,7 +87,10 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
         {sessions.map(session => (
           <div 
             key={session.id}
-            onClick={() => setActiveSession(session)}
+            onClick={() => {
+              setActiveSession(session);
+              if (window.innerWidth <= 768) onClose();
+            }}
             style={{ 
               padding: '0.75rem', 
               borderRadius: '8px', 
@@ -83,6 +111,7 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
             </div>
             <button 
               onClick={(e) => handleDeleteSession(e, session.id)}
+              aria-label="Delete Session"
               style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
             >
               <Trash2 size={16} />
@@ -91,5 +120,6 @@ export default function SidebarHistory({ activeSession, setActiveSession, sessio
         ))}
       </div>
     </div>
+    </>
   );
 }

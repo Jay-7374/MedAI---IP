@@ -3,9 +3,9 @@ import MessageBubble from './MessageBubble';
 import InputArea from './InputArea';
 import { apiFetch } from '../../apiClient';
 import { getBestVoice, SPEECH_LANGUAGE_MAP } from '../../utils/voice';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Menu } from 'lucide-react';
 
-export default function ChatWindow({ session, setSession }) {
+export default function ChatWindow({ session, setSession, onOpenSidebar }) {
   const [messages, setMessages] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [streamingSessions, setStreamingSessions] = useState({});
@@ -36,6 +36,7 @@ export default function ChatWindow({ session, setSession }) {
         if (gen.reader) gen.reader.cancel().catch(() => {});
       });
       activeGenerationsRef.current.clear();
+      window.speechSynthesis.cancel(); // TTS Cleanup on unmount
     };
   }, []);
 
@@ -142,7 +143,6 @@ export default function ChatWindow({ session, setSession }) {
     window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
     return () => {
       window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
-      window.speechSynthesis.cancel();
     };
   }, []);
 
@@ -520,10 +520,34 @@ export default function ChatWindow({ session, setSession }) {
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--bg-main)' }}>
       {/* Header */}
-      <div style={{ flexShrink: 0, padding: '1rem 1.5rem', borderBottom: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ margin: 0 }}>{session.title}</h3>
+      <div style={{ 
+        padding: '1rem', 
+        borderBottom: '1px solid var(--card-border)', 
+        backgroundColor: 'var(--card-bg)',
+        display: 'flex', 
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button 
+            className="btn-mobile-menu" 
+            onClick={onOpenSidebar}
+            aria-label="Open chat history"
+            aria-expanded="false"
+            aria-controls="sidebar-drawer"
+            style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}
+          >
+            <Menu size={24} />
+          </button>
+          <h2 style={{ fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: 600 }}>
+            {session ? session.title : 'MedAI Assistant'}
+          </h2>
+        </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>
           {ttsError && <span style={{ color: 'var(--error)', marginRight: '1rem', fontSize: '0.85rem' }}>{ttsError}</span>}
           <input 
@@ -585,6 +609,7 @@ export default function ChatWindow({ session, setSession }) {
             onClick={() => { setIsUserScrolledUp(false); scrollToBottom('smooth'); }}
             style={{ transform: 'translateY(-20px)', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
             title="Jump to latest"
+            aria-label="Jump to latest"
           >
             <ArrowDown size={18} />
           </button>

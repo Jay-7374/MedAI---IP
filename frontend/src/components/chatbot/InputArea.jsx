@@ -22,6 +22,24 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
     adjustHeight();
   }, [content]);
 
+  // STT session ownership tracking
+  const currentSessionIdRef = useRef(session?.id);
+  
+  useEffect(() => {
+    currentSessionIdRef.current = session?.id;
+    
+    // Auto-focus on New Chat
+    if (session?.title === 'New Chat' && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+
+    // Abort STT on session switch
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.abort();
+      setIsRecording(false);
+    }
+  }, [session?.id]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!content.trim() || isStreaming) return;
@@ -107,7 +125,7 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
           }
         }
         
-        if (finalTranscript) {
+        if (finalTranscript && currentSessionIdRef.current === session?.id) {
           setContent(prev => prev + (prev ? ' ' : '') + finalTranscript);
         }
         // Note: interim results could be shown as a placeholder if desired, but we'll stick to final for simplicity
@@ -116,8 +134,10 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
       recognition.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsRecording(false);
-        setUploadError(`Speech error: ${event.error}`);
-        setTimeout(() => setUploadError(''), 5000);
+        if (event.error !== 'aborted') {
+          setUploadError(`Speech error: ${event.error}`);
+          setTimeout(() => setUploadError(''), 5000);
+        }
       };
 
       recognition.onend = () => {
@@ -126,6 +146,12 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
 
       recognitionRef.current = recognition;
     }
+    
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
   }, []);
 
   const toggleRecording = () => {
@@ -167,11 +193,12 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
       <form onSubmit={handleSubmit} style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         
         {/* Settings Bar & Upload Status */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <select 
             value={mode} 
             onChange={e => setMode(e.target.value)}
-            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)' }}
+            aria-label="Persona Selector"
+            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)', maxWidth: '140px' }}
           >
             <option>General Assistant</option>
             <option>Symptom Checker</option>
@@ -181,7 +208,8 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
           <select 
             value={currentLanguage} 
             onChange={e => setCurrentLanguage(e.target.value)}
-            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)' }}
+            aria-label="Language Selector"
+            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', background: 'var(--sidebar-bg)', color: 'var(--text-main)', border: '1px solid var(--card-border)', maxWidth: '100px' }}
           >
             {Object.keys(SPEECH_LANGUAGE_MAP).map(lang => (
               <option key={lang} value={lang}>{lang}</option>
@@ -199,96 +227,87 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
           alignItems: 'flex-end', 
           gap: '0.5rem', 
           backgroundColor: 'var(--card-bg)', 
+          padding: '0.5rem', 
           borderRadius: '12px', 
           border: '1px solid var(--card-border)',
-          padding: '0.5rem 1rem'
+          boxShadow: 'var(--shadow)',
+          flexWrap: 'nowrap'
         }}>
+          <button 
+            type="button" 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!session || isStreaming || isUploading}
+            aria-label="Attach document"
+            style={{ background: 'none', border: 'none', padding: '0.5rem', color: 'var(--text-secondary)', cursor: 'pointer' }}
+          >
+            <Paperclip size={20} />
+          </button>
+          
           <input 
             type="file" 
             ref={fileInputRef} 
             style={{ display: 'none' }} 
-            accept=".pdf,.docx,.txt"
             onChange={handleFileChange}
+            accept=".pdf,.docx,.txt"
           />
-          <button 
-            type="button" 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={!session || isUploading || isStreaming}
-            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: (!session || isUploading || isStreaming) ? 'not-allowed' : 'pointer', padding: '0.5rem' }}
-          >
-            <Paperclip size={20} />
-          </button>
           
           <textarea
             ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your medical query or drag and drop a file here..."
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-main)',
-              resize: 'none',
+            placeholder={isStreaming ? "Generating response..." : "Ask your medical question..."}
+            disabled={!session || isStreaming}
+            style={{ 
+              flex: 1, 
+              border: 'none', 
+              background: 'transparent', 
+              color: 'var(--text-main)', 
+              resize: 'none', 
               minHeight: '24px',
               maxHeight: '200px',
               padding: '0.5rem 0',
+              outline: 'none',
               fontFamily: 'inherit',
-              outline: 'none'
+              minWidth: 0
             }}
           />
-          
+
           <button 
             type="button" 
             onClick={toggleRecording}
-            title={isRecording ? "Stop Recording" : "Start Recording"}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: isRecording ? 'var(--error)' : 'var(--text-secondary)', 
-              cursor: 'pointer', 
-              padding: '0.5rem',
-              animation: isRecording ? 'pulse 1.5s infinite' : 'none'
-            }}
+            disabled={!session || isStreaming}
+            aria-label={isRecording ? "Stop voice input" : "Start voice input"}
+            style={{ background: 'none', border: 'none', padding: '0.5rem', color: isRecording ? 'var(--error)' : 'var(--text-secondary)', cursor: 'pointer' }}
           >
             <Mic size={20} />
           </button>
-          
+
           {isStreaming ? (
             <button 
               type="button" 
               onClick={onStopGeneration}
-              title="Stop generating"
-              style={{ 
-                background: 'var(--card-border)', 
-                border: 'none', 
-                color: 'var(--error)', 
-                cursor: 'pointer', 
-                padding: '0.5rem',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background 0.2s'
-              }}
+              aria-label="Stop Generating"
+              style={{ background: 'var(--error)', border: 'none', borderRadius: '8px', padding: '0.5rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <Square size={18} fill="currentColor" />
+              <Square size={20} />
             </button>
           ) : (
             <button 
-              type="submit" 
-              disabled={!content.trim() || isUploading}
+              type="submit"
+              disabled={!session || !content.trim()}
+              aria-label="Send message"
               style={{ 
-                background: (!content.trim() || isUploading) ? 'var(--card-border)' : 'var(--primary)', 
+                background: 'var(--primary)', 
                 border: 'none', 
+                borderRadius: '8px', 
+                padding: '0.5rem', 
                 color: 'white', 
-                cursor: (!content.trim() || isUploading) ? 'not-allowed' : 'pointer', 
-                padding: '0.5rem',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                cursor: (!session || !content.trim()) ? 'not-allowed' : 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                opacity: (!session || !content.trim()) ? 0.5 : 1,
                 transition: 'background 0.2s'
               }}
             >

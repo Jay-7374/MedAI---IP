@@ -603,6 +603,79 @@ body::before {
   color: var(--text-main);
 }
 
+/* ============ CHATBOT SIDEBAR RESPONSIVENESS ============ */
+.btn-mobile-menu {
+  display: none;
+}
+
+.chatbot-sidebar {
+  width: 260px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  z-index: 1000;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============ MARKDOWN RESPONSIVENESS ============ */
+.markdown-body {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+.markdown-body p, .markdown-body li {
+  max-width: 100%;
+}
+.markdown-body pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.markdown-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.markdown-body code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.markdown-body pre code {
+  white-space: pre;
+  word-break: normal;
+}
+
+.chatbot-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .btn-mobile-menu {
+    display: block !important;
+  }
+  .chatbot-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    width: 280px;
+  }
+  .chatbot-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .chatbot-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+  }
+}
+
 .profile-card {
   display: flex;
   align-items: center;
