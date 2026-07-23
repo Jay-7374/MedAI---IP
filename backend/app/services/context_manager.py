@@ -37,7 +37,11 @@ class ContextManagerService:
         # Fetch the most recent N messages, then reverse them so they are chronological
         recent_messages = (
             db.query(ChatbotMessage)
-            .filter(ChatbotMessage.session_id == session_id, ChatbotMessage.role.in_(["user", "assistant"]))
+            .filter(
+                ChatbotMessage.session_id == session_id, 
+                ChatbotMessage.role.in_(["user", "assistant"]),
+                ChatbotMessage.status == "completed"
+            )
             .order_by(ChatbotMessage.timestamp.desc())
             .limit(settings.MAX_CONTEXT_MESSAGES)
             .all()

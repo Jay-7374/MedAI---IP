@@ -5,7 +5,7 @@ from app import schemas, crud
 from app.config import settings
 from app.services import twilio_service
 from app.services.voice_bot import process_voice_turn
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(tags=["telephony"])
 
@@ -14,7 +14,7 @@ sms_db = [
     {
         "id": 1,
         "text": "Salus Auth: Alex Mercer identity verified successfully at 2026-06-20 10:15 AM.",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         "recipient": "+919995642737",
     },
 ]
@@ -25,7 +25,7 @@ def dispatch_sms(text: str, recipient: str = None) -> dict:
     entry = {
         "id": len(sms_db) + 1,
         "text": text,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         "recipient": to_number,
     }
     sms_db.append(entry)

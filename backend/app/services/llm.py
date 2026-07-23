@@ -2,7 +2,7 @@ import json
 import base64
 import logging
 import asyncio
-from groq import Groq, AsyncGroq, RateLimitError, APIStatusError, APITimeoutError, InternalServerError
+from groq import Groq, AsyncGroq, RateLimitError, APIStatusError, APITimeoutError, InternalServerError, AuthenticationError
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,9 @@ async def stream_chat_response(messages: list, request=None):
 
     except asyncio.CancelledError:
         raise
+    except AuthenticationError as e:
+        logger.error(f"Primary model {PRIMARY_MODEL} authentication failed: {e}")
+        yield f"data: {json.dumps({'error': 'Authentication failed. Please check your API key.'})}\n\n"
     except (RateLimitError, APIStatusError, APITimeoutError, InternalServerError) as e:
         if has_emitted_content:
             # We already started streaming, so we cannot safely fall back.

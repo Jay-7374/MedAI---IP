@@ -1,7 +1,11 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, Date, Time, Float, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
+
+def utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
 import uuid
 from .database import Base
 
@@ -11,8 +15,8 @@ class Role(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role_name = Column(String(50), unique=True, nullable=False)
     description = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     users = relationship("User", back_populates="role")
 
@@ -25,8 +29,8 @@ class User(Base):
     email = Column(String(100), unique=True, index=True)
     password = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
 
     role = relationship("Role", back_populates="users")
@@ -134,7 +138,7 @@ class CallSession(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     channel = Column(String(50))  # 'WebRTC' or 'Telephony'
     status = Column(String(50), default="Active")
-    started_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, default=utc_now)
     ended_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="sessions")
@@ -154,7 +158,7 @@ class Transcript(Base):
     text = Column(Text)
     audio_path = Column(String(255), nullable=True)
     latency_ms = Column(Integer, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
 
     session = relationship("CallSession", back_populates="transcripts")
 
@@ -165,9 +169,9 @@ class PromptTemplate(Base):
     id = Column(Integer, primary_key=True, index=True)
     bot_name = Column(String(100), unique=True, index=True)
     system_prompt = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime, default=utc_now, onupdate=utc_now
     )
 
 
@@ -181,8 +185,8 @@ class ChatbotSession(Base):
     mode = Column(String(100), default="General Assistant")
     conversation_summary = Column(Text, nullable=True)
     summarized_until = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     user = relationship("User")
     messages = relationship("ChatbotMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatbotMessage.timestamp")
@@ -201,7 +205,7 @@ class ChatbotMessage(Base):
     role = Column(String(50))  # 'user', 'assistant', 'system'
     content = Column(Text)
     status = Column(String(50), default="completed")  # 'sending', 'completed', 'failed'
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=utc_now)
     prompt_tokens = Column(Integer, nullable=True)
     completion_tokens = Column(Integer, nullable=True)
     latency_ms = Column(Integer, nullable=True)
@@ -226,6 +230,6 @@ class ChatbotDocument(Base):
     summary = Column(Text, nullable=True)
     processing_status = Column(String(50), default="pending")  # 'pending', 'completed', 'failed'
     processing_duration_ms = Column(Integer, nullable=True)
-    upload_time = Column(DateTime, default=datetime.utcnow)
+    upload_time = Column(DateTime, default=utc_now)
 
     session = relationship("ChatbotSession", back_populates="documents")

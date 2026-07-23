@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from app.database import get_db, SessionLocal
 from app import schemas, crud
 from app.services.voice_bot import process_voice_turn
@@ -30,11 +30,11 @@ def get_session_transcripts(session_id: str, db: Session = Depends(get_db)):
 
 @router.post("/api/voice/turn", summary="Process a single voice turn via HTTP")
 def voice_turn(session_id: str, user_text: str, bot_name: str = "General", db: Session = Depends(get_db)):
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc).replace(tzinfo=None)
     crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="User", text=user_text))
     
     ai_response = process_voice_turn(db, session_id, user_text, bot_name)
-    latency = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+    latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
     
     crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="AI", text=ai_response, latency_ms=latency))
     audio_url = get_tts_audio_url(ai_response)
@@ -74,9 +74,9 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                     except Exception as e:
                         print(f"Skipping DB save (Supabase down): {e}")
                 
-                start_time = datetime.utcnow()
+                start_time = datetime.now(timezone.utc).replace(tzinfo=None)
                 ai_response = process_voice_turn(db, session_id, user_text, bot_name)
-                latency = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+                latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
                 
                 # Save AI transcript (skip if DB unavailable)
                 if db is not None:

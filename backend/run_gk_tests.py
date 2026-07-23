@@ -2,7 +2,7 @@ import os
 import sys
 from unittest.mock import patch, MagicMock
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from app.database import SessionLocal
@@ -23,7 +23,7 @@ def test_g_summary_failure_atomicity():
     db, user = setup_db()
     
     session_id = uuid.uuid4()
-    original_time = datetime.utcnow() - timedelta(days=1)
+    original_time = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)
     
     session = ChatbotSession(
         id=session_id,

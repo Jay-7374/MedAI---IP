@@ -21,8 +21,10 @@ class PromptManager:
         Retrieves the system prompt for a specific mode.
         First checks the PromptTemplate table, then falls back to defaults.
         """
+        from ..prompts.modes import BASE_MEDICAL_SAFETY_PROMPT
+        
         template = db.query(PromptTemplate).filter(PromptTemplate.bot_name == mode).first()
         if template and template.system_prompt:
-            return template.system_prompt
+            return template.system_prompt + BASE_MEDICAL_SAFETY_PROMPT
             
-        return cls.DEFAULT_PROMPTS.get(mode, cls.DEFAULT_PROMPTS["General Assistant"])
+        return cls.DEFAULT_PROMPTS.get(mode, cls.DEFAULT_PROMPTS["General Assistant"]) + BASE_MEDICAL_SAFETY_PROMPT

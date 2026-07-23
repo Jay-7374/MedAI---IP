@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/api/emergency", tags=["emergency"])
 
@@ -15,6 +15,6 @@ def trigger_sos():
             "status": "Dispatched",
             "unit": "Ambulance Unit #4B",
             "eta_minutes": 7,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         },
     }

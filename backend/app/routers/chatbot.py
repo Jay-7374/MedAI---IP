@@ -15,7 +15,7 @@ from app.schemas import (
 from app.services.context_manager import ContextManagerService
 from app.services.llm import stream_chat_response, analyze_image
 from app.config import settings
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 router = APIRouter(
@@ -62,7 +62,25 @@ def create_session(session_data: ChatbotSessionCreate, db: Session = Depends(get
     db.commit()
     db.refresh(db_session)
     return db_session
+@router.get("/sessions/{session_id}", response_model=ChatbotSessionSchema)
+def get_session(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+    """Retrieve a specific chatbot session."""
+    user = get_user_from_header(db, x_user_id)
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
 
+@router.delete("/sessions/{session_id}")
+def delete_session(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
+    """Delete a specific chatbot session."""
+    user = get_user_from_header(db, x_user_id)
+    session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id, ChatbotSession.user_id == user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    db.delete(session)
+    db.commit()
+    return {"status": "success", "message": "Session deleted"}
 @router.get("/sessions/{session_id}/messages", response_model=list[ChatbotMessageSchema])
 def get_messages(session_id: UUID, db: Session = Depends(get_db), x_user_id: str = Header(None, alias="X-User-Id")):
     """Retrieve all messages for a specific session."""
@@ -184,7 +202,7 @@ async def chat_stream(
     if message_data.mode:
         session.mode = message_data.mode
 
-    session.updated_at = datetime.utcnow()
+    session.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     db.commit()
 
     # 2. Build Payload

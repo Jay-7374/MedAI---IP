@@ -30,10 +30,11 @@
   --secondary-hover: #22937C;
   --secondary-light: rgba(44, 184, 156, 0.20);
 
-  /* State Colors */
+  /* Feedback / UI States */
   --success: #22C55E;
   --warning: #F59E0B;
   --danger: #EF4444;
+  --error: #EF4444;
 
   /* Typography */
   --text-main: #163C35;

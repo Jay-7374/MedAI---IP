@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 from datetime import datetime, date, time
 from typing import Optional, List
 
@@ -23,8 +23,7 @@ class User(UserBase):
     role: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @field_validator("role", mode="before")
     @classmethod
@@ -40,8 +39,7 @@ class DepartmentBase(BaseModel):
 
 class Department(DepartmentBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DoctorBase(BaseModel):
@@ -53,8 +51,7 @@ class Doctor(DoctorBase):
     department_id: int
     user: User
     department: Department
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PatientBase(BaseModel):
@@ -70,8 +67,7 @@ class Patient(PatientBase):
     id: int
     user_id: int
     user: User
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AppointmentBase(BaseModel):
@@ -87,8 +83,7 @@ class Appointment(AppointmentBase):
     id: int
     patient_id: int
     doctor_id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PrescriptionBase(BaseModel):
@@ -105,8 +100,7 @@ class PrescriptionCreate(PrescriptionBase):
 class Prescription(PrescriptionBase):
     id: int
     patient_id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CallSessionBase(BaseModel):
@@ -124,8 +118,7 @@ class CallSession(CallSessionBase):
     started_at: datetime
     ended_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TranscriptBase(BaseModel):
@@ -144,8 +137,7 @@ class Transcript(TranscriptBase):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PromptTemplateBase(BaseModel):
@@ -162,8 +154,7 @@ class PromptTemplate(PromptTemplateBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 from uuid import UUID
 
@@ -210,8 +201,7 @@ class ChatbotMessage(ChatbotMessageBase):
     session_id: UUID
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatbotDocumentBase(BaseModel):
@@ -231,8 +221,7 @@ class ChatbotDocument(ChatbotDocumentBase):
     session_id: UUID
     upload_time: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatbotSessionBase(BaseModel):
@@ -250,8 +239,7 @@ class ChatbotSessionList(ChatbotSessionBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ChatbotSession(ChatbotSessionBase):
     id: UUID
@@ -261,5 +249,4 @@ class ChatbotSession(ChatbotSessionBase):
     messages: list[ChatbotMessage] = []
     documents: list[ChatbotDocument] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -94,9 +94,12 @@ export default function ChatWindow({ session, setSession, onOpenSidebar }) {
   };
 
   const scrollToBottom = (behavior = 'smooth') => {
-    if (messagesEndRef.current) {
+    if (scrollContainerRef.current) {
       isProgrammaticScrollRef.current = true;
-      messagesEndRef.current.scrollIntoView({ behavior });
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior
+      });
       // Reset programmatic flag shortly after browser processes scroll
       setTimeout(() => { isProgrammaticScrollRef.current = false; }, 100);
     }

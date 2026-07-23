@@ -238,7 +238,7 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
             onClick={() => fileInputRef.current?.click()}
             disabled={!session || isStreaming || isUploading}
             aria-label="Attach document"
-            style={{ background: 'none', border: 'none', padding: '0.5rem', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', padding: '0.5rem', color: 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0 }}
           >
             <Paperclip size={20} />
           </button>
@@ -278,7 +278,7 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
             onClick={toggleRecording}
             disabled={!session || isStreaming}
             aria-label={isRecording ? "Stop voice input" : "Start voice input"}
-            style={{ background: 'none', border: 'none', padding: '0.5rem', color: isRecording ? 'var(--error)' : 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', padding: '0.5rem', color: isRecording ? 'var(--error)' : 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0 }}
           >
             <Mic size={20} />
           </button>
@@ -288,9 +288,9 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
               type="button" 
               onClick={onStopGeneration}
               aria-label="Stop Generating"
-              style={{ background: 'var(--error)', border: 'none', borderRadius: '8px', padding: '0.5rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: 'var(--error)', border: 'none', borderRadius: '8px', padding: '0.5rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
             >
-              <Square size={20} />
+              <Square size={20} fill="currentColor" />
             </button>
           ) : (
             <button 
@@ -298,7 +298,7 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
               disabled={!session || !content.trim()}
               aria-label="Send message"
               style={{ 
-                background: 'var(--primary)', 
+                background: (!session || !content.trim()) ? 'var(--card-border)' : 'var(--primary)', 
                 border: 'none', 
                 borderRadius: '8px', 
                 padding: '0.5rem', 
@@ -308,7 +308,8 @@ export default function InputArea({ onSendMessage, onStopGeneration, isStreaming
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 opacity: (!session || !content.trim()) ? 0.5 : 1,
-                transition: 'background 0.2s'
+                transition: 'background 0.2s ease',
+                flexShrink: 0
               }}
             >
               <Send size={18} />

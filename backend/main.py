@@ -4,6 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from uuid import UUID
 from datetime import date
+from contextlib import asynccontextmanager
+from fastapi.responses import PlainTextResponse
+from starlette.requests import Request
+import traceback
 
 from app.config import settings
 from app.database import engine, SessionLocal, Base
@@ -35,11 +39,17 @@ TAGS_METADATA = [
     {"name": "telephony", "description": "🔁 **Telephony webhooks (Twilio).**"},
 ]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    startup_db_seeding()
+    yield
+
 app = FastAPI(
     title="MedAI API",
     version="1.0.0",
     description="Production-grade clinical AI platform powering voice bots via ElevenLabs & Twilio.",
     openapi_tags=TAGS_METADATA,
+    lifespan=lifespan,
 )
 
 _raw_origin = os.getenv("ALLOWED_ORIGIN", "")
@@ -79,7 +89,6 @@ app.include_router(voice.router)
 app.include_router(telephony.router)
 app.include_router(chatbot.router)
 
-@app.on_event("startup")
 def startup_db_seeding():
     if engine is not None:
         try:

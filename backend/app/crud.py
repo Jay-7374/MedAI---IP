@@ -65,7 +65,7 @@ def update_session_status(db: Session, session_id: str, status: str):
     if db_session:
         db_session.status = status
         if status in ["Completed", "Ended"]:
-            db_session.ended_at = datetime.utcnow()
+            db_session.ended_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.commit()
         db.refresh(db_session)
     return db_session
@@ -110,7 +110,7 @@ def create_or_update_prompt_template(
     db_prompt = get_prompt_template(db, prompt.bot_name)
     if db_prompt:
         db_prompt.system_prompt = prompt.system_prompt
-        db_prompt.updated_at = datetime.utcnow()
+        db_prompt.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     else:
         db_prompt = models.PromptTemplate(
             bot_name=prompt.bot_name, system_prompt=prompt.system_prompt
