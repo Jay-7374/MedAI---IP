@@ -250,3 +250,50 @@ class ChatbotSession(ChatbotSessionBase):
     documents: list[ChatbotDocument] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class HealthMetricBase(BaseModel):
+    metric_type: str
+    value: float
+    unit: str
+    start_time: datetime
+    end_time: datetime
+    source: Optional[str] = "Health Connect"
+    device_name: Optional[str] = None
+
+    @field_validator("metric_type")
+    @classmethod
+    def validate_metric_type(cls, v):
+        valid_metrics = ["HEART_RATE", "STEPS", "SLEEP", "SPO2"]
+        if v not in valid_metrics:
+            raise ValueError(f"Invalid metric_type: {v}. Must be one of {valid_metrics}")
+        return v
+
+
+class HealthMetricCreate(HealthMetricBase):
+    pass
+
+
+class HealthMetricBatchRequest(BaseModel):
+    records: List[HealthMetricCreate]
+
+
+class HealthMetric(HealthMetricBase):
+    id: int
+    user_id: int
+    synced_at: datetime
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BatchUploadResponse(BaseModel):
+    inserted: int
+    duplicates: int
+    failed: int
+
+
+class HealthSyncStatus(BaseModel):
+    status: str
+    authenticated: bool
+    backend_version: str

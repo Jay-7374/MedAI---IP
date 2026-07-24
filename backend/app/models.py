@@ -38,6 +38,7 @@ class User(Base):
 
     patient_profile = relationship("Patient", back_populates="user", uselist=False)
     doctor_profile = relationship("Doctor", back_populates="user", uselist=False)
+    health_metrics = relationship("HealthMetric", back_populates="user", cascade="all, delete-orphan")
 
 
 class Department(Base):
@@ -233,3 +234,28 @@ class ChatbotDocument(Base):
     upload_time = Column(DateTime, default=utc_now)
 
     session = relationship("ChatbotSession", back_populates="documents")
+
+
+class HealthMetric(Base):
+    __tablename__ = "health_metrics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    metric_type = Column(String(50), nullable=False)
+    value = Column(Float, nullable=False)
+    unit = Column(String(50), nullable=False)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    source = Column(String(100), nullable=False, default="Health Connect")
+    device_name = Column(String(100), nullable=True)
+    synced_at = Column(DateTime, default=utc_now)
+    created_at = Column(DateTime, default=utc_now)
+
+    user = relationship("User", back_populates="health_metrics")
+
+    __table_args__ = (
+        Index('ix_health_metrics_user_id_metric_type', 'user_id', 'metric_type'),
+        Index('ix_health_metrics_start_time', 'start_time'),
+        Index('uix_health_metrics_unique_record', 'user_id', 'metric_type', 'start_time', 'end_time', 'source', unique=True),
+    )
+

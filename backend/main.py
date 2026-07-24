@@ -23,7 +23,8 @@ from app.routers import (
     prompts,
     voice,
     telephony,
-    chatbot
+    chatbot,
+    health_sync
 )
 
 TAGS_METADATA = [
@@ -37,6 +38,8 @@ TAGS_METADATA = [
     {"name": "telemetry", "description": "📊 **Real-time dashboard metrics.**"},
     {"name": "prompts", "description": "📝 **LLM persona and prompt management.**"},
     {"name": "telephony", "description": "🔁 **Telephony webhooks (Twilio).**"},
+    {"name": "health-sync", "description": "⌚ **Wearable data synchronization.**"},
+    {"name": "health-metrics", "description": "📈 **Health metrics retrieval.**"},
 ]
 
 @asynccontextmanager
@@ -79,6 +82,8 @@ app.include_router(prompts.router)
 app.include_router(voice.router)
 app.include_router(telephony.router)
 app.include_router(chatbot.router)
+app.include_router(health_sync.router)
+app.include_router(health_sync.metrics_router)
 
 def startup_db_seeding():
     if engine is not None:
