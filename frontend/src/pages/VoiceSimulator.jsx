@@ -28,45 +28,35 @@ export default function VoiceSimulator({
     <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1.75fr', gap: '1.75rem' }}>
       <div className="card" style={{ height: 'fit-content', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
-          <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', fontWeight: 700 }}>Voice AI Command Portal</h3>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Select required voice feature persona and click portal to connect.</p>
+          <h3 style={{ marginBottom: '0.5rem', fontSize: '1.2rem', fontWeight: 700 }}>
+            {isAdmin ? "Voice AI Command Portal" : "Personal Healthcare Assistant"}
+          </h3>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            {isAdmin ? "Select required voice feature persona and click portal to connect." : "Tap the portal to talk to your intelligent AI Healthcare Assistant."}
+          </p>
         </div>
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Voice Agent Core Persona</label>
-          <select 
-            className="form-control" 
-            value={selectedBot || ""}
-            onChange={(e) => setSelectedBot(e.target.value)}
-            disabled={callStatus !== 'Idle'}
-          >
-            <option value="" disabled>Select a persona</option>
-            {isAdmin ? (
-              <>
-                <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
-                <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
-                <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
-                <option value="MedicationAdherence">Active Medication Adherence Alert</option>
-                <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
-                <option value="EmergencySeverity">Emergency Severity Classification</option>
-                <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
-                <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
-                <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
-              </>
-            ) : (
-              <>
-                <option value="NaturalSpeechAuth">Verify My Identity</option>
-                <option value="ConversationalScheduling">Book or Change an Appointment</option>
-                <option value="PostDischargeCheckIn">Post-Discharge Recovery Check-in</option>
-                <option value="MedicationAdherence">Medication Reminder</option>
-                <option value="InsurancePolicyIntake">Insurance & Cost Estimate</option>
-                <option value="EmergencySeverity">Report an Emergency</option>
-                <option value="AiNurseAdvice">Ask a Nurse</option>
-                <option value="ElderCareTerminal">Wellness Check-in</option>
-                <option value="TelemedicineBridge">Join My Video Consultation</option>
-              </>
-            )}
-          </select>
-        </div>
+        {isAdmin ? (
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Voice Agent Core Persona</label>
+            <select 
+              className="form-control" 
+              value={selectedBot || ""}
+              onChange={(e) => setSelectedBot(e.target.value)}
+              disabled={callStatus !== 'Idle'}
+            >
+              <option value="" disabled>Select a persona</option>
+              <option value="NaturalSpeechAuth">Natural Speech Authentication</option>
+              <option value="ConversationalScheduling">Conversational Scheduling & Diagnostics</option>
+              <option value="PostDischargeCheckIn">Post-Discharge Wellness Check-in</option>
+              <option value="MedicationAdherence">Active Medication Adherence Alert</option>
+              <option value="InsurancePolicyIntake">Insurance Policy Intake & Breakdown</option>
+              <option value="EmergencySeverity">Emergency Severity Classification</option>
+              <option value="AiNurseAdvice">Interactive AI Nurse Advice</option>
+              <option value="ElderCareTerminal">Elder Care Welfare Terminal</option>
+              <option value="TelemedicineBridge">Telemedicine Video Bridge Hand-off</option>
+            </select>
+          </div>
+        ) : null}
 
         {/* Simulation Control Panel — Admin only */}
         {isAdmin && (
@@ -209,24 +199,50 @@ export default function VoiceSimulator({
             </div>
           ) : (
             <div className="timeline-container" style={{ position: 'relative', borderLeft: '2px solid var(--border)', marginLeft: '1rem', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {transcripts.map((msg, idx) => (
-                <div key={idx} className={`timeline-item ${msg.speaker === 'User' ? 'user' : 'ai'}`} style={{ position: 'relative' }}>
-                  <div className="timeline-dot" style={{ 
-                    position: 'absolute', left: '-1.85rem', top: '0', width: '12px', height: '12px', borderRadius: '50%', 
-                    background: msg.speaker === 'User' ? 'var(--text-secondary)' : 'var(--primary)',
-                    boxShadow: msg.speaker === 'User' ? 'none' : '0 0 10px var(--primary)'
-                  }}></div>
-                  <div className={`transcript-message ${msg.speaker === 'User' ? 'user' : 'ai'}`} style={{ margin: 0, padding: '0.85rem', borderRadius: '8px', background: msg.speaker === 'User' ? '#ffffff' : undefined, color: msg.speaker === 'User' ? 'var(--text-main)' : undefined }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
-                      <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: msg.speaker === 'User' ? 'var(--bg-main)' : 'var(--primary)', color: msg.speaker === 'User' ? 'var(--text-main)' : '#fff', border: msg.speaker === 'User' ? '1px solid var(--border)' : 'none' }}>
-                        {msg.speaker === 'User' ? 'Patient' : 'AI Assistant'}
-                      </span>
-                      {msg.latency_ms && <span style={{ fontFamily: 'monospace', opacity: 0.7 }}>({msg.latency_ms}ms)</span>}
+              {transcripts.map((msg, idx) => {
+                let badgeColor = '';
+                let bgColor = '';
+                let textColor = '';
+                let align = 'left';
+                let label = '';
+                
+                if (msg.speaker === 'User') {
+                  badgeColor = 'var(--bg-main)';
+                  textColor = 'var(--text-main)';
+                  bgColor = '#ffffff';
+                  label = 'Patient';
+                } else if (msg.speaker === 'System') {
+                  badgeColor = 'transparent';
+                  textColor = 'var(--text-muted)';
+                  bgColor = 'transparent';
+                  label = '⚙️ System Action';
+                } else {
+                  badgeColor = 'var(--primary)';
+                  textColor = '#ffffff';
+                  bgColor = 'transparent';
+                  label = 'AI Assistant';
+                }
+                
+                return (
+                  <div key={idx} className={`timeline-item ${msg.speaker === 'User' ? 'user' : (msg.speaker === 'System' ? 'system' : 'ai')}`} style={{ position: 'relative' }}>
+                    <div className="timeline-dot" style={{ 
+                      position: 'absolute', left: '-1.85rem', top: '0', width: '12px', height: '12px', borderRadius: '50%', 
+                      background: msg.speaker === 'User' ? 'var(--text-secondary)' : (msg.speaker === 'System' ? 'transparent' : 'var(--primary)'),
+                      boxShadow: msg.speaker === 'AI' ? '0 0 10px var(--primary)' : 'none',
+                      border: msg.speaker === 'System' ? '2px solid var(--text-muted)' : 'none'
+                    }}></div>
+                    <div className={`transcript-message ${msg.speaker.toLowerCase()}`} style={{ margin: 0, padding: msg.speaker === 'System' ? '0.2rem 0.85rem' : '0.85rem', borderRadius: '8px', background: bgColor, color: textColor }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
+                        <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: badgeColor, color: textColor, border: msg.speaker === 'User' ? '1px solid var(--border)' : 'none' }}>
+                          {label}
+                        </span>
+                        {msg.latency_ms && <span style={{ fontFamily: 'monospace', opacity: 0.7 }}>({msg.latency_ms}ms)</span>}
+                      </div>
+                      <div style={{ fontWeight: msg.speaker === 'System' ? 600 : 500, lineHeight: '1.4', fontStyle: msg.speaker === 'System' ? 'italic' : 'normal' }}>{msg.text}</div>
                     </div>
-                    <div style={{ fontWeight: 500, lineHeight: '1.4' }}>{msg.text}</div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               
               {interimText && (
                 <div className="timeline-item user" style={{ position: 'relative', opacity: 0.6 }}>

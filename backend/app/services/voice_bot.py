@@ -188,14 +188,16 @@ Be calm, reassuring, and technically patient-friendly."""
 
 def process_voice_turn(
     db: Session, session_id: str, user_text: str, bot_name: str = "General"
-) -> str:
+) -> dict:
     """
     Load dialog context from database, append current user input,
     call Groq LLM, and return the generated text response.
     Works without a database connection (uses defaults when db is None).
     """
-    # Load system prompt — from DB if available, otherwise use defaults
     system_prompt = DEFAULT_PROMPTS.get(bot_name, list(DEFAULT_PROMPTS.values())[0])
+    ws_actions = []
+    user_id = None
+    
     if db is not None:
         try:
             db_prompt = crud.get_prompt_template(db, bot_name)
@@ -204,8 +206,45 @@ def process_voice_turn(
         except Exception:
             pass  # Fall back to DEFAULT_PROMPTS
 
+        # Dynamically inject real patient data into the system prompt
+        try:
+            from .. import models
+            session = db.query(models.CallSession).filter(models.CallSession.id == session_id).first()
+            if session and session.user_id:
+                user_id = session.user_id
+                patient = db.query(models.Patient).filter(models.Patient.user_id == session.user_id).first()
+                if patient:
+                    # Comprehensive Medical Profile Context Injection
+                    profile_ctx = f"PATIENT CONTEXT:\nName: {patient.full_name}\nAge: {patient.age}\nGender: {patient.gender}\nBlood Group: {patient.blood_group}\n"
+                    if patient.medical_conditions:
+                        profile_ctx += f"Medical Conditions: {patient.medical_conditions}\n"
+                    if patient.allergies:
+                        profile_ctx += f"Allergies: {patient.allergies}\n"
+                        
+                    medicines = db.query(models.Medicine).filter(models.Medicine.user_id == session.user_id).all()
+                    if medicines:
+                        med_lines = [f"- {m.medicine_name} {m.dosage} ({m.frequency} at {m.time or 'anytime'})" for m in medicines]
+                        profile_ctx += f"Current Medicines:\n" + "\n".join(med_lines) + "\n"
+                        
+                    appointments = db.query(models.Appointment).filter(models.Appointment.patient_id == patient.id, models.Appointment.status == 'Scheduled').all()
+                    if appointments:
+                        appt_lines = [f"- {a.doctor_name} on {a.date} at {a.time}" for a in appointments]
+                        profile_ctx += f"Upcoming Appointments:\n" + "\n".join(appt_lines) + "\n"
+                        
+                    system_prompt += f"\n\n{profile_ctx}\nNote: Always use this context instead of asking for the information if you already know it."
+        except Exception as e:
+            print("Failed to inject dynamic patient data into voice bot prompt:", e)
+
     # Add core instruction for all personas
-    system_prompt += "\n\nCRITICAL INSTRUCTION: Your output will be spoken out loud via Text-to-Speech over a phone call. Speak like a real human. Use conversational filler words occasionally (e.g., 'Umm', 'ah', 'well', 'you know'). Keep it extremely casual and natural. DO NOT output markdown, bold text, lists, or asterisks. Respond in a single short conversational sentence or two at most."
+    system_prompt += (
+        "\n\nCRITICAL INSTRUCTION: Your output will be spoken out loud via Text-to-Speech over a phone call. "
+        "Speak like a real human. Use conversational filler words occasionally (e.g., 'Umm', 'ah', 'well', 'you know'). Keep it extremely casual and natural. "
+        "DO NOT output markdown, bold text, lists, or asterisks. Respond in a single short conversational sentence or two at most.\n"
+        "MULTILINGUAL INSTRUCTION: You must automatically detect the language of the user's input (even if it is phonetically spelled). "
+        "You MUST ALWAYS respond in the exact same language the user spoke. "
+        "You MUST strictly prefix your entire response with [LANG:LanguageName] where LanguageName is capitalized (e.g., [LANG:English], [LANG:Telugu], [LANG:Hindi]). "
+        "Do not include any other prefixes."
+    )
 
     # Load conversation history — from DB if available, otherwise empty
     transcripts = []
@@ -222,9 +261,60 @@ def process_voice_turn(
 
     messages.append({"role": "user", "content": user_text})
 
-    ai_response = llm.get_chat_response(messages, system_prompt=system_prompt)
+    ai_response = llm.get_chat_response(messages, system_prompt=system_prompt, tools=VOICE_TOOLS)
+
+    # Handle Tool Calling loop
+    if hasattr(ai_response, 'tool_calls') and ai_response.tool_calls:
+        messages.append({
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments
+                    }
+                } for tc in ai_response.tool_calls
+            ]
+        })
+        
+        for tc in ai_response.tool_calls:
+            func_name = tc.function.name
+            try:
+                args = json.loads(tc.function.arguments)
+            except:
+                args = {}
+                
+            tool_result = execute_tool(db, user_id, func_name, args, ws_actions)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tc.id,
+                "name": func_name,
+                "content": tool_result
+            })
+            ws_actions.append({"type": "action", "action": "tool_executed", "name": func_name, "args": args})
+
+        # Call again after tool execution
+        ai_response = llm.get_chat_response(messages, system_prompt=system_prompt)
+        
+    if hasattr(ai_response, 'content'):
+        ai_response = ai_response.content
+        
+    # Parse detected language
+    detected_language = "English"
+    import re
+    lang_match = re.search(r"\[LANG:([a-zA-Z]+)\]", str(ai_response), re.IGNORECASE)
+    if lang_match:
+        detected_language = lang_match.group(1).capitalize()
+        ai_response = str(ai_response).replace(lang_match.group(0), "").strip()
 
     # Sanitize markdown formatting from TTS
-    ai_response = ai_response.replace("*", "").replace("#", "").replace("_", "")
+    ai_response = str(ai_response).replace("*", "").replace("#", "").replace("_", "")
 
-    return ai_response
+    return {
+        "text": ai_response,
+        "detected_language": detected_language,
+        "ws_actions": ws_actions
+    }

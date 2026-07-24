@@ -55,18 +55,53 @@ class Doctor(DoctorBase):
 
 
 class PatientBase(BaseModel):
-    dob: date
-    phone_number: str
-    ssn_last_4: str
+    full_name: Optional[str] = None
+    dob: Optional[date] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    blood_group: Optional[str] = None
+    height: Optional[str] = None
+    weight: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
     insurance_provider: Optional[str] = None
-    policy_number: Optional[str] = None
-    emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = None
+    insurance_id: Optional[str] = None
+    medical_conditions: Optional[str] = None
+    allergies: Optional[str] = None
+    emergency_name: Optional[str] = None
+    emergency_relation: Optional[str] = None
+    emergency_phone: Optional[str] = None
+
+class PatientCreate(PatientBase):
+    pass
 
 class Patient(PatientBase):
     id: int
     user_id: int
-    user: User
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class MedicineBase(BaseModel):
+    medicine_name: str
+    dosage: str
+    frequency: str
+    time: Optional[str] = None
+    before_after_food: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    notes: Optional[str] = None
+
+class MedicineCreate(MedicineBase):
+    pass
+
+class Medicine(MedicineBase):
+    id: int
+    user_id: int
+    patient_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
 

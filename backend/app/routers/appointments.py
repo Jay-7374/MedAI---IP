@@ -3,12 +3,19 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from datetime import date, datetime
+from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
 @router.get("", summary="List all patient appointments")
-def get_appointments(db: Session = Depends(get_db)):
-    appointments = db.query(models.Appointment).all()
+def get_appointments(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    if current_user.role and current_user.role.role_name in ['admin', 'staff', 'doctor', 'receptionist']:
+        appointments = db.query(models.Appointment).all()
+    else:
+        patient = db.query(models.Patient).filter(models.Patient.user_id == current_user.id).first()
+        if not patient:
+            return []
+        appointments = db.query(models.Appointment).filter(models.Appointment.patient_id == patient.id).all()
     # Format to match frontend expectations or update frontend to use new format
     res = []
     for a in appointments:
@@ -24,7 +31,7 @@ def get_appointments(db: Session = Depends(get_db)):
     return res
 
 @router.post("", summary="Book a new appointment")
-def add_appointment(req: dict, db: Session = Depends(get_db)):
+def add_appointment(req: dict, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     from app.routers.telephony import dispatch_sms
     
     # Try to find doctor
@@ -34,7 +41,7 @@ def add_appointment(req: dict, db: Session = Depends(get_db)):
     if not doctor:
         doctor = db.query(models.Doctor).first()
         
-    patient = db.query(models.Patient).first()
+    patient = db.query(models.Patient).filter(models.Patient.user_id == current_user.id).first()
     
     if doctor and patient:
         new_apt = models.Appointment(

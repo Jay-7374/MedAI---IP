@@ -24,7 +24,8 @@ from app.routers import (
     voice,
     telephony,
     chatbot,
-    health_sync
+    health_sync,
+    patients
 )
 
 TAGS_METADATA = [
@@ -86,6 +87,7 @@ app.include_router(telephony.router)
 app.include_router(chatbot.router)
 app.include_router(health_sync.router)
 app.include_router(health_sync.metrics_router)
+app.include_router(patients.router)
 
 def startup_db_seeding():
     if engine is not None:
@@ -156,25 +158,7 @@ def startup_db_seeding():
                 db.add(doc)
                 db.commit()
 
-            # Seed Patient dummy data
-            pat = db.query(models.Patient).filter(models.Patient.user_id == patient_user.id).first()
-            if not pat:
-                pat = models.Patient(
-                    user_id=patient_user.id,
-                    dob=date(1995, 7, 24),
-                    phone_number="+15550192834",
-                    ssn_last_4="7842",
-                    insurance_provider="BlueCross BlueShield",
-                    policy_number="98124"
-                )
-                db.add(pat)
-                db.commit()
-                db.refresh(pat)
-                
-                # Seed Prescriptions
-                db.add(models.Prescription(patient_id=pat.id, medication_name="Lisinopril", dosage="10mg", frequency="Once Daily", purpose="Blood pressure"))
-                db.add(models.Prescription(patient_id=pat.id, medication_name="Metformin", dosage="500mg", frequency="Twice Daily", purpose="Diabetes"))
-                db.commit()
+            # Dummy data seeding for Patient and Prescriptions has been removed per requirements.
 
             db.close()
             print("Database seeded successfully with dummy data.")

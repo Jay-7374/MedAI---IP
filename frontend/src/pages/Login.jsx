@@ -11,7 +11,8 @@ export default function Login({
   userUnregistered, 
   setUserUnregistered, 
   handleAuthSubmit, 
-  setView 
+  setView,
+  isLoading
 }) {
   return (
     <div className="login-container view-transition-root" key="view-login">
@@ -105,8 +106,8 @@ export default function Login({
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-login-submit" style={{ width: '100%', marginTop: '1rem' }}>
-              {authMode === 'login' ? 'Authorize & Connect' : 'Register Profile'}
+            <button type="submit" className="btn btn-primary btn-login-submit" style={{ width: '100%', marginTop: '1rem' }} disabled={isLoading}>
+              {isLoading ? 'Processing...' : (authMode === 'login' ? 'Authorize & Connect' : 'Register Profile')}
             </button>
           </form>
 

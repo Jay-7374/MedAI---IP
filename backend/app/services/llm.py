@@ -16,7 +16,7 @@ if settings.GROQ_API_KEY:
     except Exception as e:
         logger.error(f"Failed to initialize Groq client: {e}")
 
-def get_chat_response(messages: list, system_prompt: str = None) -> str:
+def get_chat_response(messages: list, system_prompt: str = None, tools: list = None) -> str:
     """
     Query the Groq LLaMA model for a response based on the conversation log history.
     """
@@ -31,8 +31,8 @@ def get_chat_response(messages: list, system_prompt: str = None) -> str:
     formatted_messages.extend(messages)
 
     models_to_try = [
-        "llama-3.1-8b-instant",
         "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
         "mixtral-8x7b-32768",
         "gemma2-9b-it"
     ]
@@ -42,13 +42,21 @@ def get_chat_response(messages: list, system_prompt: str = None) -> str:
     last_error = None
     for model_name in models_to_try:
         try:
-            chat_completion = client.chat.completions.create(
-                messages=formatted_messages,
-                model=model_name,
-                temperature=0.5,
-                max_tokens=300,
-            )
-            return chat_completion.choices[0].message.content
+            kwargs = {
+                "messages": formatted_messages,
+                "model": model_name,
+                "temperature": 0.5,
+                "max_tokens": 1024,
+            }
+            if tools:
+                kwargs["tools"] = tools
+                kwargs["tool_choice"] = "auto"
+                
+            chat_completion = client.chat.completions.create(**kwargs)
+            message = chat_completion.choices[0].message
+            if getattr(message, "tool_calls", None):
+                return message
+            return message.content or ""
         except groq.RateLimitError as e:
             logger.warning(f"Groq RateLimitError on {model_name}: {str(e)}")
             last_error = e

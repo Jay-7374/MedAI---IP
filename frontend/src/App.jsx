@@ -7,6 +7,7 @@ import {
   Menu
 } from 'lucide-react';
 import { apiFetch, getWsUrl } from './apiClient';
+import { getBestVoice, SPEECH_LANGUAGE_MAP } from './utils/voice';
 
 // Components
 
@@ -29,7 +30,8 @@ import Telemedicine from './pages/Telemedicine';
 import StaffConsole from './pages/StaffConsole';
 import AdminConsole from './pages/AdminConsole';
 import MouseGlow from './components/MouseGlow';
-
+import Settings from './pages/Settings';
+import CompleteProfile from './pages/CompleteProfile';
 
 
 const DEFAULT_PROMPTS = {
@@ -128,6 +130,8 @@ export default function App() {
   const [medicines, setMedicines] = useState([]);
   const [prompts, setPrompts] = useState([]);
   const [sosStatus, setSosStatus] = useState(null);
+  const [patientProfile, setPatientProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Forms states
   const [apptForm, setApptForm] = useState({ doctor: '', date: '', time: '', symptoms: '' });
@@ -135,7 +139,7 @@ export default function App() {
   const [editingPrompt, setEditingPrompt] = useState({ bot_name: 'NaturalSpeechAuth', system_prompt: '' });
 
   // Voice Call Bot States
-  const [selectedBot, setSelectedBot] = useState('');
+  const [selectedBot, setSelectedBot] = useState('General');
   const [callStatus, setCallStatus] = useState('Idle'); // 'Idle', 'Connecting', 'Connected'
   const setCallStatusSynced = (val) => {
     callStatusRef.current = val;
@@ -152,6 +156,7 @@ export default function App() {
   const [sipTransferActive, setSipTransferActive] = useState(false);
   const [telemedicineActive, setTelemedicineActive] = useState(false);
   const [smsMessages, setSmsMessages] = useState([]);
+  const [currentVoiceLang, setCurrentVoiceLang] = useState('English');
 
   // Authentication states
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
@@ -166,6 +171,8 @@ export default function App() {
   const wsRef = useRef(null);
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
+  const consecutiveErrorsRef = useRef(0);
+  const currentVoiceLangRef = useRef('English');
 
   // Toast Helper
   const showToast = (message, type = 'primary') => {
@@ -221,7 +228,7 @@ export default function App() {
         setAppointments(data);
       }
     } catch (err) {
-      console.warn("Using local fallback for appointments", err);
+      console.error("Failed to fetch appointments", err);
     }
   };
 
@@ -233,7 +240,7 @@ export default function App() {
         setMedicines(data);
       }
     } catch (err) {
-      console.warn("Using local fallback for medicines", err);
+      console.error("Failed to fetch medicines", err);
     }
   };
 
@@ -249,7 +256,7 @@ export default function App() {
         if (active) setEditingPrompt(active);
       }
     } catch (err) {
-      console.warn("Using local default prompts", err);
+      console.error("Failed to fetch prompts", err);
     }
   };
 
@@ -261,12 +268,31 @@ export default function App() {
         setSmsMessages(data);
       }
     } catch (err) {
-      console.warn("SMS log fetch failed, using local mock", err);
+      console.error("Failed to fetch SMS logs", err);
+    }
+  };
+
+  const fetchProfile = async () => {
+    if (!user || user.role !== 'Patient') return;
+    setLoadingProfile(true);
+    try {
+      const res = await apiFetch('/api/patients/me');
+      if (res.ok) {
+        const data = await res.json();
+        setPatientProfile(data);
+      } else if (res.status === 404) {
+        setView('complete-profile');
+      }
+    } catch (err) {
+      console.error("Failed to fetch patient profile", err);
+    } finally {
+      setLoadingProfile(false);
     }
   };
 
   useEffect(() => {
     if (user) {
+      fetchProfile();
       fetchAppointments();
       fetchMedicines();
       if (isAdmin) {
@@ -274,6 +300,7 @@ export default function App() {
       }
       fetchSmsMessages();
     } else {
+      setPatientProfile(null);
       setAppointments([]);
       setMedicines([]);
       setPrompts([]);
@@ -332,7 +359,6 @@ export default function App() {
   const sessionIdRef = useRef('');
   const selectedBotRef = useRef('NaturalSpeechAuth');
   const simulateDbTimeoutRef = useRef(false);
-  const consecutiveErrorsRef = useRef(0);
   const isSpeakingRef = useRef(false);
   const activeCallIdRef = useRef('');
 
@@ -342,6 +368,14 @@ export default function App() {
   useEffect(() => { consecutiveErrorsRef.current = consecutiveErrors; }, [consecutiveErrors]);
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
 
+  // Update recognition language dynamically
+  useEffect(() => {
+    currentVoiceLangRef.current = currentVoiceLang;
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = SPEECH_LANGUAGE_MAP[currentVoiceLang] || 'en-US';
+    }
+  }, [currentVoiceLang]);
+
   // Initialize Speech Recognition ONCE on mount
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -350,7 +384,7 @@ export default function App() {
     const rec = new SpeechRecognition();
     rec.continuous = true;       // keep listening — don't cut off mid-sentence
     rec.interimResults = true;   // stream partial text as the user speaks
-    rec.lang = 'en-US';
+    rec.lang = SPEECH_LANGUAGE_MAP[currentVoiceLangRef.current] || 'en-US';
 
     rec.onresult = (event) => {
       if (isSpeakingRef.current) return; // Prevent echo from stale recognition
@@ -440,8 +474,8 @@ export default function App() {
   // Audio element ref for ElevenLabs playback
   const audioRef = useRef(null);
 
-  // Trigger web speech synthesis or play ElevenLabs Audio
-  const speakTextOutLoud = (text, audioUrl = null) => {
+  // Trigger web speech synthesis
+  const speakTextOutLoud = (text, audioUrl = null, language = 'English') => {
     isSpeakingRef.current = true;
     setIsSpeaking(true);
     setInterimText(''); // clear any partial transcription
@@ -470,34 +504,20 @@ export default function App() {
       }
     };
 
-    if (audioUrl && audioUrl.startsWith('data:audio/')) {
-      // Play ElevenLabs audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      audio.onended = onAudioEnd;
-      audio.onerror = () => {
-        if (activeCallIdRef.current !== sessionIdRef.current) return;
-        console.error("Error playing ElevenLabs audio, falling back to speech synthesis");
-        fallbackToSpeechSynthesis(text, onAudioEnd);
-      };
-      audio.play().catch(e => {
-        if (activeCallIdRef.current !== sessionIdRef.current) return;
-        console.error("Audio autoplay prevented", e);
-        fallbackToSpeechSynthesis(text, onAudioEnd);
-      });
-    } else {
-      // Fallback
-      fallbackToSpeechSynthesis(text, onAudioEnd);
-    }
+    fallbackToSpeechSynthesis(text, onAudioEnd, language);
   };
 
-  const fallbackToSpeechSynthesis = (text, onEnd) => {
+  const fallbackToSpeechSynthesis = (text, onEnd, language = 'English') => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
+      if (language) {
+        const bestVoice = getBestVoice(language);
+        if (bestVoice) {
+          utterance.voice = bestVoice;
+        }
+        utterance.lang = SPEECH_LANGUAGE_MAP[language] || 'en-US';
+      }
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
@@ -534,7 +554,7 @@ export default function App() {
         })
       });
     } catch (e) {
-      console.warn("Starting call in offline/mock backend mode");
+      console.warn("Session creation failed, continuing with local call setup.");
     }
 
     // 2. Open WebSocket link
@@ -573,6 +593,30 @@ export default function App() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      
+      if (data.type === 'action') {
+        if (data.action === 'tool_executed') {
+          setTranscripts(prev => [...prev, { speaker: 'System', text: `Executing ${data.name}...` }]);
+          showToast(`Agent running function: ${data.name}...`, 'info');
+        } else if (data.action === 'refresh_data') {
+          fetchProfile();
+          fetchAppointments();
+          fetchMedicines();
+        } else if (data.action === 'navigate') {
+          if (data.target === 'emergency') {
+            setView('emergency');
+          } else {
+            setView('app');
+            setActiveTab(data.target);
+          }
+        }
+        return;
+      }
+
+      if (data.detected_language && data.detected_language !== currentVoiceLangRef.current) {
+        setCurrentVoiceLang(data.detected_language);
+      }
+      
       if (data.text) {
         setTranscripts(prev => [...prev, { speaker: 'AI', text: data.text, latency_ms: data.latency_ms }]);
         
@@ -592,7 +636,7 @@ export default function App() {
           telemedicineActiveRef.current = true;
         }
 
-        speakTextOutLoud(data.text, data.audio_url);
+        speakTextOutLoud(data.text, data.audio_url, data.detected_language || currentVoiceLangRef.current);
         
         // Refresh telemetry database elements
         fetchAppointments();
@@ -639,9 +683,13 @@ export default function App() {
     setCallStatusSynced('Idle');
   };
 
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
   // Authentication handlers
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
+    if (isAuthLoading) return;
+    setIsAuthLoading(true);
     setAuthError('');
     setUserUnregistered(false);
 
@@ -685,11 +733,14 @@ export default function App() {
         }
       } catch (err) {
         setAuthError("Authentication server error. Please check if the authentication service is running.");
+      } finally {
+        setIsAuthLoading(false);
       }
     } else {
       // signup mode
       if (!authForm.email) {
         setAuthError("Email is required for Sign Up.");
+        setIsAuthLoading(false);
         return;
       }
       try {
@@ -739,6 +790,8 @@ export default function App() {
         }
       } catch (err) {
         setAuthError("Registration server error. Please check if the authentication service is running.");
+      } finally {
+        setIsAuthLoading(false);
       }
     }
   };
@@ -752,7 +805,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('/api/appointments', {
+      const res = await apiFetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apptForm)
@@ -807,24 +860,24 @@ export default function App() {
     }
   };
 
-  const handleDeleteMedicine = async (name) => {
+  const handleDeleteMedicine = async (id) => {
     try {
-      const res = await fetch(`/api/medicines/${encodeURIComponent(name)}`, {
+      const res = await apiFetch(`/api/medicines/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
-        showToast(`Regimen directive ${name} deleted.`, "warning");
+        showToast(`Regimen directive deleted.`, "warning");
         fetchMedicines();
       }
     } catch (err) {
       showToast("Offline simulation: Regimen directive deleted.", "warning");
-      setMedicines(prev => prev.filter(m => m.name.toLowerCase() !== name.toLowerCase()));
+      setMedicines(prev => prev.filter(m => m.id !== id));
     }
   };
 
   const handleTriggerSOS = async () => {
     try {
-      const res = await fetch('/api/emergency/sos', { method: 'POST' });
+      const res = await apiFetch('/api/emergency/sos', { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setSosStatus(data.dispatch);
@@ -848,7 +901,7 @@ export default function App() {
       return false;
     }
     try {
-      const res = await fetch('/api/prompts', {
+      const res = await apiFetch('/api/prompts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -889,6 +942,7 @@ export default function App() {
             setUserUnregistered={setUserUnregistered}
             handleAuthSubmit={handleAuthSubmit}
             setView={setView}
+            isLoading={isAuthLoading}
           />
         </div>
       </div>
@@ -907,6 +961,16 @@ export default function App() {
     );
   }
 
+  if (view === 'complete-profile') {
+    return (
+      <CompleteProfile 
+        user={user} 
+        setPatientProfile={setPatientProfile} 
+        navigateTo={navigateTo} 
+        showToast={showToast} 
+      />
+    );
+  }
 
   return (
     <div className="app-container view-transition-root" key="view-app">
@@ -976,18 +1040,25 @@ export default function App() {
           )}
 
           <div className="view-fade-in" key={activeTab} style={activeTab === 'voicebot' ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 } : undefined}>
-            {activeTab === 'dashboard' && (
-              <Dashboard 
-                user={user}
-                medicines={medicines}
-                smsMessages={smsMessages}
-                appointments={appointments}
-                simulateDbTimeout={simulateDbTimeout}
-                consecutiveErrors={consecutiveErrors}
-                sosStatus={sosStatus}
-                navigateTo={navigateTo}
-              />
-            )}
+            {loadingProfile ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', color: 'var(--text-muted)' }}>
+                <Activity className="fa-spin" size={32} />
+              </div>
+            ) : (
+              <>
+                {activeTab === 'dashboard' && (
+                  <Dashboard 
+                    user={user}
+                    patientProfile={patientProfile}
+                    medicines={medicines}
+                    smsMessages={smsMessages}
+                    appointments={appointments}
+                    simulateDbTimeout={simulateDbTimeout}
+                    consecutiveErrors={consecutiveErrors}
+                    sosStatus={sosStatus}
+                    navigateTo={navigateTo}
+                  />
+                )}
             
             {activeTab === 'voicebot' && (
               <AIAssistantView 
@@ -1072,6 +1143,16 @@ export default function App() {
                 smsMessages={smsMessages}
                 showToast={showToast}
               />
+            )}
+
+                {activeTab === 'settings' && (
+                  <Settings 
+                    patientProfile={patientProfile}
+                    setPatientProfile={setPatientProfile}
+                    showToast={showToast}
+                  />
+                )}
+              </>
             )}
           </div>
         </main>

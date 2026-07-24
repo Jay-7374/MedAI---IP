@@ -33,17 +33,22 @@ def voice_turn(session_id: str, user_text: str, bot_name: str = "General", db: S
     start_time = datetime.now(timezone.utc).replace(tzinfo=None)
     crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="User", text=user_text))
     
-    ai_response = process_voice_turn(db, session_id, user_text, bot_name)
+    ai_response_dict = process_voice_turn(db, session_id, user_text, bot_name)
+    ai_response = ai_response_dict["text"]
+    detected_language = ai_response_dict["detected_language"]
+    
+    ws_actions = ai_response_dict.get("ws_actions", [])
+    
     latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
     
     crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="AI", text=ai_response, latency_ms=latency))
-    audio_url = get_tts_audio_url(ai_response)
     
     return {
         "user_text": user_text,
         "ai_response": ai_response,
-        "audio_url": audio_url,
+        "detected_language": detected_language,
         "latency_ms": latency,
+        "ws_actions": ws_actions
     }
 
 @router.websocket("/ws/voice")
@@ -79,7 +84,11 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                 if is_init:
                     user_text = "The user has just connected to the call. Please introduce yourself and ask how you can help."
                 
-                ai_response = process_voice_turn(db, session_id, user_text, bot_name)
+                ai_response_dict = process_voice_turn(db, session_id, user_text, bot_name)
+                ai_response = ai_response_dict["text"]
+                detected_language = ai_response_dict["detected_language"]
+                ws_actions = ai_response_dict.get("ws_actions", [])
+                
                 latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
                 
                 # Save AI transcript (skip if DB unavailable)
@@ -89,13 +98,16 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                     except Exception:
                         pass
                 
-                audio_url = get_tts_audio_url(ai_response)
-                
+                # Send tool execution actions first
+                for action in ws_actions:
+                    await websocket.send_json(action)
+                    
                 response_payload = {
                     "type": "text",
                     "text": ai_response,
+                    "detected_language": detected_language,
                     "latency_ms": latency,
-                    "audio_url": audio_url
+                    "audio_url": None
                 }
                 await websocket.send_json(response_payload)
                 

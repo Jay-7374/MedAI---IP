@@ -22,6 +22,7 @@ import {
 
 export default function Dashboard({ 
   user, 
+  patientProfile,
   medicines, 
   smsMessages, 
   appointments, 
@@ -335,25 +336,25 @@ export default function Dashboard({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', marginBottom: '0.25rem' }}>Full Name</div>
-                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>{user?.name || 'Alex Mercer'}</div>
+                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>{patientProfile?.full_name || user?.name || 'N/A'}</div>
               </div>
               <div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', marginBottom: '0.25rem' }}>Age / Verification</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', marginBottom: '0.25rem' }}>Age</div>
                 <div style={{ color: 'var(--success)', fontSize: 'var(--font-body)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  29 Years <ShieldCheck size={16} />
+                  {patientProfile?.age || 'N/A'} Years <ShieldCheck size={16} />
                 </div>
               </div>
               <div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', marginBottom: '0.25rem' }}>Insurance Provider</div>
-                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>BlueCross Shield (Active)</div>
+                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>{patientProfile?.insurance_provider || 'N/A'}</div>
               </div>
               <div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', marginBottom: '0.25rem' }}>Blood Group</div>
-                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>O Positive</div>
+                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>{patientProfile?.blood_group || 'N/A'}</div>
               </div>
               <div style={{ gridColumn: 'span 2', borderTop: '1px solid var(--card-border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', marginBottom: '0.25rem' }}>Emergency Contact</div>
-                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>Sarah Mercer (Wife) • +1 (555) 019-8234</div>
+                <div style={{ color: 'var(--text-main)', fontSize: 'var(--font-body)', fontWeight: 600 }}>{patientProfile?.emergency_name || 'N/A'} ({patientProfile?.emergency_relation || 'N/A'}) • {patientProfile?.emergency_phone || 'N/A'}</div>
               </div>
             </div>
           </div>
@@ -396,42 +397,21 @@ export default function Dashboard({
               <div style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '11px', top: '24px', bottom: '-12px', width: '2px', background: 'var(--card-border)' }}></div>
                 
-                {/* Morning */}
                 <div style={{ display: 'flex', gap: '1rem', position: 'relative', marginBottom: '1.5rem' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', zIndex: 1, flexShrink: 0 }}>
-                    <Check size={14} />
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', zIndex: 1, flexShrink: 0 }}>
+                    <Pill size={14} />
                   </div>
-                  <div>
-                    <div style={{ fontSize: 'var(--font-meta)', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '2px' }}>MORNING</div>
-                    {medicines.slice(0, 1).map((med, i) => (
-                      <div key={i} style={{ fontSize: 'var(--font-body)', fontWeight: 600, color: 'var(--text-main)' }}>{med.name}</div>
+                  <div style={{ width: '100%' }}>
+                    {medicines.map((med, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid var(--card-border)' }}>
+                        <div>
+                          <div style={{ fontSize: 'var(--font-body)', fontWeight: 600, color: 'var(--text-main)' }}>{med.medicine_name || med.name}</div>
+                          <div style={{ fontSize: 'var(--font-meta)', color: 'var(--text-secondary)' }}>{med.dosage} • {med.frequency || med.freq}</div>
+                        </div>
+                        <div style={{ fontSize: 'var(--font-meta)', color: 'var(--text-secondary)', fontWeight: 600 }}>{med.time || 'Anytime'}</div>
+                      </div>
                     ))}
                     {medicines.length === 0 && <div style={{ fontSize: 'var(--font-body)', color: 'var(--text-muted)' }}>No meds scheduled</div>}
-                  </div>
-                </div>
-
-                {/* Afternoon */}
-                <div style={{ display: 'flex', gap: '1rem', position: 'relative', marginBottom: '1.5rem' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', zIndex: 1, flexShrink: 0 }}>
-                    <Clock size={14} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 'var(--font-meta)', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '2px' }}>AFTERNOON</div>
-                    {medicines.slice(1, 2).map((med, i) => (
-                      <div key={i} style={{ fontSize: 'var(--font-body)', fontWeight: 600, color: 'var(--text-main)' }}>{med.name}</div>
-                    ))}
-                    {medicines.length <= 1 && <div style={{ fontSize: 'var(--font-body)', color: 'var(--text-muted)' }}>No meds scheduled</div>}
-                  </div>
-                </div>
-
-                {/* Night */}
-                <div style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', zIndex: 1, flexShrink: 0 }}>
-                    <Clock size={14} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 'var(--font-meta)', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '2px' }}>NIGHT</div>
-                    <div style={{ fontSize: 'var(--font-body)', color: 'var(--text-muted)' }}>No meds scheduled</div>
                   </div>
                 </div>
               </div>
@@ -484,16 +464,9 @@ export default function Dashboard({
                   </div>
                 );
               }) : (
-                <>
-                  {/* Default mock timeline if no appointments exist */}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-meta)', fontWeight: 600, marginBottom: '4px' }}>Tomorrow at 10:30 AM</div>
-                    <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-sm)', padding: '1rem', fontSize: 'var(--font-body)', color: 'var(--text-main)', fontWeight: 500 }}>
-                      <div style={{ fontWeight: 600 }}>Dr. Sarah Jenkins</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>General Checkup</div>
-                    </div>
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    No upcoming appointments.
                   </div>
-                </>
               )}
             </div>
           </div>

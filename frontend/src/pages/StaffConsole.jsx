@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiClient';
 import { 
   Heart, 
   Activity, 
@@ -20,18 +21,37 @@ export default function StaffConsole({
   navigateTo, 
   showToast 
 }) {
-  const [activePatient, setActivePatient] = useState('Alex Mercer');
-  
-  // Mock patient dataset for clinical monitoring
-  const patientGrid = [
-    { name: 'Alex Mercer', age: 31, condition: 'Post-Op Coronary Bypass', heartrate: vitals.heartrate, spo2: vitals.spo2, temp: vitals.temperature, bp: vitals.bloodPressure, status: 'Stable' },
-    { name: 'Sarah Mercer', age: 29, condition: 'Antenatal Checkup', heartrate: 82, spo2: 99, temp: '36.8', bp: '118/75', status: 'Stable' },
-    { name: 'Bruce Wayne', age: 45, condition: 'Chronic Insomnia / Trauma', heartrate: 62, spo2: 98, temp: '36.5', bp: '125/82', status: 'Stable' },
-    { name: 'John Miller', age: 72, condition: 'Hypertension Tracking', heartrate: 91, spo2: 95, temp: '37.1', bp: '142/90', status: 'Warning' },
-    { name: 'Grace Hopper', age: 88, condition: 'Elder Companion Triage', heartrate: 76, spo2: 97, temp: '36.6', bp: '120/80', status: 'Stable' }
-  ];
+  const [patientGrid, setPatientGrid] = useState([]);
+  const [activePatient, setActivePatient] = useState(null);
 
-  const currentPatient = patientGrid.find(p => p.name === activePatient) || patientGrid[0];
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await apiFetch('/api/patients/all');
+        if (res.ok) {
+          const data = await res.json();
+          // Map to match the expected structure
+          const mapped = data.map(p => ({
+            name: p.full_name || p.user?.name || 'Unknown',
+            age: p.age || 'N/A',
+            condition: p.medical_conditions || 'General Checkup',
+            heartrate: vitals.heartrate, 
+            spo2: vitals.spo2, 
+            temp: vitals.temperature, 
+            bp: vitals.bloodPressure, 
+            status: 'Stable'
+          }));
+          setPatientGrid(mapped);
+          if (mapped.length > 0) setActivePatient(mapped[0].name);
+        }
+      } catch (err) {
+        console.error("Failed to fetch patients", err);
+      }
+    };
+    fetchPatients();
+  }, [vitals]);
+
+  const currentPatient = patientGrid.find(p => p.name === activePatient) || null;
 
   return (
     <div className="view-fade-in" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '1.75rem' }}>
@@ -112,14 +132,14 @@ export default function StaffConsole({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
             <div>
               <span className="badge badge-primary" style={{ textTransform: 'uppercase', fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>Selected EHR Record</span>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '4px', color: 'var(--text-main)' }}>{currentPatient.name}</h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Age {currentPatient.age} • Patient Vitals Monitor</p>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '4px', color: 'var(--text-main)' }}>{currentPatient ? currentPatient.name : 'No Patient Selected'}</h2>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Age {currentPatient ? currentPatient.age : '--'} • Patient Vitals Monitor</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.8rem', textAlign: 'right' }}>
-              <div>BP: <strong style={{ color: 'var(--text-main)' }}>{currentPatient.bp}</strong></div>
-              <div>Temp: <strong style={{ color: 'var(--text-main)' }}>{currentPatient.temp}°C</strong></div>
-              <div>HR: <strong style={{ color: 'var(--danger)' }}>{currentPatient.heartrate} BPM</strong></div>
-              <div>O2: <strong style={{ color: 'var(--success)' }}>{currentPatient.spo2}%</strong></div>
+              <div>BP: <strong style={{ color: 'var(--text-main)' }}>{currentPatient ? currentPatient.bp : '--'}</strong></div>
+              <div>Temp: <strong style={{ color: 'var(--text-main)' }}>{currentPatient ? currentPatient.temp : '--'}°C</strong></div>
+              <div>HR: <strong style={{ color: 'var(--danger)' }}>{currentPatient ? currentPatient.heartrate : '--'} BPM</strong></div>
+              <div>O2: <strong style={{ color: 'var(--success)' }}>{currentPatient ? currentPatient.spo2 : '--'}%</strong></div>
             </div>
           </div>
 
