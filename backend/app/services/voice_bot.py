@@ -205,7 +205,7 @@ def process_voice_turn(
             pass  # Fall back to DEFAULT_PROMPTS
 
     # Add core instruction for all personas
-    system_prompt += "\n\nCRITICAL INSTRUCTION: Your output will be spoken out loud via Text-to-Speech. Use natural, conversational language. DO NOT output markdown, bold text, lists, or asterisks. Keep it strictly conversational. Respond in a single short paragraph."
+    system_prompt += "\n\nCRITICAL INSTRUCTION: Your output will be spoken out loud via Text-to-Speech over a phone call. Speak like a real human. Use conversational filler words occasionally (e.g., 'Umm', 'ah', 'well', 'you know'). Keep it extremely casual and natural. DO NOT output markdown, bold text, lists, or asterisks. Respond in a single short conversational sentence or two at most."
 
     # Load conversation history — from DB if available, otherwise empty
     transcripts = []

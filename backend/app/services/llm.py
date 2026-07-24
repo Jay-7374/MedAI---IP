@@ -31,8 +31,8 @@ def get_chat_response(messages: list, system_prompt: str = None) -> str:
     formatted_messages.extend(messages)
 
     models_to_try = [
-        "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile",
         "mixtral-8x7b-32768",
         "gemma2-9b-it"
     ]
@@ -139,7 +139,6 @@ async def stream_chat_response(messages: list, request=None):
         except Exception as fallback_err:
             logger.error(f"Fallback model {FALLBACK_MODEL} also failed: {type(fallback_err).__name__} - {fallback_err}")
             yield f"data: {json.dumps({'error': 'Both primary and fallback AI services are currently busy. Please try again shortly.'})}\n\n"
-            
     except Exception as e:
         logger.error(f"Groq API Streaming failed unexpectedly: {type(e).__name__} - {e}")
         yield f"data: {json.dumps({'error': 'Unable to generate a response right now. Please try again.'})}\n\n"

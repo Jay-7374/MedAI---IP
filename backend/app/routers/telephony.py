@@ -80,6 +80,14 @@ import html
 # Set up logging for Twilio webhooks
 logger = logging.getLogger(__name__)
 
+import urllib.parse
+from app.services.tts import get_tts_audio_bytes
+
+@router.get("/twilio/audio", summary="Fetch ElevenLabs audio for Twilio")
+def get_twilio_audio(text: str):
+    audio = get_tts_audio_bytes(text)
+    return Response(content=audio, media_type="audio/mpeg")
+
 @router.api_route("/twilio/voice-start", methods=["GET", "POST"], summary="[Twilio webhook] Bot opening line")
 def twilio_voice_start(bot_name: str = "PostDischargeCheckIn"):
     logger.info(f"Twilio /voice-start called for bot: {bot_name}")
@@ -96,12 +104,13 @@ def twilio_voice_start(bot_name: str = "PostDischargeCheckIn"):
     }
     opening = opening_lines.get(bot_name, "Hello, this is Salus calling to check in with you. How are you doing today?")
     
+    encoded_opening = urllib.parse.quote(opening)
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Gather input="speech" action="/twilio/voice-gather?bot_name={bot_name}" method="POST" language="en-US" speechTimeout="auto" bargeIn="true">
-        <Say>{html.escape(opening)}</Say>
+        <Play>{settings.PUBLIC_BASE_URL.rstrip('/')}/twilio/audio?text={encoded_opening}</Play>
     </Gather>
-    <Say>We didn't hear a response. Goodbye for now.</Say>
+    <Say voice="Polly.Joanna-Neural">We didn't hear a response. Goodbye for now.</Say>
     <Hangup/>
 </Response>"""
     return _twiml_response(xml)
@@ -125,12 +134,13 @@ async def twilio_voice_gather(request: Request, bot_name: str = "PostDischargeCh
     # Handle empty speech / silence gracefully (Multi-turn retry)
     if not speech_result:
         logger.warning(f"Empty speech received for CallSid: {call_sid}. Asking for repeat.")
+        retry_msg = urllib.parse.quote("I'm sorry, I didn't quite catch that. Could you say that again?")
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Gather input="speech" action="/twilio/voice-gather?bot_name={bot_name}" method="POST" language="en-US" speechTimeout="auto" bargeIn="true">
-        <Say>I'm sorry, I didn't quite catch that. Could you say that again?</Say>
+        <Play>{settings.PUBLIC_BASE_URL.rstrip('/')}/twilio/audio?text={retry_msg}</Play>
     </Gather>
-    <Say>It seems we're having connection issues. Goodbye.</Say>
+    <Say voice="Polly.Joanna-Neural">It seems we're having connection issues. Goodbye.</Say>
     <Hangup/>
 </Response>"""
         return _twiml_response(xml)
@@ -141,7 +151,8 @@ async def twilio_voice_gather(request: Request, bot_name: str = "PostDischargeCh
     except Exception as e:
         logger.error(f"Error in process_voice_turn for CallSid {call_sid}: {str(e)}")
         ai_response = "I'm sorry, I encountered a system error. We will call you back later."
-        xml = f"""<?xml version="1.0" encoding="UTF-8"?><Response><Say>{html.escape(ai_response)}</Say><Hangup/></Response>"""
+        encoded_err = urllib.parse.quote(ai_response)
+        xml = f"""<?xml version="1.0" encoding="UTF-8"?><Response><Play>{settings.PUBLIC_BASE_URL.rstrip('/')}/twilio/audio?text={encoded_err}</Play><Hangup/></Response>"""
         return _twiml_response(xml)
 
     # Log to DB
@@ -152,12 +163,14 @@ async def twilio_voice_gather(request: Request, bot_name: str = "PostDischargeCh
     hangup_words = ["goodbye", "bye", "that's all", "thank you, that's all", "that's all for now", "hang up"]
     should_hangup = any(w in speech_result.lower() for w in hangup_words)
 
+    encoded_ai_response = urllib.parse.quote(ai_response)
+    encoded_goodbye = urllib.parse.quote("Thank you. Goodbye.")
     if should_hangup:
         logger.info(f"Call completed successfully. Hanging up CallSid: {call_sid}")
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say>{html.escape(ai_response)}</Say>
-    <Say>Thank you. Goodbye.</Say>
+    <Play>{settings.PUBLIC_BASE_URL.rstrip('/')}/twilio/audio?text={encoded_ai_response}</Play>
+    <Play>{settings.PUBLIC_BASE_URL.rstrip('/')}/twilio/audio?text={encoded_goodbye}</Play>
     <Hangup/>
 </Response>"""
     else:
@@ -165,9 +178,9 @@ async def twilio_voice_gather(request: Request, bot_name: str = "PostDischargeCh
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Gather input="speech" action="/twilio/voice-gather?bot_name={bot_name}" method="POST" language="en-US" speechTimeout="auto" bargeIn="true">
-        <Say>{html.escape(ai_response)}</Say>
+        <Play>{settings.PUBLIC_BASE_URL.rstrip('/')}/twilio/audio?text={encoded_ai_response}</Play>
     </Gather>
-    <Say>We didn't hear anything else. Goodbye.</Say>
+    <Say voice="Polly.Joanna-Neural">We didn't hear anything else. Goodbye.</Say>
     <Hangup/>
 </Response>"""
     
