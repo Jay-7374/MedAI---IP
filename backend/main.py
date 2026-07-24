@@ -56,12 +56,14 @@ app = FastAPI(
 )
 
 _raw_origin = os.getenv("ALLOWED_ORIGIN", "")
-ALLOWED_ORIGINS = [o.strip() for o in _raw_origin.split(",") if o.strip()] or [
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origin.split(",") if o.strip()]
+ALLOWED_ORIGINS.extend([
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
-]
+])
+ALLOWED_ORIGINS = list(dict.fromkeys(ALLOWED_ORIGINS))
 
 app.add_middleware(
     CORSMiddleware,
