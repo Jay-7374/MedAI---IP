@@ -65,6 +65,7 @@ ALLOWED_ORIGINS.extend([
     "http://127.0.0.1:5173",
     "http://localhost",
     "capacitor://localhost",
+    "https://localhost",
 ])
 ALLOWED_ORIGINS = list(dict.fromkeys(ALLOWED_ORIGINS))
 
