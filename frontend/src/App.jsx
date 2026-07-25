@@ -273,7 +273,10 @@ export default function App() {
   };
 
   const fetchProfile = async () => {
-    if (!user || user.role !== 'Patient') return;
+    if (!user || user?.role?.toLowerCase() !== 'patient') {
+      setLoadingProfile(false);
+      return;
+    }
     setLoadingProfile(true);
     try {
       const res = await apiFetch('/api/patients/me');
@@ -305,6 +308,7 @@ export default function App() {
       setMedicines([]);
       setPrompts([]);
       setSmsMessages([]);
+      setLoadingProfile(false);
     }
   }, [user]);
 
