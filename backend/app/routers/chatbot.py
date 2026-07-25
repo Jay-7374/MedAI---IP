@@ -21,7 +21,7 @@ import json
 
 router = APIRouter(
     prefix="/api/chatbot",
-    tags=["Chatbot"]
+    tags=["chatbot"]
 )
 
 @router.get("/sessions", response_model=list[ChatbotSessionListSchema])

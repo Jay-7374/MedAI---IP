@@ -117,12 +117,14 @@ export default function App() {
 
 
 
-  // Telemetry Telemetry Vitals
+  // Patient Vitals & Health Connect Metrics
   const [vitals, setVitals] = useState({
     heartrate: 74,
     spo2: 98,
     bloodPressure: '120/80',
-    temperature: '36.7'
+    temperature: '36.7',
+    steps: '3,240',
+    sleep: '7h 12m'
   });
 
   // Data states
@@ -185,39 +187,33 @@ export default function App() {
     }, 4000);
   };
 
-  // Fetch telemetry vitals
-  useEffect(() => {
-    const fetchTelemetry = async () => {
-      try {
-        const res = await apiFetch('/api/telemetry');
-        if (res.ok) {
-          const data = await res.json();
-          setVitals(prev => ({
-            ...prev,
-            heartrate: data.heartrate,
-            spo2: data.spo2
-          }));
+  // Fetch actual health metrics from database (no 4-second interval polling)
+  const fetchHealthMetrics = async () => {
+    try {
+      const res = await apiFetch('/api/v1/health-metrics/latest');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setVitals(prev => {
+            const updated = { ...prev };
+            data.forEach(m => {
+              if (m.metric_type === 'HEART_RATE') updated.heartrate = Math.round(m.value);
+              if (m.metric_type === 'SPO2') updated.spo2 = Math.round(m.value);
+              if (m.metric_type === 'STEPS') updated.steps = Math.round(m.value).toLocaleString();
+              if (m.metric_type === 'SLEEP') {
+                const hrs = Math.floor(m.value);
+                const mins = Math.round((m.value - hrs) * 60);
+                updated.sleep = `${hrs}h ${mins}m`;
+              }
+            });
+            return updated;
+          });
         }
-      } catch (err) {
-        // Fallback local fluctuation
-        setVitals(prev => {
-          const variance = Math.floor(Math.random() * 5) - 2;
-          let newHeart = prev.heartrate + variance;
-          if (newHeart < 60) newHeart = 65;
-          if (newHeart > 100) newHeart = 95;
-          return {
-            ...prev,
-            heartrate: newHeart,
-            spo2: Math.random() > 0.5 ? 98 : 99
-          };
-        });
       }
-    };
-    
-    fetchTelemetry();
-    const interval = setInterval(fetchTelemetry, 4000);
-    return () => clearInterval(interval);
-  }, []);
+    } catch (err) {
+      console.error("Failed to fetch health metrics", err);
+    }
+  };
 
   // Fetch basic lists
   const fetchAppointments = async () => {
@@ -298,6 +294,7 @@ export default function App() {
       fetchProfile();
       fetchAppointments();
       fetchMedicines();
+      fetchHealthMetrics();
       if (isAdmin) {
         fetchPrompts();
       }
@@ -1053,6 +1050,7 @@ export default function App() {
                 {activeTab === 'dashboard' && (
                   <Dashboard 
                     user={user}
+                    vitals={vitals}
                     patientProfile={patientProfile}
                     medicines={medicines}
                     smsMessages={smsMessages}

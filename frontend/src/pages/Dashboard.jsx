@@ -22,6 +22,7 @@ import {
 
 export default function Dashboard({ 
   user, 
+  vitals,
   patientProfile,
   medicines, 
   smsMessages, 
@@ -280,7 +281,7 @@ export default function Dashboard({
           <div className="metric-details">
             <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Heart Rate</h4>
             <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              72 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>bpm</span>
+              {vitals?.heartrate || 72} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>bpm</span>
             </div>
           </div>
         </div>
@@ -292,7 +293,7 @@ export default function Dashboard({
           <div className="metric-details">
             <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Blood Oxygen</h4>
             <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              98% <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Optimal</span>
+              {vitals?.spo2 || 98}% <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Optimal</span>
             </div>
           </div>
         </div>
@@ -304,7 +305,7 @@ export default function Dashboard({
           <div className="metric-details">
             <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Activity Today</h4>
             <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              3,240 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>steps</span>
+              {vitals?.steps || '3,240'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>steps</span>
             </div>
           </div>
         </div>
@@ -316,7 +317,7 @@ export default function Dashboard({
           <div className="metric-details">
             <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Sleep Quality</h4>
             <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              7h 12m <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Good</span>
+              {vitals?.sleep || '7h 12m'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Good</span>
             </div>
           </div>
         </div>

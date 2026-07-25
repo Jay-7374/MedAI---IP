@@ -18,7 +18,6 @@ from app.routers import (
     auth,
     appointments,
     medicines,
-    telemetry,
     sos,
     prompts,
     voice,
@@ -29,18 +28,17 @@ from app.routers import (
 )
 
 TAGS_METADATA = [
-    {"name": "authentication", "description": "🔐 **User registration and login.**"},
-    {"name": "appointments", "description": "📅 **Patient appointment management.**"},
-    {"name": "medicines", "description": "💊 **Medication schedule management.**"},
-    {"name": "auth", "description": "🔐 **Authentication and user management.**"},
-    {"name": "voice", "description": "🎙️ **Voice bots and TTS processing.**"},
-    {"name": "patients", "description": "🏥 **EHR data (appointments, meds).**"},
-    {"name": "calls", "description": "📞 **Outbound voice calls via Twilio.**"},
-    {"name": "telemetry", "description": "📊 **Real-time dashboard metrics.**"},
-    {"name": "prompts", "description": "📝 **LLM persona and prompt management.**"},
-    {"name": "telephony", "description": "🔁 **Telephony webhooks (Twilio).**"},
-    {"name": "health-sync", "description": "⌚ **Wearable data synchronization.**"},
-    {"name": "health-metrics", "description": "📈 **Health metrics retrieval.**"},
+    {"name": "authentication", "description": "🔐 **User registration, token issuance, and account management.**"},
+    {"name": "patients", "description": "🏥 **Patient profile management and clinical history.**"},
+    {"name": "health-metrics", "description": "📈 **Database retrieval for physiological indicators (Heart Rate, SpO2, Steps, Sleep).**"},
+    {"name": "health-sync", "description": "⌚ **Wearable data batch synchronization from Health Connect.**"},
+    {"name": "appointments", "description": "📅 **Clinical appointment scheduling and management.**"},
+    {"name": "medicines", "description": "💊 **Medication prescriptions and compliance schedules.**"},
+    {"name": "chatbot", "description": "💬 **AI medical assistant sessions and multimodal chat.**"},
+    {"name": "voice-bot", "description": "🎙️ **Voice interactive sessions, TTS processing, and real-time dialogue.**"},
+    {"name": "telephony", "description": "📞 **Twilio telephony webhooks, outbound clinical calls, and SMS messaging.**"},
+    {"name": "prompts", "description": "📝 **Admin prompt templates and AI persona configuration.**"},
+    {"name": "emergency", "description": "🚨 **Emergency Severity Index (ESI) classification and SOS routing.**"},
 ]
 
 @asynccontextmanager
@@ -80,17 +78,16 @@ app.add_middleware(
 
 
 app.include_router(auth.router)
+app.include_router(patients.router)
+app.include_router(health_sync.metrics_router)
+app.include_router(health_sync.router)
 app.include_router(appointments.router)
 app.include_router(medicines.router)
-app.include_router(telemetry.router)
-app.include_router(sos.router)
-app.include_router(prompts.router)
+app.include_router(chatbot.router)
 app.include_router(voice.router)
 app.include_router(telephony.router)
-app.include_router(chatbot.router)
-app.include_router(health_sync.router)
-app.include_router(health_sync.metrics_router)
-app.include_router(patients.router)
+app.include_router(prompts.router)
+app.include_router(sos.router)
 
 def startup_db_seeding():
     if engine is not None:
