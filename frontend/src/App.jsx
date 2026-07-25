@@ -119,6 +119,7 @@ export default function App() {
 
   // Patient Vitals & Health Connect Metrics
   const [vitals, setVitals] = useState({
+    hasSynced: false,
     heartrate: 74,
     spo2: 98,
     bloodPressure: '120/80',
@@ -195,23 +196,30 @@ export default function App() {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setVitals(prev => {
-            const updated = { ...prev };
+            const updated = { ...prev, hasSynced: true };
             data.forEach(m => {
               if (m.metric_type === 'HEART_RATE') updated.heartrate = Math.round(m.value);
               if (m.metric_type === 'SPO2') updated.spo2 = Math.round(m.value);
               if (m.metric_type === 'STEPS') updated.steps = Math.round(m.value).toLocaleString();
               if (m.metric_type === 'SLEEP') {
-                const hrs = Math.floor(m.value);
-                const mins = Math.round((m.value - hrs) * 60);
+                const val = Number(m.value);
+                const totalMins = (m.unit && m.unit.toLowerCase().startsWith('hr')) ? Math.round(val * 60) : Math.round(val);
+                const hrs = Math.floor(totalMins / 60);
+                const mins = totalMins % 60;
                 updated.sleep = `${hrs}h ${mins}m`;
               }
             });
             return updated;
           });
+        } else {
+          setVitals(prev => ({ ...prev, hasSynced: false }));
         }
+      } else {
+        setVitals(prev => ({ ...prev, hasSynced: false }));
       }
     } catch (err) {
       console.error("Failed to fetch health metrics", err);
+      setVitals(prev => ({ ...prev, hasSynced: false }));
     }
   };
 
@@ -305,6 +313,7 @@ export default function App() {
       setMedicines([]);
       setPrompts([]);
       setSmsMessages([]);
+      setVitals(prev => ({ ...prev, hasSynced: false }));
       setLoadingProfile(false);
     }
   }, [user]);

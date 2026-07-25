@@ -17,7 +17,9 @@ import {
   ShieldCheck,
   Clock,
   Droplet,
-  Moon
+  Moon,
+  Smartphone,
+  Wifi
 } from 'lucide-react';
 
 export default function Dashboard({ 
@@ -272,56 +274,146 @@ export default function Dashboard({
   // Patient Dashboard default
   return (
     <div className="view-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Top Row Grid: Patient Wellness Metrics */}
-      <section className="metrics-grid">
-        <div className="card metric-card pulse">
-          <div className="metric-icon metric-icon-pulse">
-            <Heart size={24} />
-          </div>
-          <div className="metric-details">
-            <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Heart Rate</h4>
-            <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              {vitals?.heartrate || 72} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>bpm</span>
+      {/* Top Row Grid: Patient Wellness Metrics or SALUS Sync Onboarding Banner */}
+      {vitals?.hasSynced ? (
+        <section className="metrics-grid">
+          <div className="card metric-card pulse">
+            <div className="metric-icon metric-icon-pulse">
+              <Heart size={24} />
+            </div>
+            <div className="metric-details">
+              <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Heart Rate</h4>
+              <div className="metric-value" style={{ fontSize: '1.5rem' }}>
+                {vitals?.heartrate || 72} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>bpm</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="card metric-card oxygen">
-          <div className="metric-icon metric-icon-oxygen">
-            <Droplet size={24} />
-          </div>
-          <div className="metric-details">
-            <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Blood Oxygen</h4>
-            <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              {vitals?.spo2 || 98}% <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Optimal</span>
+          <div className="card metric-card oxygen">
+            <div className="metric-icon metric-icon-oxygen">
+              <Droplet size={24} />
+            </div>
+            <div className="metric-details">
+              <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Blood Oxygen</h4>
+              <div className="metric-value" style={{ fontSize: '1.5rem' }}>
+                {vitals?.spo2 || 98}% <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Optimal</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="card metric-card bp">
-          <div className="metric-icon metric-icon-bp">
-            <ActivitySquare size={24} />
-          </div>
-          <div className="metric-details">
-            <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Activity Today</h4>
-            <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              {vitals?.steps || '3,240'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>steps</span>
+          <div className="card metric-card bp">
+            <div className="metric-icon metric-icon-bp">
+              <ActivitySquare size={24} />
+            </div>
+            <div className="metric-details">
+              <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Activity Today</h4>
+              <div className="metric-value" style={{ fontSize: '1.5rem' }}>
+                {vitals?.steps || '3,240'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>steps</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="card metric-card temp">
-          <div className="metric-icon metric-icon-temp">
-            <Moon size={24} />
-          </div>
-          <div className="metric-details">
-            <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Sleep Quality</h4>
-            <div className="metric-value" style={{ fontSize: '1.5rem' }}>
-              {vitals?.sleep || '7h 12m'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Good</span>
+          <div className="card metric-card temp">
+            <div className="metric-icon metric-icon-temp">
+              <Moon size={24} />
+            </div>
+            <div className="metric-details">
+              <h4 style={{ fontSize: 'var(--font-meta)', fontWeight: 600 }}>Sleep Quality</h4>
+              <div className="metric-value" style={{ fontSize: '1.5rem' }}>
+                {vitals?.sleep || '7h 12m'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Good</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="card view-fade-in" style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background: '#ffffff',
+          border: '1px solid rgba(20, 184, 166, 0.25)',
+          boxShadow: '0 4px 24px 0 rgba(0, 0, 0, 0.04)',
+          padding: '2.25rem',
+          borderRadius: '1.25rem'
+        }}>
+          <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(20,184,166,0.08) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem', flex: '1 1 480px' }}>
+              <div style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '1.25rem',
+                background: 'linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                boxShadow: '0 6px 24px rgba(20, 184, 166, 0.3)',
+                flexShrink: 0
+              }}>
+                <Smartphone size={34} />
+              </div>
+              
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    color: '#0f766e',
+                    background: 'rgba(20, 184, 166, 0.12)',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '9999px',
+                    border: '1px solid rgba(20, 184, 166, 0.25)'
+                  }}>
+                    <Wifi size={13} className="pulse" style={{ animationDuration: '2s' }} /> Wearable Sync Not Active
+                  </span>
+                </div>
+                
+                <h3 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.6rem', letterSpacing: '-0.02em' }}>
+                  Connect with our SALUS Sync App
+                </h3>
+                
+                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, maxWidth: '650px' }}>
+                  No physiological metrics have been transmitted for your account yet. Install and sign into the companion <strong>SALUS Sync</strong> app on your Android device to stream real-time wearable vitals directly from <strong>Google Health Connect</strong>.
+                </p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginTop: '1.25rem' }}>
+                  <span style={{ fontSize: '0.8rem', background: '#f8fafc', padding: '0.4rem 0.85rem', borderRadius: '0.6rem', border: '1px solid #e2e8f0', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontWeight: 500 }}>
+                    <Heart size={15} color="#f43f5e" /> Heart Rate
+                  </span>
+                  <span style={{ fontSize: '0.8rem', background: '#f8fafc', padding: '0.4rem 0.85rem', borderRadius: '0.6rem', border: '1px solid #e2e8f0', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontWeight: 500 }}>
+                    <Droplet size={15} color="#3b82f6" /> Blood Oxygen (SpO₂)
+                  </span>
+                  <span style={{ fontSize: '0.8rem', background: '#f8fafc', padding: '0.4rem 0.85rem', borderRadius: '0.6rem', border: '1px solid #e2e8f0', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontWeight: 500 }}>
+                    <ActivitySquare size={15} color="#10b981" /> Activity & Steps
+                  </span>
+                  <span style={{ fontSize: '0.8rem', background: '#f8fafc', padding: '0.4rem 0.85rem', borderRadius: '0.6rem', border: '1px solid #e2e8f0', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontWeight: 500 }}>
+                    <Moon size={15} color="#a855f7" /> Sleep Analysis
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', background: '#f8fafc', padding: '1.4rem 1.6rem', borderRadius: '1rem', border: '1px solid #e2e8f0', minWidth: '260px', flex: '1 1 240px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '0.5rem' }}>
+                Sync Status
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.05rem', fontWeight: 600, color: '#d97706', marginBottom: '0.75rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block', boxShadow: '0 0 10px #f59e0b' }} />
+                Awaiting Telemetry
+              </div>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                Once synced via SALUS Sync, your live dashboard cards will automatically appear here.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Main Dashboard Layout */}
       <div className="dashboard-grid-layout" style={{ marginTop: '0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1.5rem' }}>
