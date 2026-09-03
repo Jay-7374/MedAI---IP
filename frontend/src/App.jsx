@@ -578,6 +578,15 @@ export default function App() {
       setCallStatusSynced('Connected');
       showToast("Real-time voice bot link established.", "success");
       
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+          console.log("[VOICE] Microphone started listening");
+        } catch (e) {
+          console.warn("[VOICE] Microphone start failed:", e);
+        }
+      }
+      
       // If db timeout is simulated on start
       if (simulateDbTimeout) {
         ws.send(JSON.stringify({
