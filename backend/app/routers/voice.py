@@ -17,11 +17,22 @@ def create_or_get_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         db_user = crud.create_user(db, user)
     return db_user
 
+from app.dependencies import get_current_user_optional
+
 @router.post("/api/sessions", response_model=schemas.CallSession, summary="Create or retrieve a call session by ID")
-def create_session(session: schemas.CallSessionCreate, db: Session = Depends(get_db)):
+def create_session(
+    session: schemas.CallSessionCreate, 
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user_optional)
+):
     db_session = crud.get_session(db, session.id)
     if not db_session:
+        if not session.user_id and current_user:
+            session.user_id = current_user.id
         db_session = crud.create_session(db, session)
+    elif current_user and not db_session.user_id:
+        db_session.user_id = current_user.id
+        db.commit()
     return db_session
 
 @router.get("/api/sessions/{session_id}/transcripts", response_model=List[schemas.Transcript], summary="Get all transcript turns for a call session")

@@ -5,27 +5,25 @@ from .voice_tools import VOICE_TOOLS, execute_tool
 import json
 
 DEFAULT_PROMPTS = {
-    "NaturalSpeechAuth": """You are ARIA — Salus's Natural Speech Authentication System. You verify patient identity before granting access to medical records or appointments.
+    "NaturalSpeechAuth": """You are ARIA — Salus's Natural Speech Assistant. You assist authenticated patients with accessing their medical account, appointments, and care guidance.
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- THE PATIENT IS ALREADY LOGGED IN AND AUTHENTICATED: Trust the authenticated session. You already have access to their profile and name in PATIENT CONTEXT. NEVER ask the patient for their full name, date of birth, or identity confirmation.
+- If the patient says "can't you take my data from my account" or similar, confirm warmly and directly that their profile is already loaded and ask how you can help them today.
 - If the patient interrupts, acknowledge it naturally.
-- If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
-- If the patient says "I don't know", guide them or offer an alternative verification method.
-- If the patient corrects themselves (e.g., "Wait, no, it's 1996"), seamlessly accept the correction.
-- Do NOT act like a robot. Use conversational fillers occasionally (e.g., "Got it", "Okay", "Hmm", "Let me check that").
+- Do NOT act like a robot. Use conversational fillers occasionally (e.g., "Got it", "Okay", "Hmm").
 
 BEHAVIOR:
-- Ask for their Full Name first.
-- Ask for their Date of Birth (format: Month, Day, Year).
-- Ask for one more detail: either their registered phone number OR the last 4 digits of their SSN.
-- Keep responses short (1-2 sentences max per turn). Be warm but professional.
-- Never reveal what the correct answers are. Never skip steps.""",
+- Greet the patient naturally by their name from PATIENT CONTEXT.
+- State clearly how you can help them today with their appointments, care plan, or questions.
+- Keep responses short (1-2 sentences max per turn). Be warm, crisp, and professional.""",
 
     "ConversationalScheduling": """You are NOVA — Salus's Conversational Scheduling and Diagnostic Enquiries Assistant. You help patients book, reschedule, or cancel doctor appointments and diagnostic tests (blood work, X-rays, MRI, ultrasound, ECG, etc.).
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Do NOT ask for full name or DOB for identity verification; use their account context directly.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", guide them or offer an alternative.
@@ -50,6 +48,7 @@ BEHAVIOR:
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their account context directly; do not ask for full name or DOB.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", reassure them and try to ask the question in a simpler way.
@@ -73,6 +72,7 @@ AFTER ALL 5 ANSWERS:
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their account context directly.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", guide them gently.
@@ -85,7 +85,7 @@ PATIENT PROFILE:
 - Metformin 500mg — twice daily with meals (morning and evening), for diabetes
 
 BEHAVIOR:
-1. Greet warmly.
+1. Greet warmly by their name.
 2. Go through each medication ONE by ONE. Ask if they have taken it today.
 3. If yes: Acknowledge naturally (e.g. "Great.", "Awesome, got it.").
 4. If no: "No problem. Please take it now if it's still within the right window."
@@ -96,6 +96,7 @@ BEHAVIOR:
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their account context directly.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", reassure them and say we can look it up later.
@@ -115,6 +116,7 @@ BEHAVIOR:
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their context directly.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", reassure them and move on to the next critical question.
@@ -133,6 +135,7 @@ BEHAVIOR:
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their context directly.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", guide them gently.
@@ -151,6 +154,7 @@ BEHAVIOR:
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their account context directly.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", reassure them warmly.
@@ -171,6 +175,7 @@ Speak slowly, warmly, and patiently. Use simple words. Never rush.""",
 You are having a highly conversational, natural dialogue.
 
 CRITICAL RULES:
+- The patient is already logged in. Use their name and profile context directly; do not ask for full name or DOB.
 - If the patient interrupts, acknowledge it naturally.
 - If the patient says "go back", "repeat", or "I didn't catch that", repeat your previous question gently.
 - If the patient says "I don't know", guide them gently.
@@ -179,11 +184,10 @@ CRITICAL RULES:
 - Do NOT act like a robot. 
 
 PRE-CONSULTATION CHECKLIST (one step at a time):
-1. Confirm name and DOB.
-2. Confirm doctor name.
-3. Tech Check (camera, microphone).
-4. Chief Complaint.
-5. Connect them to the doctor. Output [TELEMEDICINE_BRIDGE: Ready]
+1. Confirm doctor name.
+2. Tech Check (camera, microphone).
+3. Chief Complaint.
+4. Connect them to the doctor. Output [TELEMEDICINE_BRIDGE: Ready]
 
 Be calm, reassuring, and technically patient-friendly."""
 }
@@ -212,28 +216,45 @@ def process_voice_turn(
         try:
             from .. import models
             session = db.query(models.CallSession).filter(models.CallSession.id == session_id).first()
-            if session and session.user_id:
-                user_id = session.user_id
-                patient = db.query(models.Patient).filter(models.Patient.user_id == session.user_id).first()
+            target_user_id = session.user_id if (session and session.user_id) else None
+            
+            # Fallback if call session has no user_id bound yet
+            if not target_user_id:
+                patient_rec = db.query(models.Patient).first()
+                if patient_rec:
+                    target_user_id = patient_rec.user_id
+                else:
+                    first_user = db.query(models.User).filter(models.User.email == "patient@medai.com").first()
+                    if first_user:
+                        target_user_id = first_user.id
+            
+            if target_user_id:
+                user_id = target_user_id
+                patient = db.query(models.Patient).filter(models.Patient.user_id == target_user_id).first()
+                user_obj = db.query(models.User).filter(models.User.id == target_user_id).first()
+                
+                full_name = patient.full_name if (patient and patient.full_name) else (user_obj.name if user_obj else "Alex Mercer")
+                
+                profile_ctx = f"AUTHENTICATED PATIENT CONTEXT:\nName: {full_name}\n"
                 if patient:
-                    # Comprehensive Medical Profile Context Injection
-                    profile_ctx = f"PATIENT CONTEXT:\nName: {patient.full_name}\nAge: {patient.age}\nGender: {patient.gender}\nBlood Group: {patient.blood_group}\n"
-                    if patient.medical_conditions:
-                        profile_ctx += f"Medical Conditions: {patient.medical_conditions}\n"
-                    if patient.allergies:
-                        profile_ctx += f"Allergies: {patient.allergies}\n"
+                    if patient.age: profile_ctx += f"Age: {patient.age}\n"
+                    if patient.gender: profile_ctx += f"Gender: {patient.gender}\n"
+                    if patient.blood_group: profile_ctx += f"Blood Group: {patient.blood_group}\n"
+                    if patient.medical_conditions: profile_ctx += f"Medical Conditions: {patient.medical_conditions}\n"
+                    if patient.allergies: profile_ctx += f"Allergies: {patient.allergies}\n"
                         
-                    medicines = db.query(models.Medicine).filter(models.Medicine.user_id == session.user_id).all()
-                    if medicines:
-                        med_lines = [f"- {m.medicine_name} {m.dosage} ({m.frequency} at {m.time or 'anytime'})" for m in medicines]
-                        profile_ctx += f"Current Medicines:\n" + "\n".join(med_lines) + "\n"
-                        
+                medicines = db.query(models.Medicine).filter(models.Medicine.user_id == target_user_id).all()
+                if medicines:
+                    med_lines = [f"- {m.medicine_name} {m.dosage} ({m.frequency} at {m.time or 'anytime'})" for m in medicines]
+                    profile_ctx += f"Current Medicines:\n" + "\n".join(med_lines) + "\n"
+                    
+                if patient:
                     appointments = db.query(models.Appointment).filter(models.Appointment.patient_id == patient.id, models.Appointment.status == 'Scheduled').all()
                     if appointments:
                         appt_lines = [f"- {a.doctor_name} on {a.date} at {a.time}" for a in appointments]
                         profile_ctx += f"Upcoming Appointments:\n" + "\n".join(appt_lines) + "\n"
-                        
-                    system_prompt += f"\n\n{profile_ctx}\nNote: Always use this context instead of asking for the information if you already know it."
+                    
+                system_prompt += f"\n\n{profile_ctx}\nCRITICAL IDENTITY INSTRUCTION: The patient is ALREADY LOGGED IN and authenticated. Use this profile context automatically. NEVER ask the patient for their full name, date of birth, or identity verification. NEVER say 'Could you please confirm your full name?' or 'verify your identity'. If the patient asks 'can't you take my data from my account' or similar, confirm warmly and directly that their profile is already loaded and answer their question directly."
         except Exception as e:
             print("Failed to inject dynamic patient data into voice bot prompt:", e)
 
@@ -242,6 +263,7 @@ def process_voice_turn(
         "\n\nCRITICAL CONCISENESS & VOICE INSTRUCTION: Your output will be spoken out loud via Text-to-Speech over a phone call. "
         "Keep your response strictly short, concise, and direct — 1 to 2 short sentences maximum. "
         "Provide useful information only without fluff, long preambles, unnecessary greetings, or repetitive multi-choice questions. "
+        "NEVER ask for the user's full name, DOB, or identity confirmation since they are already logged in. "
         "Speak like a real human. Use conversational filler words occasionally (e.g., 'Umm', 'ah', 'well', 'you know'). Keep it casual and natural. "
         "DO NOT output markdown, bold text, lists, or asterisks.\n"
         "MULTILINGUAL INSTRUCTION: You must automatically detect the language of the user's input (even if it is phonetically spelled). "

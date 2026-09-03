@@ -51,3 +51,21 @@ def require_admin_role(current_user: User = Depends(get_current_user)):
             detail="Access denied. Administrator privileges required.",
         )
     return current_user
+
+security_optional = HTTPBearer(auto_error=False)
+
+def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security_optional), db: Session = Depends(get_db)):
+    if not credentials:
+        return None
+    try:
+        token = credentials.credentials
+        payload = verify_access_token(token)
+        if not payload:
+            return None
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        return db.query(User).filter(User.id == int(user_id)).first()
+    except Exception:
+        return None
+

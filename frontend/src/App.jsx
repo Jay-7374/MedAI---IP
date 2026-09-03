@@ -578,7 +578,8 @@ export default function App() {
         body: JSON.stringify({
           id: newSessionId,
           channel: 'WebRTC',
-          status: 'Active'
+          status: 'Active',
+          user_id: user?.id
         })
       });
     } catch (e) {
