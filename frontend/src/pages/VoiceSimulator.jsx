@@ -200,27 +200,31 @@ export default function VoiceSimulator({
           ) : (
             <div className="timeline-container" style={{ position: 'relative', borderLeft: '2px solid var(--border)', marginLeft: '1rem', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {transcripts.map((msg, idx) => {
-                let badgeColor = '';
-                let bgColor = '';
-                let textColor = '';
-                let align = 'left';
+                let badgeBg = '';
+                let badgeTextColor = '';
+                let msgBg = 'var(--card-bg, #ffffff)';
+                let msgTextColor = 'var(--text-main)';
                 let label = '';
+                let borderLeft = 'none';
                 
                 if (msg.speaker === 'User') {
-                  badgeColor = 'var(--bg-main)';
-                  textColor = 'var(--text-main)';
-                  bgColor = '#ffffff';
+                  badgeBg = 'var(--bg-main)';
+                  badgeTextColor = 'var(--text-main)';
+                  msgBg = 'rgba(255, 255, 255, 0.85)';
                   label = 'Patient';
                 } else if (msg.speaker === 'System') {
-                  badgeColor = 'transparent';
-                  textColor = 'var(--text-muted)';
-                  bgColor = 'transparent';
+                  badgeBg = 'transparent';
+                  badgeTextColor = 'var(--text-muted)';
+                  msgBg = 'transparent';
+                  msgTextColor = 'var(--text-muted)';
                   label = '⚙️ System Action';
                 } else {
-                  badgeColor = 'var(--primary)';
-                  textColor = '#ffffff';
-                  bgColor = 'transparent';
+                  badgeBg = 'var(--primary)';
+                  badgeTextColor = '#ffffff';
+                  msgBg = '#ffffff';
+                  msgTextColor = '#0f172a';
                   label = 'AI Assistant';
+                  borderLeft = '4px solid var(--primary)';
                 }
                 
                 return (
@@ -231,14 +235,25 @@ export default function VoiceSimulator({
                       boxShadow: msg.speaker === 'AI' ? '0 0 10px var(--primary)' : 'none',
                       border: msg.speaker === 'System' ? '2px solid var(--text-muted)' : 'none'
                     }}></div>
-                    <div className={`transcript-message ${msg.speaker.toLowerCase()}`} style={{ margin: 0, padding: msg.speaker === 'System' ? '0.2rem 0.85rem' : '0.85rem', borderRadius: '8px', background: bgColor, color: textColor }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', opacity: 0.8, marginBottom: '0.35rem', fontWeight: 700 }}>
-                        <span className="badge" style={{ padding: '0.1rem 0.4rem', fontSize: '0.62rem', background: badgeColor, color: textColor, border: msg.speaker === 'User' ? '1px solid var(--border)' : 'none' }}>
+                    <div className={`transcript-message ${msg.speaker.toLowerCase()}`} style={{ 
+                      margin: 0, 
+                      padding: msg.speaker === 'System' ? '0.2rem 0.85rem' : '0.85rem', 
+                      borderRadius: '8px', 
+                      background: msgBg, 
+                      color: msgTextColor,
+                      border: msg.speaker === 'System' ? 'none' : '1px solid var(--border)',
+                      borderLeft: borderLeft,
+                      boxShadow: msg.speaker === 'System' ? 'none' : '0 2px 8px rgba(0,0,0,0.04)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', marginBottom: '0.35rem', fontWeight: 700 }}>
+                        <span className="badge" style={{ padding: '0.15rem 0.45rem', fontSize: '0.62rem', background: badgeBg, color: badgeTextColor, border: msg.speaker === 'User' ? '1px solid var(--border)' : 'none' }}>
                           {label}
                         </span>
-                        {msg.latency_ms && <span style={{ fontFamily: 'monospace', opacity: 0.7 }}>({msg.latency_ms}ms)</span>}
+                        {msg.latency_ms && <span style={{ fontFamily: 'monospace', color: 'var(--text-secondary)', opacity: 0.8 }}>({msg.latency_ms}ms)</span>}
                       </div>
-                      <div style={{ fontWeight: msg.speaker === 'System' ? 600 : 500, lineHeight: '1.4', fontStyle: msg.speaker === 'System' ? 'italic' : 'normal' }}>{msg.text}</div>
+                      <div style={{ color: msgTextColor, fontWeight: msg.speaker === 'System' ? 600 : 500, fontSize: '0.92rem', lineHeight: '1.5', fontStyle: msg.speaker === 'System' ? 'italic' : 'normal' }}>
+                        {msg.text}
+                      </div>
                     </div>
                   </div>
                 );
