@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     SUMMARY_THRESHOLD: int = 100
     MAX_UPLOAD_SIZE_MB: int = 5
     VISION_MODEL: str = "llama-3.2-11b-vision-preview"
-    TEXT_MODEL: str = "llama-3.3-70b-versatile"
+    TEXT_MODEL: str = "qwen/qwen3.6-27b"
     STREAM_TIMEOUT_SEC: int = 15
     SUPPORTED_LANGUAGES: List[str] = [
         "Arabic", "Bengali", "Bulgarian", "Chinese (Simplified)", "Chinese (Traditional)",

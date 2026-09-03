@@ -23,6 +23,7 @@ def get_chat_response(messages: list, system_prompt: str = None, tools: list = N
     if not client:
         return "I apologize, but my conversational engine is currently offline. Please verify that your GROQ_API_KEY is correct in your configuration."
 
+    import re
     formatted_messages = []
     if system_prompt:
         formatted_messages.append({"role": "system", "content": system_prompt})
@@ -30,12 +31,20 @@ def get_chat_response(messages: list, system_prompt: str = None, tools: list = N
     # Append conversation log history
     formatted_messages.extend(messages)
 
-    models_to_try = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "mixtral-8x7b-32768",
-        "gemma2-9b-it"
+    primary = settings.TEXT_MODEL or "qwen/qwen3.6-27b"
+    raw_models = [
+        primary,
+        "qwen/qwen3.6-27b",
+        "qwen/qwen3.8-27b",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
     ]
+    seen = set()
+    models_to_try = []
+    for m in raw_models:
+        if m and m not in seen:
+            seen.add(m)
+            models_to_try.append(m)
 
     import groq
     
@@ -48,6 +57,8 @@ def get_chat_response(messages: list, system_prompt: str = None, tools: list = N
                 "temperature": 0.5,
                 "max_tokens": 1024,
             }
+            if "qwen" in model_name.lower():
+                kwargs["reasoning_format"] = "hidden"
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
@@ -56,7 +67,10 @@ def get_chat_response(messages: list, system_prompt: str = None, tools: list = N
             message = chat_completion.choices[0].message
             if getattr(message, "tool_calls", None):
                 return message
-            return message.content or ""
+            raw_content = message.content or ""
+            if "<think>" in raw_content:
+                raw_content = re.sub(r"<think>.*?</think>", "", raw_content, flags=re.DOTALL).strip()
+            return raw_content
         except groq.RateLimitError as e:
             logger.warning(f"Groq RateLimitError on {model_name}: {str(e)}")
             last_error = e
@@ -76,13 +90,17 @@ async def _stream_model_chunks(messages: list, model: str, request=None):
     Generator that streams a single Groq model response.
     Yields (is_content, data) tuples to help the caller track emission.
     """
-    chat_completion = await async_client.chat.completions.create(
-        messages=messages,
-        model=model,
-        temperature=0.5,
-        max_tokens=2048,
-        stream=True
-    )
+    kwargs = {
+        "messages": messages,
+        "model": model,
+        "temperature": 0.5,
+        "max_tokens": 2048,
+        "stream": True,
+    }
+    if "qwen" in model.lower():
+        kwargs["reasoning_format"] = "hidden"
+
+    chat_completion = await async_client.chat.completions.create(**kwargs)
     try:
         async for chunk in chat_completion:
             if request and await request.is_disconnected():
@@ -99,14 +117,14 @@ async def _stream_model_chunks(messages: list, model: str, request=None):
 
 async def stream_chat_response(messages: list, request=None):
     """
-    Query the Groq LLaMA model and stream back the response chunks using Server-Sent Events (SSE) format.
+    Query the Groq model and stream back the response chunks using Server-Sent Events (SSE) format.
     Includes targeted fallback to openai/gpt-oss-120b if the primary model fails before the first token.
     """
     if not async_client:
         yield f"data: {json.dumps({'error': 'AI core offline. Check GROQ_API_KEY.'})}\n\n"
         return
 
-    PRIMARY_MODEL = "llama-3.3-70b-versatile"
+    PRIMARY_MODEL = settings.TEXT_MODEL or "qwen/qwen3.6-27b"
     FALLBACK_MODEL = "openai/gpt-oss-120b"
     
     has_emitted_content = False

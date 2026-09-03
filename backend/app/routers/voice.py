@@ -53,8 +53,10 @@ def voice_turn(session_id: str, user_text: str, bot_name: str = "General", db: S
 
 @router.websocket("/ws/voice")
 async def websocket_voice_endpoint(websocket: WebSocket):
+    print("[VOICE] Client connecting")
     await websocket.accept()
-    print("WebSocket voice client connected.")
+    print("[VOICE] WebSocket accepted")
+    print("[VOICE] Session started")
     db = None
     try:
         if SessionLocal is not None:
@@ -64,57 +66,72 @@ async def websocket_voice_endpoint(websocket: WebSocket):
         db = None
     try:
         while True:
-            data_str = await websocket.receive_text()
-            data = json.loads(data_str)
-            
-            if data.get("type") == "text":
-                session_id = data.get("session_id", "unknown")
-                user_text = data.get("text", "")
-                bot_name = data.get("bot_name", "NaturalSpeechAuth")
+            try:
+                data_str = await websocket.receive_text()
+                print("[VOICE] Received message")
+                data = json.loads(data_str)
                 
-                # Save user transcript unless it's the initialization ping
-                is_init = (user_text == "[INITIALIZE_CALL]")
-                if db is not None and not is_init:
-                    try:
-                        crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="User", text=user_text))
-                    except Exception as e:
-                        print(f"Skipping DB save (Supabase down): {e}")
-                
-                start_time = datetime.now(timezone.utc).replace(tzinfo=None)
-                if is_init:
-                    user_text = "The user has just connected to the call. Please introduce yourself and ask how you can help."
-                
-                ai_response_dict = process_voice_turn(db, session_id, user_text, bot_name)
-                ai_response = ai_response_dict["text"]
-                detected_language = ai_response_dict["detected_language"]
-                ws_actions = ai_response_dict.get("ws_actions", [])
-                
-                latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
-                
-                # Save AI transcript (skip if DB unavailable)
-                if db is not None:
-                    try:
-                        crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="AI", text=ai_response, latency_ms=latency))
-                    except Exception:
-                        pass
-                
-                # Send tool execution actions first
-                for action in ws_actions:
-                    await websocket.send_json(action)
+                if data.get("type") == "text":
+                    session_id = data.get("session_id", "unknown")
+                    user_text = data.get("text", "")
+                    bot_name = data.get("bot_name", "NaturalSpeechAuth")
                     
-                response_payload = {
-                    "type": "text",
-                    "text": ai_response,
-                    "detected_language": detected_language,
-                    "latency_ms": latency,
-                    "audio_url": None
-                }
-                await websocket.send_json(response_payload)
-                
-    except WebSocketDisconnect:
-        print("WebSocket disconnected")
+                    # Save user transcript unless it's the initialization ping
+                    is_init = (user_text == "[INITIALIZE_CALL]")
+                    if db is not None and not is_init:
+                        try:
+                            crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="User", text=user_text))
+                        except Exception as e:
+                            print(f"Skipping DB save (Supabase down): {e}")
+                    
+                    start_time = datetime.now(timezone.utc).replace(tzinfo=None)
+                    if is_init:
+                        user_text = "The user has just connected to the call. Please introduce yourself and ask how you can help."
+                    
+                    ai_response_dict = process_voice_turn(db, session_id, user_text, bot_name)
+                    ai_response = ai_response_dict["text"]
+                    detected_language = ai_response_dict["detected_language"]
+                    ws_actions = ai_response_dict.get("ws_actions", [])
+                    
+                    latency = int((datetime.now(timezone.utc).replace(tzinfo=None) - start_time).total_seconds() * 1000)
+                    
+                    # Save AI transcript (skip if DB unavailable)
+                    if db is not None:
+                        try:
+                            crud.create_transcript(db, schemas.TranscriptCreate(session_id=session_id, speaker="AI", text=ai_response, latency_ms=latency))
+                        except Exception:
+                            pass
+                    
+                    # Send tool execution actions first
+                    for action in ws_actions:
+                        await websocket.send_json(action)
+                        
+                    response_payload = {
+                        "type": "text",
+                        "text": ai_response,
+                        "detected_language": detected_language,
+                        "latency_ms": latency,
+                        "audio_url": None
+                    }
+                    await websocket.send_json(response_payload)
+            except WebSocketDisconnect as e:
+                print(f"[VOICE] Client disconnected")
+                print(f"[VOICE] Disconnect code: {e.code}")
+                break
+            except Exception as e:
+                import traceback
+                print(f"[VOICE] Error: {e}")
+                traceback.print_exc()
+                try:
+                    await websocket.send_json({"type": "text", "text": "Sorry, I encountered an internal error processing that request."})
+                except:
+                    break
+    except WebSocketDisconnect as e:
+        print(f"[VOICE] Client disconnected")
+        print(f"[VOICE] Disconnect code: {e.code}")
     except Exception as e:
-        print(f"Error in websocket: {e}")
+        print(f"[VOICE] Error: {e}")
     finally:
         if db is not None:
             db.close()
+

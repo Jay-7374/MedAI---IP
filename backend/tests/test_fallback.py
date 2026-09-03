@@ -54,7 +54,7 @@ def test_fallback_on_429(client, test_user, block_external_llm_calls, auth_heade
     assert mock_fallback.call_count == 1
     
     primary_call_kwargs = mock_primary.call_args.kwargs
-    assert primary_call_kwargs["model"] == "llama-3.3-70b-versatile"
+    assert primary_call_kwargs["model"] in ("qwen/qwen3.6-27b", "llama-3.3-70b-versatile")
     fallback_call_kwargs = mock_fallback.call_args.kwargs
     assert fallback_call_kwargs["model"] == "openai/gpt-oss-120b"
     

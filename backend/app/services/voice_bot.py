@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from . import llm
 from .. import crud
+from .voice_tools import VOICE_TOOLS, execute_tool
 
 DEFAULT_PROMPTS = {
     "NaturalSpeechAuth": """You are ARIA — Salus's Natural Speech Authentication System. You verify patient identity before granting access to medical records or appointments.

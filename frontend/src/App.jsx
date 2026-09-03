@@ -395,6 +395,7 @@ export default function App() {
     rec.continuous = true;       // keep listening — don't cut off mid-sentence
     rec.interimResults = true;   // stream partial text as the user speaks
     rec.lang = SPEECH_LANGUAGE_MAP[currentVoiceLangRef.current] || 'en-US';
+    console.log("[VOICE] Microphone initialized");
 
     rec.onresult = (event) => {
       if (isSpeakingRef.current) return; // Prevent echo from stale recognition
@@ -437,7 +438,7 @@ export default function App() {
     };
 
     rec.onerror = (event) => {
-      console.warn("Speech recognition error:", event.error);
+      console.warn("[VOICE] Speech recognition error:", event.error);
       if (event.error === 'not-allowed') {
         showToast("Microphone permission denied. Please allow microphone access in your browser settings.", "danger");
         endCallSession();
@@ -569,9 +570,11 @@ export default function App() {
 
     // 2. Open WebSocket link
     const wsUrl = getWsUrl('/ws/voice');
+    console.log("[VOICE] Creating WebSocket to:", wsUrl);
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
+      console.log("[VOICE] WebSocket opened");
       setCallStatusSynced('Connected');
       showToast("Real-time voice bot link established.", "success");
       
@@ -602,6 +605,7 @@ export default function App() {
     };
 
     ws.onmessage = (event) => {
+      console.log("[VOICE] Message received", event.data);
       const data = JSON.parse(event.data);
       
       if (data.type === 'action') {
@@ -655,12 +659,14 @@ export default function App() {
       }
     };
 
-    ws.onerror = () => {
+    ws.onerror = (event) => {
+      console.log("[VOICE] WebSocket error", event);
       showToast("WebSocket connection error. Using offline voice simulator.", "warning");
       setCallStatusSynced('Connected');
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      console.log(`[VOICE] WebSocket closed - code: ${event.code} reason: ${event.reason}`);
       setCallStatusSynced('Idle');
       showToast("Call session ended.", "warning");
     };
@@ -670,6 +676,7 @@ export default function App() {
 
   // End Voice Bot session
   const endCallSession = () => {
+    console.log("[VOICE] WebSocket closing - reason: manual endCallSession");
     activeCallIdRef.current = ''; // Invalidate callbacks
     if (wsRef.current) {
       wsRef.current.close();

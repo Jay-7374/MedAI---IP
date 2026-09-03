@@ -50,14 +50,22 @@ def summarize_document(text: str, filename: str) -> str:
     
     user_prompt = f"Please provide a concise and clinically relevant summary of the following document named '{filename}':\n\n[UNTRUSTED DOCUMENT CONTENT START]\n{text}\n[UNTRUSTED DOCUMENT CONTENT END]"
     
-    response = client.chat.completions.create(
-        model=settings.TEXT_MODEL,
-        messages=[
+    kwargs = {
+        "model": settings.TEXT_MODEL,
+        "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        max_tokens=500,
-        temperature=0.3
-    )
+        "max_tokens": 500,
+        "temperature": 0.3
+    }
+    if "qwen" in settings.TEXT_MODEL.lower():
+        kwargs["reasoning_format"] = "hidden"
+        
+    response = client.chat.completions.create(**kwargs)
     
-    return response.choices[0].message.content.strip()
+    content = response.choices[0].message.content.strip()
+    if "<think>" in content:
+        import re
+        content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
+    return content

@@ -192,17 +192,24 @@ class ContextManagerService:
                 
             client = Groq(api_key=settings.GROQ_API_KEY)
             
-            response = client.chat.completions.create(
-                model=settings.TEXT_MODEL,
-                messages=[
+            kwargs = {
+                "model": settings.TEXT_MODEL,
+                "messages": [
                     {"role": "system", "content": sys_msg},
                     {"role": "user", "content": user_content}
                 ],
-                temperature=0.3,
-                max_tokens=1024,
-            )
+                "temperature": 0.3,
+                "max_tokens": 1024,
+            }
+            if "qwen" in settings.TEXT_MODEL.lower():
+                kwargs["reasoning_format"] = "hidden"
+                
+            response = client.chat.completions.create(**kwargs)
             
             new_summary = response.choices[0].message.content.strip()
+            if "<think>" in new_summary:
+                import re
+                new_summary = re.sub(r"<think>.*?</think>", "", new_summary, flags=re.DOTALL).strip()
             
             # Atomically update DB
             session.conversation_summary = new_summary
