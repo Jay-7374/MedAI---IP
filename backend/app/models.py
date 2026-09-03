@@ -34,11 +34,13 @@ class User(Base):
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"))
 
     role = relationship("Role", back_populates="users")
-    sessions = relationship("CallSession", back_populates="user")
+    sessions = relationship("CallSession", back_populates="user", cascade="all, delete-orphan")
+    chatbot_sessions = relationship("ChatbotSession", back_populates="user", cascade="all, delete-orphan")
 
-    patient_profile = relationship("Patient", back_populates="user", uselist=False)
-    doctor_profile = relationship("Doctor", back_populates="user", uselist=False)
+    patient_profile = relationship("Patient", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    doctor_profile = relationship("Doctor", back_populates="user", uselist=False, cascade="all, delete-orphan")
     health_metrics = relationship("HealthMetric", back_populates="user", cascade="all, delete-orphan")
+    medicines = relationship("Medicine", back_populates="user", cascade="all, delete-orphan")
 
 
 class Department(Base):
@@ -53,7 +55,7 @@ class Department(Base):
 class Doctor(Base):
     __tablename__ = "doctors"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     department_id = Column(Integer, ForeignKey("departments.id"))
     specialty = Column(String(100))
 
@@ -65,7 +67,7 @@ class Doctor(Base):
 class Patient(Base):
     __tablename__ = "patients"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     full_name = Column(String(150), nullable=True)
     dob = Column(Date, nullable=True)
     age = Column(Integer, nullable=True)
@@ -87,17 +89,17 @@ class Patient(Base):
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     user = relationship("User", back_populates="patient_profile")
-    appointments = relationship("Appointment", back_populates="patient")
-    medical_history = relationship("MedicalHistory", back_populates="patient")
-    prescriptions = relationship("Prescription", back_populates="patient")
-    lab_tests = relationship("LabTest", back_populates="patient")
-    medicines = relationship("Medicine", back_populates="patient")
+    appointments = relationship("Appointment", back_populates="patient", cascade="all, delete-orphan")
+    medical_history = relationship("MedicalHistory", back_populates="patient", cascade="all, delete-orphan")
+    prescriptions = relationship("Prescription", back_populates="patient", cascade="all, delete-orphan")
+    lab_tests = relationship("LabTest", back_populates="patient", cascade="all, delete-orphan")
+    medicines = relationship("Medicine", back_populates="patient", cascade="all, delete-orphan")
 
 class Medicine(Base):
     __tablename__ = "medicines"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    patient_id = Column(Integer, ForeignKey("patients.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"))
     medicine_name = Column(String(150), nullable=False)
     dosage = Column(String(100), nullable=False)
     frequency = Column(String(100), nullable=False)
@@ -109,14 +111,14 @@ class Medicine(Base):
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
-    user = relationship("User")
+    user = relationship("User", back_populates="medicines")
     patient = relationship("Patient", back_populates="medicines")
 
 
 class Appointment(Base):
     __tablename__ = "appointments"
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("patients.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"))
     doctor_id = Column(Integer, ForeignKey("doctors.id"))
     date = Column(Date)
     time = Column(Time)
@@ -130,7 +132,7 @@ class Appointment(Base):
 class MedicalHistory(Base):
     __tablename__ = "medical_history"
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("patients.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"))
     condition = Column(String(200))
     diagnosis_date = Column(Date)
     notes = Column(Text, nullable=True)
@@ -141,7 +143,7 @@ class MedicalHistory(Base):
 class Prescription(Base):
     __tablename__ = "prescriptions"
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("patients.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"))
     medication_name = Column(String(100))
     dosage = Column(String(50))
     frequency = Column(String(100))
@@ -155,7 +157,7 @@ class Prescription(Base):
 class LabTest(Base):
     __tablename__ = "lab_tests"
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("patients.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"))
     test_name = Column(String(100))
     date = Column(Date)
     result = Column(String(200), nullable=True)
@@ -168,7 +170,7 @@ class CallSession(Base):
     __tablename__ = "call_sessions"
 
     id = Column(String(100), primary_key=True, index=True)  # UUID or Call SID
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     channel = Column(String(50))  # 'WebRTC' or 'Telephony'
     status = Column(String(50), default="Active")
     started_at = Column(DateTime, default=utc_now)
@@ -212,7 +214,7 @@ class ChatbotSession(Base):
     __tablename__ = "chatbot_sessions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     title = Column(String(200), default="New Chat")
     language = Column(String(50), default="English")
     mode = Column(String(100), default="General Assistant")
@@ -221,7 +223,7 @@ class ChatbotSession(Base):
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
-    user = relationship("User")
+    user = relationship("User", back_populates="chatbot_sessions")
     messages = relationship("ChatbotMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatbotMessage.timestamp")
     documents = relationship("ChatbotDocument", back_populates="session", cascade="all, delete-orphan")
 
