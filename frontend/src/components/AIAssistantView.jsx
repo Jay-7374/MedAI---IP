@@ -23,9 +23,13 @@ export default function AIAssistantView({
   chatEndRef,
   wsRef,
   sessionId,
-  showToast
+  showToast,
+  activeAssistantMode,
+  setActiveAssistantMode
 }) {
-  const [activeMode, setActiveMode] = useState('chat'); // 'chat' or 'voice'
+  const [localMode, setLocalMode] = useState('voice');
+  const activeMode = activeAssistantMode || localMode;
+  const setActiveMode = setActiveAssistantMode || setLocalMode;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', minHeight: 0, minWidth: 0 }}>

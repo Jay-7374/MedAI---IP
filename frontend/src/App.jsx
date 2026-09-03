@@ -276,12 +276,16 @@ export default function App() {
     }
   };
 
-  const fetchProfile = async () => {
+  const [activeAssistantMode, setActiveAssistantMode] = useState('voice');
+
+  const fetchProfile = async (silent = false) => {
     if (!user || user?.role?.toLowerCase() !== 'patient') {
       setLoadingProfile(false);
       return;
     }
-    setLoadingProfile(true);
+    if (!silent && !patientProfile) {
+      setLoadingProfile(true);
+    }
     try {
       const res = await apiFetch('/api/patients/me');
       if (res.ok) {
@@ -293,7 +297,9 @@ export default function App() {
     } catch (err) {
       console.error("Failed to fetch patient profile", err);
     } finally {
-      setLoadingProfile(false);
+      if (!silent) {
+        setLoadingProfile(false);
+      }
     }
   };
 
@@ -648,7 +654,7 @@ export default function App() {
           setTranscripts(prev => [...prev, { speaker: 'System', text: `Executing ${data.name}...` }]);
           showToast(`Agent running function: ${data.name}...`, 'info');
         } else if (data.action === 'refresh_data') {
-          fetchProfile();
+          fetchProfile(true);
           fetchAppointments();
           fetchMedicines();
         } else if (data.action === 'navigate') {
@@ -1138,6 +1144,8 @@ export default function App() {
                 wsRef={wsRef}
                 sessionId={sessionId}
                 showToast={showToast}
+                activeAssistantMode={activeAssistantMode}
+                setActiveAssistantMode={setActiveAssistantMode}
               />
             )}
 
