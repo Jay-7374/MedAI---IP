@@ -395,7 +395,8 @@ export default function App() {
     rec.continuous = true;       // keep listening — don't cut off mid-sentence
     rec.interimResults = true;   // stream partial text as the user speaks
     rec.lang = SPEECH_LANGUAGE_MAP[currentVoiceLangRef.current] || 'en-US';
-    console.log("[VOICE] Microphone initialized");
+    console.log("[VOICE] Starting SpeechRecognition");
+    console.log("[VOICE] SpeechRecognition started");
 
     rec.onresult = (event) => {
       if (isSpeakingRef.current) return; // Prevent echo from stale recognition
@@ -420,11 +421,14 @@ export default function App() {
 
       // When a final result arrives, commit it to the transcript and send to bot
       if (finalText.trim()) {
+        console.log(`[VOICE] Transcript received: ${finalText.trim()}`);
         setInterimText('');
         setConsecutiveErrors(0);
         consecutiveErrorsRef.current = 0;
         setTranscripts(prev => [...prev, { speaker: 'User', text: finalText.trim() }]);
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          console.log(`[VOICE] Sending transcript to backend: ${finalText.trim()}`);
+          console.log(`[VOICE] WebSocket readyState: ${wsRef.current.readyState}`);
           wsRef.current.send(JSON.stringify({
             type: 'text',
             session_id: sessionIdRef.current,
@@ -433,6 +437,9 @@ export default function App() {
             simulate_db_timeout: simulateDbTimeoutRef.current,
             consecutive_errors: 0
           }));
+          console.log("[VOICE] Message successfully sent");
+        } else {
+          console.log(`[VOICE] Failed to send: WebSocket readyState is ${wsRef.current ? wsRef.current.readyState : 'null'}`);
         }
       }
     };
@@ -468,9 +475,13 @@ export default function App() {
     };
 
     rec.onend = () => {
+      console.log("[VOICE] Speech recognition ended");
       if (callStatusRef.current === 'Connected' && !isSpeakingRef.current &&
           !sipTransferActiveRef.current && !telemedicineActiveRef.current) {
-        try { rec.start(); } catch(e) {}
+        try { 
+            console.log("[VOICE] Restarting SpeechRecognition");
+            rec.start(); 
+        } catch(e) {}
       }
     };
 
@@ -487,6 +498,8 @@ export default function App() {
 
   // Trigger web speech synthesis
   const speakTextOutLoud = (text, audioUrl = null, language = 'English') => {
+    console.log("[VOICE] Starting Text-to-Speech");
+    console.log(`[VOICE] Speaking: ${text}`);
     isSpeakingRef.current = true;
     setIsSpeaking(true);
     setInterimText(''); // clear any partial transcription
@@ -497,6 +510,7 @@ export default function App() {
     }
 
     const onAudioEnd = () => {
+      console.log("[VOICE] Text-to-Speech finished");
       if (activeCallIdRef.current !== sessionIdRef.current) return; // Prevent stale restarts
       isSpeakingRef.current = false;
       setIsSpeaking(false);
@@ -510,7 +524,10 @@ export default function App() {
       } else if (callStatusRef.current === 'Connected' && recognitionRef.current) {
         // Prevent stale async from restarting if we ended session
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          try { recognitionRef.current.start(); } catch(e) {}
+          try { 
+            console.log("[VOICE] Restarting SpeechRecognition");
+            recognitionRef.current.start(); 
+          } catch(e) {}
         }
       }
     };
@@ -569,12 +586,14 @@ export default function App() {
     }
 
     // 2. Open WebSocket link
+    console.log("[VOICE] Portal clicked");
+    console.log("[VOICE] WebSocket connecting");
     const wsUrl = getWsUrl('/ws/voice');
     console.log("[VOICE] Creating WebSocket to:", wsUrl);
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log("[VOICE] WebSocket opened");
+      console.log("[VOICE] WebSocket connected");
       setCallStatusSynced('Connected');
       showToast("Real-time voice bot link established.", "success");
       
@@ -614,8 +633,14 @@ export default function App() {
     };
 
     ws.onmessage = (event) => {
-      console.log("[VOICE] Message received", event.data);
-      const data = JSON.parse(event.data);
+      console.log(`[VOICE] Backend message received: ${event.data}`);
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch (err) {
+        console.error("[VOICE] JSON parsing error:", err);
+        return;
+      }
       
       if (data.type === 'action') {
         if (data.action === 'tool_executed') {
@@ -641,6 +666,8 @@ export default function App() {
       }
       
       if (data.text) {
+        console.log(`[VOICE] AI response extracted: ${data.text}`);
+        console.log("[VOICE] Updating conversation timeline");
         setTranscripts(prev => [...prev, { speaker: 'AI', text: data.text, latency_ms: data.latency_ms }]);
         
         // Handle triggers before speaking to prepare state transitions

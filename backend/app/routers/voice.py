@@ -55,7 +55,7 @@ def voice_turn(session_id: str, user_text: str, bot_name: str = "General", db: S
 async def websocket_voice_endpoint(websocket: WebSocket):
     print("[VOICE] Client connecting")
     await websocket.accept()
-    print("[VOICE] WebSocket accepted")
+    print("[VOICE] WebSocket connection accepted")
     print("[VOICE] Session started")
     db = None
     try:
@@ -68,13 +68,17 @@ async def websocket_voice_endpoint(websocket: WebSocket):
         while True:
             try:
                 data_str = await websocket.receive_text()
-                print("[VOICE] Received message")
+                print("[VOICE] Incoming message received")
+                print(f"[VOICE] Raw message: {data_str}")
                 data = json.loads(data_str)
                 
+                print(f"[VOICE] Parsed message type: {data.get('type')}")
                 if data.get("type") == "text":
                     session_id = data.get("session_id", "unknown")
                     user_text = data.get("text", "")
                     bot_name = data.get("bot_name", "NaturalSpeechAuth")
+                    
+                    print(f"[VOICE] User transcript: {user_text}")
                     
                     # Save user transcript unless it's the initialization ping
                     is_init = (user_text == "[INITIALIZE_CALL]")
@@ -113,7 +117,9 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                         "latency_ms": latency,
                         "audio_url": None
                     }
+                    print("[VOICE] Sending response through WebSocket")
                     await websocket.send_json(response_payload)
+                    print("[VOICE] Response successfully sent")
             except WebSocketDisconnect as e:
                 print(f"[VOICE] Client disconnected")
                 print(f"[VOICE] Disconnect code: {e.code}")

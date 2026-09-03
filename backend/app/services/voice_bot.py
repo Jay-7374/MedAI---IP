@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from . import llm
 from .. import crud
 from .voice_tools import VOICE_TOOLS, execute_tool
+import json
 
 DEFAULT_PROMPTS = {
     "NaturalSpeechAuth": """You are ARIA — Salus's Natural Speech Authentication System. You verify patient identity before granting access to medical records or appointments.
@@ -264,7 +265,16 @@ def process_voice_turn(
 
     messages.append({"role": "user", "content": user_text})
 
-    ai_response = llm.get_chat_response(messages, system_prompt=system_prompt, tools=VOICE_TOOLS)
+    print(f"[VOICE] Sending message to AI (messages count: {len(messages)})")
+    try:
+        ai_response = llm.get_chat_response(messages, system_prompt=system_prompt, tools=VOICE_TOOLS)
+        print("[VOICE] AI request successful")
+        print(f"[VOICE] Raw AI response received: {ai_response}")
+    except Exception as e:
+        print(f"[VOICE] Error during AI request: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
     # Handle Tool Calling loop
     if hasattr(ai_response, 'tool_calls') and ai_response.tool_calls:
@@ -300,7 +310,16 @@ def process_voice_turn(
             ws_actions.append({"type": "action", "action": "tool_executed", "name": func_name, "args": args})
 
         # Call again after tool execution
-        ai_response = llm.get_chat_response(messages, system_prompt=system_prompt)
+        print(f"[VOICE] Sending tool results to AI: {ws_actions}")
+        try:
+            ai_response = llm.get_chat_response(messages, system_prompt=system_prompt)
+            print("[VOICE] Secondary AI request successful")
+            print(f"[VOICE] Raw AI response received: {ai_response}")
+        except Exception as e:
+            print(f"[VOICE] Error during secondary AI request: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
         
     if hasattr(ai_response, 'content'):
         ai_response = ai_response.content
@@ -315,6 +334,7 @@ def process_voice_turn(
 
     # Sanitize markdown formatting from TTS
     ai_response = str(ai_response).replace("*", "").replace("#", "").replace("_", "")
+    print(f"[VOICE] Extracted AI response: {ai_response}")
 
     return {
         "text": ai_response,
