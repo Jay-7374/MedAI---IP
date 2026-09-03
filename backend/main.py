@@ -110,10 +110,17 @@ def startup_db_seeding():
                     db.add(models.Role(**r))
             db.commit()
 
-            # Seed Prompts
+            # Seed Prompts for Chatbot Modes and Voice Bots
             db.query(models.PromptTemplate).delete()
             db.commit()
+            from app.prompts.modes import MODES
+            all_prompts_to_seed = {}
+            for mode_name, mode_data in MODES.items():
+                all_prompts_to_seed[mode_name] = mode_data["system_prompt"]
             for bot_name, system_prompt in DEFAULT_PROMPTS.items():
+                all_prompts_to_seed[bot_name] = system_prompt
+
+            for bot_name, system_prompt in all_prompts_to_seed.items():
                 crud.create_or_update_prompt_template(
                     db,
                     schemas.PromptTemplateCreate(
