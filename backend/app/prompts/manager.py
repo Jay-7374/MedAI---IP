@@ -1,4 +1,4 @@
-from .modes import MODES
+from .modes import MODES, BASE_MEDICAL_SAFETY_PROMPT
 
 class PromptManager:
     @staticmethod
@@ -8,7 +8,10 @@ class PromptManager:
         Falls back to 'General Assistant' if the mode is not found.
         """
         mode_data = MODES.get(mode, MODES.get("General Assistant"))
-        return mode_data.get("system_prompt", "")
+        prompt = mode_data.get("system_prompt", "")
+        if "CONCISENESS RULES" not in prompt:
+            prompt += BASE_MEDICAL_SAFETY_PROMPT
+        return prompt
     
     @staticmethod
     def get_available_modes() -> list[str]:
@@ -16,3 +19,4 @@ class PromptManager:
         return list(MODES.keys())
 
 prompt_manager = PromptManager()
+

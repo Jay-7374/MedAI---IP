@@ -238,9 +238,11 @@ def process_voice_turn(
 
     # Add core instruction for all personas
     system_prompt += (
-        "\n\nCRITICAL INSTRUCTION: Your output will be spoken out loud via Text-to-Speech over a phone call. "
-        "Speak like a real human. Use conversational filler words occasionally (e.g., 'Umm', 'ah', 'well', 'you know'). Keep it extremely casual and natural. "
-        "DO NOT output markdown, bold text, lists, or asterisks. Respond in a single short conversational sentence or two at most.\n"
+        "\n\nCRITICAL CONCISENESS & VOICE INSTRUCTION: Your output will be spoken out loud via Text-to-Speech over a phone call. "
+        "Keep your response strictly short, concise, and direct — 1 to 2 short sentences maximum. "
+        "Provide useful information only without fluff, long preambles, unnecessary greetings, or repetitive multi-choice questions. "
+        "Speak like a real human. Use conversational filler words occasionally (e.g., 'Umm', 'ah', 'well', 'you know'). Keep it casual and natural. "
+        "DO NOT output markdown, bold text, lists, or asterisks.\n"
         "MULTILINGUAL INSTRUCTION: You must automatically detect the language of the user's input (even if it is phonetically spelled). "
         "You MUST ALWAYS respond in the exact same language the user spoke. "
         "You MUST strictly prefix your entire response with [LANG:LanguageName] where LanguageName is capitalized (e.g., [LANG:English], [LANG:Telugu], [LANG:Hindi]). "
